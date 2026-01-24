@@ -15,7 +15,10 @@
     "utils": "@/lib/utils",
     "ui": "@/components/ui",
     "lib": "@/lib",
-    "composables": "@/composables"
+    "composables": "@/composables",
+    "types": "@/types",
+    "config": "@/config",
+    "constants": "@/constants"
   },
   "registries": {}
 }

@@ -2,7 +2,6 @@ import { globalIgnores } from 'eslint/config'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import pluginVue from 'eslint-plugin-vue'
 import pluginPlaywright from 'eslint-plugin-playwright'
-import pluginVitest from '@vitest/eslint-plugin'
 import skipFormatting from 'eslint-config-prettier/flat'
 import pluginOxlint from 'eslint-plugin-oxlint'
 
@@ -27,12 +26,16 @@ export default defineConfigWithVueTs(
     files: ['e2e/**/*.{test,spec}.{js,ts,jsx,tsx}'],
   },
 
-  {
-    ...pluginVitest.configs.recommended,
-    files: ['src/**/__tests__/*'],
-  },
-
   skipFormatting,
+
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off", // 允许使用 any
+      "@typescript-eslint/no-empty-function": "off", // 允许空函数
+      "@typescript-eslint/no-empty-object-type": "off", // 允许空对象类型
+      "@typescript-eslint/no-unused-vars": "off", // 使用 no-unused-vars 规则
+    },
+  },
 
   ...pluginOxlint.configs['flat/recommended'],
 )
