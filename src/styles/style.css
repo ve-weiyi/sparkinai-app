@@ -120,8 +120,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-/* Sidebar collapsed width */
-[data-collapsible="icon"] {
-  --sidebar-width: var(--sidebar-width-icon);
-}

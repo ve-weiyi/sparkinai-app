@@ -18,6 +18,7 @@ declare module 'vue-router' {
 // App route components (lazy loaded)
 const DashboardPage = () => import('@/views/app/dashboard/index.vue')
 const ImageGenerationPage = () => import('@/views/app/image-generation/index.vue')
+const ProductImagesGenerationPage = () => import('@/views/app/product-images-generation/index.vue')
 const VideoGenerationPage = () => import('@/views/app/video-generation/index.vue')
 const VideoGenerationRecordsPage = () => import('@/views/app/video-generation/records.vue')
 const VideoAnalysisPage = () => import('@/views/app/video-analysis/index.vue')
@@ -33,6 +34,15 @@ export const menuConfig: RouteRecordRaw[] = [
     component: ImageGenerationPage,
     meta: {
       title: '图片生成',
+      icon: Image,
+    },
+  },
+  {
+    path: 'product-images-generation',
+    name: 'product-images-generation',
+    component: ProductImagesGenerationPage,
+    meta: {
+      title: '商品套图',
       icon: Image,
     },
   },
