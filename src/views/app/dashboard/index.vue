@@ -1,16 +1,58 @@
 <script setup lang="ts">
 import { useVideos } from '@/composables/useVideos.ts'
+import { useUserData } from '@/composables/useUserData.ts'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Heart, Play, Eye, Upload, Video, Mic, Sparkles, Image as ImageIcon, Send, Link, FileText, TrendingUp, Wand2, ArrowUp } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { Heart, Play, Eye, Upload, Video, Mic, Sparkles, Image as ImageIcon, Send, Link, FileText, TrendingUp, Wand2, ArrowUp, Loader2 } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 const { videos } = useVideos()
+const { currentUser } = useUserData()
+const router = useRouter()
 
 const activeTab = ref('视频生成')
 const promptText = ref('')
 const quickAction = ref('')
+const isGenerating = ref(false)
+const fileInput = ref<HTMLInputElement>()
+
+const handleFileUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.files?.[0]) {
+    promptText.value = `已上传文件: ${target.files[0].name}\n\n` + promptText.value
+  }
+}
+
+const handleAddLink = () => {
+  const link = prompt('请输入视频链接（支持 TikTok、抖音等）')
+  if (link) {
+    promptText.value = `视频链接: ${link}\n\n` + promptText.value
+  }
+}
+
+const handleGenerate = async () => {
+  if (!promptText.value.trim()) return
+  
+  isGenerating.value = true
+  await new Promise(resolve => setTimeout(resolve, 2000))
+  
+  isGenerating.value = false
+  const targetRoute = activeTab.value === '视频分析' ? '/app/video-analysis' : '/app/video-generation'
+  promptText.value = ''
+  router.push(targetRoute)
+}
+
+const handleQuickActionClick = (action: string) => {
+  quickAction.value = action
+  const prompts: Record<string, string> = {
+    analyze: '请帮我分析这个视频的脚本结构、镜头语言和文案风格',
+    remake: '请帮我复刻这个爆款视频，保持相同的风格和节奏',
+    create: '请根据这个视频的风格，帮我创作一个新的爆款视频'
+  }
+  promptText.value = prompts[action] || ''
+}
 </script>
 
 <template>
@@ -48,7 +90,7 @@ const quickAction = ref('')
                 size="sm"
                 class="rounded-full gap-2"
                 :class="{ 'border-green-600 text-green-600 bg-green-50': quickAction === 'analyze' }"
-                @click="quickAction = 'analyze'"
+                @click="handleQuickActionClick('analyze')"
               >
                 <FileText class="w-4 h-4" />
                 分析脚本
@@ -58,7 +100,7 @@ const quickAction = ref('')
                 size="sm"
                 class="rounded-full gap-2"
                 :class="{ 'border-orange-600 text-orange-600 bg-orange-50': quickAction === 'remake' }"
-                @click="quickAction = 'remake'"
+                @click="handleQuickActionClick('remake')"
               >
                 <TrendingUp class="w-4 h-4" />
                 复刻爆款
@@ -68,7 +110,7 @@ const quickAction = ref('')
                 size="sm"
                 class="rounded-full gap-2"
                 :class="{ 'border-blue-600 text-blue-600 bg-blue-50': quickAction === 'create' }"
-                @click="quickAction = 'create'"
+                @click="handleQuickActionClick('create')"
               >
                 <Wand2 class="w-4 h-4" />
                 创作爆款
@@ -87,18 +129,20 @@ const quickAction = ref('')
 
             <div class="flex items-center justify-between pt-4 border-t">
               <div class="flex items-center gap-2">
-                <Button variant="ghost" size="sm" class="gap-2">
+                <Button variant="ghost" size="sm" class="gap-2" @click="fileInput?.click()">
                   <Upload class="w-4 h-4" />
                   上传视频
                 </Button>
-                <Button variant="ghost" size="sm" class="gap-2">
+                <input ref="fileInput" type="file" accept="video/*" class="hidden" @change="handleFileUpload" />
+                <Button variant="ghost" size="sm" class="gap-2" @click="handleAddLink">
                   <Link class="w-4 h-4" />
                   添加链接
                 </Button>
               </div>
 
-              <Button size="sm" class="rounded-full w-10 h-10 p-0">
-                <ArrowUp class="w-4 h-4" />
+              <Button size="sm" class="rounded-full w-10 h-10 p-0" :disabled="!promptText.trim() || isGenerating" @click="handleGenerate">
+                <Loader2 v-if="isGenerating" class="w-4 h-4 animate-spin" />
+                <ArrowUp v-else class="w-4 h-4" />
               </Button>
             </div>
           </template>
@@ -122,10 +166,11 @@ const quickAction = ref('')
 
             <div class="flex items-center justify-between pt-4 border-t">
               <div class="flex items-center gap-2">
-                <Button variant="ghost" size="sm" class="gap-2">
+                <Button variant="ghost" size="sm" class="gap-2" @click="fileInput?.click()">
                   <Upload class="w-4 h-4" />
                   文件
                 </Button>
+                <input ref="fileInput" type="file" accept="video/*,image/*" class="hidden" @change="handleFileUpload" />
                 <Button variant="ghost" size="sm" class="gap-2">
                   <Video class="w-4 h-4" />
                   视频 / 图像
@@ -145,9 +190,10 @@ const quickAction = ref('')
               </div>
 
               <div class="flex items-center gap-2">
-                <span class="text-sm text-muted-foreground">0/10000</span>
-                <Button size="sm" class="rounded-full w-8 h-8 p-0">
-                  <Send class="w-4 h-4" />
+                <span class="text-sm text-muted-foreground">{{ promptText.length }}/10000</span>
+                <Button size="sm" class="rounded-full w-8 h-8 p-0" :disabled="!promptText.trim() || isGenerating" @click="handleGenerate">
+                  <Loader2 v-if="isGenerating" class="w-4 h-4 animate-spin" />
+                  <Send v-else class="w-4 h-4" />
                 </Button>
               </div>
             </div>

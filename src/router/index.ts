@@ -10,6 +10,9 @@ import VideoGenerationRecordsPage from '@/views/app/video-generation/records.vue
 import ImageGenerationPage from '@/views/app/image-generation/index.vue'
 import UserCenterPage from '@/views/app/user-center/index.vue'
 import PricingPage from '@/views/pricing/index.vue'
+import PaymentCheckoutPage from '@/views/payment/checkout.vue'
+import PaymentProcessPage from '@/views/payment/process.vue'
+import PaymentResultPage from '@/views/payment/result.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,6 +72,21 @@ const router = createRouter({
       path: '/pricing',
       name: 'pricing',
       component: PricingPage,
+    },
+    {
+      path: '/payment/checkout',
+      name: 'payment-checkout',
+      component: PaymentCheckoutPage,
+    },
+    {
+      path: '/payment/process',
+      name: 'payment-process',
+      component: PaymentProcessPage,
+    },
+    {
+      path: '/payment/result',
+      name: 'payment-result',
+      component: PaymentResultPage,
     },
   ],
 })

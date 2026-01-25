@@ -1,17 +1,33 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Check, ArrowLeft } from 'lucide-vue-next'
 
 const router = useRouter()
 
-const currency = ref('CNY')
+const currency = ref<'CNY' | 'USD'>('CNY')
+const selectedPlan = ref<string | null>(null)
 
-const plans = [
+const handlePurchase = (plan: any) => {
+  if (plan.priceCNY === 0) {
+    router.push('/app/dashboard')
+  } else {
+    router.push({
+      path: '/payment/checkout',
+      query: {
+        plan: plan.name,
+        price: currency.value === 'CNY' ? plan.priceCNY : plan.priceUSD
+      }
+    })
+  }
+}
+
+const basePlans = [
   {
     name: '免费版',
-    price: 0,
+    priceCNY: 0,
+    priceUSD: 0,
     description: '适合试用 CreatOK',
     features: [
       '6 个积分',
@@ -28,9 +44,10 @@ const plans = [
   },
   {
     name: '专业版',
-    price: 249,
-    originalPrice: 599,
-    discount: '立省 ¥350',
+    priceCNY: 249,
+    priceUSD: 35,
+    originalPriceCNY: 599,
+    originalPriceUSD: 85,
     badge: '最受欢迎',
     highlight: true,
     description: '适合专业团队和工作室',
@@ -51,9 +68,10 @@ const plans = [
   },
   {
     name: '基础版',
-    price: 49,
-    originalPrice: 99,
-    discount: '立省 ¥50',
+    priceCNY: 49,
+    priceUSD: 7,
+    originalPriceCNY: 99,
+    originalPriceUSD: 14,
     badge: '早鸟优惠',
     description: '适合个人创作者',
     features: [
@@ -72,6 +90,23 @@ const plans = [
     buttonVariant: 'default' as const
   }
 ]
+
+const plans = computed(() => {
+  return basePlans.map(plan => {
+    const price = currency.value === 'CNY' ? plan.priceCNY : plan.priceUSD
+    const originalPrice = currency.value === 'CNY' ? plan.originalPriceCNY : plan.originalPriceUSD
+    const symbol = currency.value === 'CNY' ? '¥' : '$'
+    const discount = originalPrice ? `立省 ${symbol}${originalPrice - price}` : undefined
+    
+    return {
+      ...plan,
+      price,
+      originalPrice,
+      symbol,
+      discount
+    }
+  })
+})
 </script>
 
 <template>
@@ -89,6 +124,7 @@ const plans = [
         <p class="text-lg text-muted-foreground mb-6">选择适合你创作工作流的计划，随时升级或降级。</p>
         <select v-model="currency" class="border rounded-md px-4 py-2 text-sm">
           <option value="CNY">人民币 (CNY)</option>
+          <option value="USD">美元 (USD)</option>
         </select>
       </div>
 
@@ -97,9 +133,10 @@ const plans = [
           v-for="plan in plans"
           :key="plan.name"
           :class="[
-            'rounded-lg border p-8 relative',
-            plan.highlight ? 'border-primary shadow-lg' : ''
+            'rounded-lg border p-8 relative cursor-pointer transition-all',
+            selectedPlan === plan.name ? 'ring-2 ring-primary border-primary' : ''
           ]"
+          @click="selectedPlan = plan.name"
         >
           <div v-if="plan.badge" class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-medium">
             {{ plan.badge }}
@@ -109,16 +146,20 @@ const plans = [
             <h3 class="text-2xl font-bold mb-2">{{ plan.name }}</h3>
             <p class="text-sm text-muted-foreground mb-4">{{ plan.description }}</p>
             <div class="flex items-baseline gap-2">
-              <span class="text-4xl font-bold">¥{{ plan.price }}</span>
-              <span v-if="plan.originalPrice" class="text-lg text-muted-foreground line-through">¥{{ plan.originalPrice }}</span>
+              <span class="text-4xl font-bold">{{ plan.symbol }}{{ plan.price }}</span>
+              <span v-if="plan.originalPrice" class="text-lg text-muted-foreground line-through">{{ plan.symbol }}{{ plan.originalPrice }}</span>
             </div>
             <div v-if="plan.discount" class="inline-block mt-2 bg-green-50 text-green-600 px-2 py-1 rounded text-sm font-medium">
               {{ plan.discount }}
             </div>
-            <div v-if="plan.price > 0" class="text-sm text-muted-foreground mt-1">¥{{ plan.originalPrice || plan.price }}/月</div>
+            <div v-if="plan.price > 0" class="text-sm text-muted-foreground mt-1">{{ plan.symbol }}{{ plan.originalPrice || plan.price }}/月</div>
           </div>
 
-          <Button :variant="plan.buttonVariant" class="w-full mb-6">
+          <Button
+            :variant="plan.buttonVariant"
+            class="w-full mb-6"
+            @click="handlePurchase(plan)"
+          >
             {{ plan.buttonText }}
           </Button>
 

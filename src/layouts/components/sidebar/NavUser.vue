@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   ChevronRight,
@@ -8,6 +9,8 @@ import {
   Heart,
   Languages,
   LogOut,
+  Monitor,
+  Moon,
   ShoppingCart,
   Sparkles,
   Sun,
@@ -21,6 +24,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu'
 import {
   SidebarMenu,
@@ -42,6 +48,28 @@ const props = defineProps<{
 
 const { isMobile } = useSidebar()
 const router = useRouter()
+
+const theme = ref<'light' | 'dark' | 'system'>('system')
+
+onMounted(() => {
+  theme.value = (localStorage.getItem('theme') as 'light' | 'dark' | 'system') || 'system'
+  applyTheme()
+})
+
+const applyTheme = () => {
+  if (theme.value === 'system') {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    document.documentElement.classList.toggle('dark', isDark)
+  } else {
+    document.documentElement.classList.toggle('dark', theme.value === 'dark')
+  }
+}
+
+const setTheme = (newTheme: 'light' | 'dark' | 'system') => {
+  theme.value = newTheme
+  localStorage.setItem('theme', newTheme)
+  applyTheme()
+}
 
 const handleLogout = () => {
   localStorage.clear()
@@ -75,21 +103,21 @@ const handleLogout = () => {
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          class="w-[230px] rounded-lg p-3"
+          class="w-[230px] rounded-lg p-3 overflow-hidden"
           :side="isMobile ? 'bottom' : 'right'"
           align="end"
           :side-offset="4"
         >
-          <div class="flex items-center gap-2 px-1 py-2">
-            <Avatar class="h-9 w-9 rounded-lg">
+          <div class="flex items-center gap-2 px-1 py-2 min-w-0">
+            <Avatar class="h-9 w-9 rounded-lg flex-shrink-0">
               <AvatarImage :src="user.avatar" :alt="user.name" />
               <AvatarFallback class="rounded-lg bg-green-600 text-white">
                 {{ user.name[0] }}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <p class="font-semibold text-sm">{{ user.name }}</p>
-              <p class="text-xs text-muted-foreground">{{ user.email }}</p>
+            <div class="min-w-0 flex-1">
+              <p class="font-semibold text-sm truncate">{{ user.name }}</p>
+              <p class="text-xs text-muted-foreground truncate">{{ user.email }}</p>
             </div>
           </div>
 
@@ -140,17 +168,41 @@ const handleLogout = () => {
 
           <DropdownMenuSeparator class="my-2" />
 
-          <DropdownMenuItem class="py-1 px-1">
-            <Languages class="w-4 h-4 mr-2" />
-            <span class="text-sm">语言</span>
-            <ChevronRight class="w-3.5 h-3.5 text-muted-foreground ml-auto" />
-          </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger class="py-1 px-1">
+              <Languages class="w-4 h-4 mr-4" />
+              <span class="text-sm">语言</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem class="py-1 px-1">
+                <span class="text-sm">简体中文</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem class="py-1 px-1">
+                <span class="text-sm">English</span>
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
 
-          <DropdownMenuItem class="py-1 px-1">
-            <Sun class="w-4 h-4 mr-2" />
-            <span class="text-sm">主题</span>
-            <ChevronRight class="w-3.5 h-3.5 text-muted-foreground ml-auto" />
-          </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger class="py-1 px-1">
+              <Sun class="w-4 h-4 mr-4" />
+              <span class="text-sm">主题</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem class="py-1 px-1" @click="setTheme('light')">
+                <Sun class="w-4 h-4 mr-2" />
+                <span class="text-sm">浅色</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem class="py-1 px-1" @click="setTheme('dark')">
+                <Moon class="w-4 h-4 mr-2" />
+                <span class="text-sm">深色</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem class="py-1 px-1" @click="setTheme('system')">
+                <Monitor class="w-4 h-4 mr-2" />
+                <span class="text-sm">系统</span>
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
 
           <DropdownMenuSeparator class="my-2" />
 
@@ -163,3 +215,5 @@ const handleLogout = () => {
     </SidebarMenuItem>
   </SidebarMenu>
 </template>
+
+
