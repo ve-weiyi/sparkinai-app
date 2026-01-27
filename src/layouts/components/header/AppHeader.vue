@@ -2,7 +2,14 @@
 import { computed } from 'vue'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbPage, BreadcrumbLink, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbPage,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 import { RouterLink, useRoute } from 'vue-router'
 import { HelpCircle, MessageSquare, Crown, Sparkles, Zap } from 'lucide-vue-next'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -12,34 +19,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useUserData } from '@/composables/useUserData'
+import { getRouteByPath } from '@/router/routes.ts'
 
 const route = useRoute()
 const { currentUser, creditOptions } = useUserData()
 
 const breadcrumbs = computed(() => {
-  const routeMap: Record<string, { title: string; parent?: string }> = {
-    '/app/dashboard': { title: '首页' },
-    '/app/video-analysis': { title: '视频分析', parent: '首页' },
-    '/app/video-generation': { title: 'Sora 2 爆款复刻', parent: '视频生成' },
-    '/app/video-generation/records': { title: '生成记录', parent: '首页' },
-    '/app/image-generation': { title: 'AI商品套图', parent: '图片生成' },
-    '/app/user-center': { title: '用户中心', parent: '首页' },
-  }
+  const result = getRouteByPath(route.path)
+  if (!result) return []
 
-  const current = routeMap[route.path]
-  if (!current) return [{ title: 'AI 创作工具', isHome: true, path: '/app/dashboard' }]
+  const items: Array<{ title: string; path: string; isCurrent?: boolean }> = []
 
-  const items: Array<{ title: string; path: string; isHome?: boolean; isCurrent?: boolean }> = [
-    { title: '首页', path: '/app/dashboard', isHome: true }
-  ]
-
-  if (current.parent) {
-    items.push({ title: current.parent, path: route.path })
-  }
-
-  if (route.path !== '/app/dashboard') {
-    items.push({ title: current.title, path: route.path, isCurrent: true })
-  }
+  items.push({ title: result.route.meta?.title || '', path: route.path, isCurrent: true })
 
   return items
 })
@@ -79,7 +70,11 @@ const breadcrumbs = computed(() => {
         <DropdownMenuContent align="end" class="w-[300px] p-6">
           <div class="text-center space-y-4">
             <div class="w-48 h-48 mx-auto bg-muted rounded-lg flex items-center justify-center">
-              <img src="https://placehold.co/200x200/png?text=QR+Code" alt="微信二维码" class="w-full h-full" />
+              <img
+                src="https://placehold.co/200x200/png?text=QR+Code"
+                alt="微信二维码"
+                class="w-full h-full"
+              />
             </div>
             <div>
               <h3 class="text-lg font-semibold mb-1">微信扫码</h3>
@@ -88,7 +83,12 @@ const breadcrumbs = computed(() => {
           </div>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button variant="ghost" size="sm" class="gap-1 text-orange-600 hover:text-orange-700" as-child>
+      <Button
+        variant="ghost"
+        size="sm"
+        class="gap-1 text-orange-600 hover:text-orange-700"
+        as-child
+      >
         <RouterLink to="/pricing">
           <Crown class="h-4 w-4" />
           升级
@@ -111,7 +111,9 @@ const breadcrumbs = computed(() => {
             <div class="bg-muted/50 rounded-lg p-4">
               <div class="h-2 bg-muted rounded-full mb-3" />
               <div class="flex items-center justify-between mb-4">
-                <span class="text-sm font-medium">{{ currentUser?.credits || 0 }}/{{ currentUser?.credits || 6 }} 积分</span>
+                <span class="text-sm font-medium"
+                  >{{ currentUser?.credits || 0 }}/{{ currentUser?.credits || 6 }} 积分</span
+                >
                 <Button variant="link" size="sm" class="h-auto p-0 text-sm">
                   剩余 {{ currentUser?.credits || 6 }} 积分 →
                 </Button>
@@ -119,9 +121,15 @@ const breadcrumbs = computed(() => {
 
               <div class="space-y-3">
                 <p class="text-sm font-medium">积分消耗说明</p>
-                <div v-for="option in creditOptions" :key="option.name" class="flex justify-between text-sm">
+                <div
+                  v-for="option in creditOptions"
+                  :key="option.name"
+                  class="flex justify-between text-sm"
+                >
                   <span>{{ option.name }}</span>
-                  <span v-if="option.label" class="text-green-600 font-medium">{{ option.label }}</span>
+                  <span v-if="option.label" class="text-green-600 font-medium">{{
+                    option.label
+                  }}</span>
                   <span v-else class="font-medium">{{ option.credits }} 积分</span>
                 </div>
               </div>

@@ -12,7 +12,7 @@ permissions:
 
 # 设置环境变量
 env:
-  IMAGE_NAME: shadcn-vue-demo
+  IMAGE_NAME: sparkinai-app
   EXPOSE_PORT: 5173
   DOCKERFILE: deploy/Dockerfile
 

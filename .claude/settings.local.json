@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(pnpm dlx shadcn-vue@latest add:*)",
+      "Bash(npx shadcn-vue@latest add:*)",
+      "Bash(ls:*)",
+      "Bash(tree:*)",
+      "Bash(cat:*)",
+      "Bash(npx vue-tsc --noEmit)"
+    ]
+  }
+}

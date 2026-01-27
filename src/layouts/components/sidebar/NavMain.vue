@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import type { LucideIcon } from 'lucide-vue-next'
-import { ChevronRight } from 'lucide-vue-next'
+import type { RouteRecordRaw } from 'vue-router'
 import { RouterLink } from 'vue-router'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -13,29 +11,64 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { ChevronRight } from 'lucide-vue-next'
+import { computed } from 'vue'
 
-defineProps<{
-  title?: string
-  items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-    isActive?: boolean
-    badge?: string
-    items?: {
-      title: string
-      url: string
-    }[]
-  }[]
+const props = defineProps<{
+  groups: RouteRecordRaw[]
 }>()
+
+const processedGroups = computed(() => {
+  const result: Array<{ title?: string; items: any[] }> = []
+
+  props.groups.forEach(route => {
+    if (route.meta?.isGroup && route.children) {
+      // 分组项
+      result.push({
+        title: route.meta.title,
+        items: route.children
+          .filter(c => c.meta?.showInMenu !== false)
+          .map(child => ({
+            title: child.meta?.title,
+            url: `/app/${child.path}`,
+            icon: child.meta?.icon,
+            badge: child.meta?.badge,
+          }))
+      })
+    } else if (route.meta?.isCollapsible) {
+      // 可折叠项
+      result.push({
+        items: [{
+          title: route.meta.title,
+          icon: route.meta.icon,
+          isActive: true,
+          items: route.children || []
+        }]
+      })
+    } else if (route.meta?.showInMenu !== false) {
+      // 普通项
+      if (result.length === 0 || result[result.length - 1]?.title) {
+        result.push({ items: [] })
+      }
+      result[result.length - 1]?.items.push({
+        title: route.meta?.title,
+        url: `/app/${route.path}`,
+        icon: route.meta?.icon,
+      })
+    }
+  })
+
+  return result
+})
 </script>
 
 <template>
-  <SidebarGroup>
-    <SidebarGroupLabel v-if="title">{{ title }}</SidebarGroupLabel>
+  <SidebarGroup v-for="(group, index) in processedGroups" :key="index">
+    <SidebarGroupLabel v-if="group.title">{{ group.title }}</SidebarGroupLabel>
     <SidebarMenu>
       <Collapsible
-        v-for="item in items"
+        v-for="item in group.items"
         :key="item.title"
         as-child
         :default-open="item.isActive"

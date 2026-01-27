@@ -28,7 +28,7 @@ const basePlans = [
     name: '免费版',
     priceCNY: 0,
     priceUSD: 0,
-    description: '适合试用 CreatOK',
+    description: '适合试用 SparkInAI',
     features: [
       '6 个积分',
       '最多生成/复刻 3 个视频',
@@ -97,7 +97,7 @@ const plans = computed(() => {
     const originalPrice = currency.value === 'CNY' ? plan.originalPriceCNY : plan.originalPriceUSD
     const symbol = currency.value === 'CNY' ? '¥' : '$'
     const discount = originalPrice ? `立省 ${symbol}${originalPrice - price}` : undefined
-    
+
     return {
       ...plan,
       price,
@@ -118,7 +118,7 @@ const plans = computed(() => {
           返回
         </Button>
       </div>
-      
+
       <div class="text-center mb-12">
         <h1 class="text-4xl font-bold mb-4">简单透明的定价</h1>
         <p class="text-lg text-muted-foreground mb-6">选择适合你创作工作流的计划，随时升级或降级。</p>
