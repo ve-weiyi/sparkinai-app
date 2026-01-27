@@ -30,82 +30,82 @@ export const menuConfig: RouteRecordRaw[] = [
   {
     path: 'dashboard',
     name: 'dashboard',
-    component: DashboardPage,
-    meta: {
-      title: '首页',
-      icon: Home,
-    },
-  },
-  {
-    path: 'image-generation',
-    name: 'image-generation',
     component: ImageGenerationPage,
     meta: {
       title: '图片生成',
       icon: Image,
     },
   },
-  {
-    path: 'creation',
-    name: 'creation',
-    component: AppLayout,
-    meta: {
-      title: '创作',
-      isGroup: true,
-    },
-    children: [
-      {
-        path: 'creation/video-generation',
-        name: 'video-generation',
-        component: VideoGenerationPage,
-        meta: {
-          title: '视频生成',
-          icon: Video,
-          badge: 'Veo 3.1等',
-        },
-      },
-      {
-        path: 'creation/records',
-        name: 'video-generation-records',
-        component: VideoGenerationRecordsPage,
-        meta: {
-          title: '生成记录',
-          showInMenu: false,
-        },
-      },
-    ],
-  },
-  {
-    path: 'tools',
-    name: 'tools',
-    component: AppLayout,
-    meta: {
-      title: '工具',
-      isGroup: true,
-    },
-    children: [
-      {
-        path: 'tools/video-analysis',
-        name: 'video-analysis',
-        component: VideoAnalysisPage,
-        meta: {
-          title: '视频分析',
-          icon: Sparkles,
-        },
-      },
-    ],
-  },
-  {
-    path: 'chat-history',
-    name: 'chat-history',
-    component: AppLayout,
-    meta: {
-      title: '会话历史',
-      icon: History,
-      isCollapsible: true,
-    },
-    children: [],
-  },
+  // {
+  //   path: 'image-generation',
+  //   name: 'image-generation',
+  //   component: ImageGenerationPage,
+  //   meta: {
+  //     title: '图片生成',
+  //     icon: Image,
+  //   },
+  // },
+  // {
+  //   path: 'creation',
+  //   name: 'creation',
+  //   component: AppLayout,
+  //   meta: {
+  //     title: '创作',
+  //     isGroup: true,
+  //   },
+  //   children: [
+  //     {
+  //       path: 'creation/video-generation',
+  //       name: 'video-generation',
+  //       component: VideoGenerationPage,
+  //       meta: {
+  //         title: '视频生成',
+  //         icon: Video,
+  //         badge: 'Veo 3.1等',
+  //       },
+  //     },
+  //     {
+  //       path: 'creation/records',
+  //       name: 'video-generation-records',
+  //       component: VideoGenerationRecordsPage,
+  //       meta: {
+  //         title: '生成记录',
+  //         showInMenu: false,
+  //       },
+  //     },
+  //   ],
+  // },
+  // {
+  //   path: 'tools',
+  //   name: 'tools',
+  //   component: AppLayout,
+  //   meta: {
+  //     title: '工具',
+  //     isGroup: true,
+  //   },
+  //   children: [
+  //     {
+  //       path: 'tools/video-analysis',
+  //       name: 'video-analysis',
+  //       component: VideoAnalysisPage,
+  //       meta: {
+  //         title: '视频分析',
+  //         icon: Sparkles,
+  //       },
+  //     },
+  //   ],
+  // },
+  // {
+  //   path: 'chat-history',
+  //   name: 'chat-history',
+  //   component: AppLayout,
+  //   meta: {
+  //     title: '会话历史',
+  //     icon: History,
+  //     isCollapsible: true,
+  //   },
+  //   children: [],
+  // },
 ]
 
 const flattenRoutes = (routes: RouteRecordRaw[]): RouteRecordRaw[] => {

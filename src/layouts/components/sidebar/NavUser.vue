@@ -126,13 +126,18 @@ const handleLogout = () => {
           <div class="bg-muted/50 rounded-lg p-2 space-y-2">
             <div class="flex items-center justify-between px-1">
               <span class="text-sm font-semibold">{{ user.plan }} 计划</span>
-              <Button variant="ghost" size="sm" class="h-6 gap-1 text-orange-600 text-xs px-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                class="h-6 gap-1 text-orange-600 text-xs px-2"
+                @click="router.push('/pricing')"
+              >
                 <Crown class="w-3 h-3" />
                 升级
               </Button>
             </div>
 
-            <div class="flex items-center justify-between px-1">
+            <div class="flex items-center justify-between px-1 cursor-pointer" @click="router.push('/app/user-center?tab=credits')">
               <span class="text-xs text-muted-foreground">积分</span>
               <div class="flex items-center gap-1.5">
                 <Sparkles class="w-3 h-3.5 text-green-600" />
@@ -144,17 +149,17 @@ const handleLogout = () => {
 
           <DropdownMenuSeparator class="my-2" />
 
-          <DropdownMenuItem class="py-1 px-1">
+          <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/user-center?tab=account')">
             <Heart class="w-4 h-4 mr-2" />
             <span class="text-sm">我的收藏</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem class="py-1 px-1">
+          <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/user-center?tab=invitation')">
             <Gift class="w-4 h-4 mr-2" />
             <span class="text-sm">我的邀请</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem class="py-1 px-1">
+          <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/user-center?tab=subscription')">
             <ShoppingCart class="w-4 h-4 mr-2" />
             <span class="text-sm">我的订单</span>
           </DropdownMenuItem>
@@ -215,5 +220,3 @@ const handleLogout = () => {
     </SidebarMenuItem>
   </SidebarMenu>
 </template>
-
-

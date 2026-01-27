@@ -12,7 +12,10 @@ export interface ImageGenerationRequest {
   coreFeatures?: string
   targetAudience?: string
   expectedScenario?: string
-  sizeQuantity?: string
+  sizeQuantity?: number
+  resolution?: string
+  ratio?: string
+  styles?: string[]
 }
 
 export interface ImageGenerationResponse {
@@ -26,7 +29,7 @@ export interface ProductAnalysisResponse {
   coreFeatures: string
   targetAudience: string
   expectedScenario: string
-  sizeQuantity: string
+  sizeQuantity: number
 }
 
 /**
@@ -58,7 +61,7 @@ export async function generateImages(
 /**
  * AI分析产品信息
  */
-export async function analyzeProduct(image: File): Promise<ProductAnalysisResponse> {
+export async function analyzeProduct(images: File[]): Promise<ProductAnalysisResponse> {
   // 实际项目中，这里应该调用AI视觉识别API
   // 示例：const response = await fetch('/api/images/analyze', { method: 'POST', body: formData })
 
@@ -69,7 +72,7 @@ export async function analyzeProduct(image: File): Promise<ProductAnalysisRespon
         coreFeatures: '降噪、长续航、高音质、舒适佩戴',
         targetAudience: '年轻人、上班族、运动爱好者',
         expectedScenario: '通勤、运动、办公、休闲',
-        sizeQuantity: '1200x1200, 9张'
+        sizeQuantity: 5
       })
     }, 2000) // 模拟2秒分析时间
   })

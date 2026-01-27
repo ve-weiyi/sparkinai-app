@@ -39,7 +39,7 @@ const { currentUser } = useUserData()
               </div>
               <div class="grid flex-1 text-left text-sm leading-tight">
                 <span class="truncate font-semibold">SparkInAI</span>
-                <span class="truncate text-xs">爆款机器人</span>
+                <span class="truncate text-xs">智燃创造</span>
               </div>
             </RouterLink>
           </SidebarMenuButton>
