@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { LucideIcon } from "lucide-vue-next"
+import type { Component } from "vue"
+
 import {
-  Folder,
-  Forward,
-  MoreHorizontal,
-  Trash2,
-} from "lucide-vue-next"
+  IconDots,
+  IconFolder,
+  IconShare3,
+  IconTrash,
+} from "@tabler/icons-vue"
 
 import {
   DropdownMenu,
@@ -24,12 +25,14 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 
+interface Document {
+  name: string
+  url: string
+  icon?: Component
+}
+
 defineProps<{
-  projects: {
-    name: string
-    url: string
-    icon: LucideIcon
-  }[]
+  items: Document[]
 }>()
 
 const { isMobile } = useSidebar()
@@ -37,9 +40,9 @@ const { isMobile } = useSidebar()
 
 <template>
   <SidebarGroup class="group-data-[collapsible=icon]:hidden">
-    <SidebarGroupLabel>Projects</SidebarGroupLabel>
+    <SidebarGroupLabel>Documents</SidebarGroupLabel>
     <SidebarMenu>
-      <SidebarMenuItem v-for="item in projects" :key="item.name">
+      <SidebarMenuItem v-for="item in items" :key="item.name">
         <SidebarMenuButton as-child>
           <a :href="item.url">
             <component :is="item.icon" />
@@ -48,35 +51,38 @@ const { isMobile } = useSidebar()
         </SidebarMenuButton>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <SidebarMenuAction show-on-hover>
-              <MoreHorizontal />
+            <SidebarMenuAction
+              show-on-hover
+              class="data-[state=open]:bg-accent rounded-sm"
+            >
+              <IconDots />
               <span class="sr-only">More</span>
             </SidebarMenuAction>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            class="w-48 rounded-lg"
+            class="w-24 rounded-lg"
             :side="isMobile ? 'bottom' : 'right'"
             :align="isMobile ? 'end' : 'start'"
           >
             <DropdownMenuItem>
-              <Folder class="text-muted-foreground" />
-              <span>View Project</span>
+              <IconFolder />
+              <span>Open</span>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Forward class="text-muted-foreground" />
-              <span>Share Project</span>
+              <IconShare3 />
+              <span>Share</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Trash2 class="text-muted-foreground" />
-              <span>Delete Project</span>
+            <DropdownMenuItem variant="destructive">
+              <IconTrash />
+              <span>Delete</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
       <SidebarMenuItem>
         <SidebarMenuButton class="text-sidebar-foreground/70">
-          <MoreHorizontal class="text-sidebar-foreground/70" />
+          <IconDots class="text-sidebar-foreground/70" />
           <span>More</span>
         </SidebarMenuButton>
       </SidebarMenuItem>

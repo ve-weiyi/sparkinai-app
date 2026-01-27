@@ -1,178 +1,177 @@
 <script setup lang="ts">
-import type { SidebarProps } from '@/components/ui/sidebar'
-
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
-} from "lucide-vue-next"
-import NavMain from '@/components/NavMain.vue'
-import NavProjects from '@/components/NavProjects.vue'
-import NavUser from '@/components/NavUser.vue'
-import TeamSwitcher from '@/components/TeamSwitcher.vue'
+  IconCamera,
+  IconChartBar,
+  IconDashboard,
+  IconDatabase,
+  IconFileAi,
+  IconFileDescription,
+  IconFolder,
+  IconHelp,
+  IconInnerShadowTop,
+  IconListDetails,
+  IconReport,
+  IconSearch,
+  IconSettings,
+  IconUsers,
+} from "@tabler/icons-vue"
 
+import NavDocuments from '@/components/NavDocuments.vue'
+import NavMain from '@/components/NavMain.vue'
+import NavSecondary from '@/components/NavSecondary.vue'
+import NavUser from '@/components/NavUser.vue'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from '@/components/ui/sidebar'
 
-const props = withDefaults(defineProps<SidebarProps>(), {
-  collapsible: "icon",
-})
-
-// This is sample data.
 const data = {
   user: {
     name: "shadcn",
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
   navMain: [
     {
-      title: "Playground",
+      title: "Dashboard",
       url: "#",
-      icon: SquareTerminal,
+      icon: IconDashboard,
+    },
+    {
+      title: "Lifecycle",
+      url: "#",
+      icon: IconListDetails,
+    },
+    {
+      title: "Analytics",
+      url: "#",
+      icon: IconChartBar,
+    },
+    {
+      title: "Projects",
+      url: "#",
+      icon: IconFolder,
+    },
+    {
+      title: "Team",
+      url: "#",
+      icon: IconUsers,
+    },
+  ],
+  navClouds: [
+    {
+      title: "Capture",
+      icon: IconCamera,
       isActive: true,
+      url: "#",
       items: [
         {
-          title: "History",
+          title: "Active Proposals",
           url: "#",
         },
         {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
+          title: "Archived",
           url: "#",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Proposal",
+      icon: IconFileDescription,
       url: "#",
-      icon: Bot,
       items: [
         {
-          title: "Genesis",
+          title: "Active Proposals",
           url: "#",
         },
         {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
+          title: "Archived",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "Prompts",
+      icon: IconFileAi,
       url: "#",
-      icon: BookOpen,
       items: [
         {
-          title: "Introduction",
+          title: "Active Proposals",
           url: "#",
         },
         {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
+          title: "Archived",
           url: "#",
         },
       ],
     },
+  ],
+  navSecondary: [
     {
       title: "Settings",
       url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
+      icon: IconSettings,
+    },
+    {
+      title: "Get Help",
+      url: "#",
+      icon: IconHelp,
+    },
+    {
+      title: "Search",
+      url: "#",
+      icon: IconSearch,
     },
   ],
-  projects: [
+  documents: [
     {
-      name: "Design Engineering",
+      name: "Data Library",
       url: "#",
-      icon: Frame,
+      icon: IconDatabase,
     },
     {
-      name: "Sales & Marketing",
+      name: "Reports",
       url: "#",
-      icon: PieChart,
+      icon: IconReport,
     },
     {
-      name: "Travel",
+      name: "Word Assistant",
       url: "#",
-      icon: Map,
+      icon: IconFileDescription,
     },
   ],
 }
 </script>
 
 <template>
-  <Sidebar v-bind="props">
+  <Sidebar collapsible="offcanvas">
     <SidebarHeader>
-      <TeamSwitcher :teams="data.teams" />
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            as-child
+            class="data-[slot=sidebar-menu-button]:!p-1.5"
+          >
+            <a href="#">
+              <IconInnerShadowTop class="!size-5" />
+              <span class="text-base font-semibold">Acme Inc.</span>
+            </a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
     </SidebarHeader>
     <SidebarContent>
       <NavMain :items="data.navMain" />
-      <NavProjects :projects="data.projects" />
+      <NavDocuments :items="data.documents" />
+      <NavSecondary :items="data.navSecondary" class="mt-auto" />
     </SidebarContent>
     <SidebarFooter>
       <NavUser :user="data.user" />
     </SidebarFooter>
-    <SidebarRail />
   </Sidebar>
 </template>
