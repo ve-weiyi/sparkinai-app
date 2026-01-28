@@ -31,21 +31,21 @@ export const menuConfig: RouteRecordRaw[] = [
   {
     path: 'dashboard',
     name: 'dashboard',
-    component: ImageGenerationPage,
+    component: ProductImagesGenerationPage,
     meta: {
       title: '图片生成',
       icon: Image,
     },
   },
-  {
-    path: 'product-images-generation',
-    name: 'product-images-generation',
-    component: ProductImagesGenerationPage,
-    meta: {
-      title: '商品套图',
-      icon: Image,
-    },
-  },
+  // {
+  //   path: 'product-images-generation',
+  //   name: 'product-images-generation',
+  //   component: ProductImagesGenerationPage,
+  //   meta: {
+  //     title: '商品套图',
+  //     icon: Image,
+  //   },
+  // },
   // {
   //   path: 'image-generation',
   //   name: 'image-generation',

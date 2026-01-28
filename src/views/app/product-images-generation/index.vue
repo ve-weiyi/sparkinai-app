@@ -3,7 +3,14 @@
     <div class="relative flex w-full flex-col h-[calc(100vh-4rem)] overflow-hidden">
       <!-- Tabs Header -->
       <div class="w-full px-6 pt-4">
-        <Tabs v-model="activeTab" class="w-auto">
+        <div class="space-y-2">
+          <h1 class="text-2xl font-semibold">AI商品套图</h1>
+          <p class="text-sm text-muted-foreground">
+            上传商品图，AI 即刻生成 符合多电商平台规范 的高质化商品套图
+          </p>
+        </div>
+
+        <Tabs v-model="activeTab" class="w-auto mt-5">
           <TabsList class="h-10">
             <TabsTrigger value="image-generator" class="gap-2 px-4">
               <FileImage class="h-4 w-4" />
@@ -41,7 +48,7 @@
                         :key="index"
                         class="flex flex-col gap-2 flex-shrink-0"
                       >
-                        <div class="relative w-25 h-25 rounded-xl overflow-hidden bg-white group">
+                        <div class="relative w-30 h-30 rounded-xl overflow-hidden bg-white group">
                           <img
                             :src="image.preview"
                             :alt="image.file.name"
@@ -79,7 +86,7 @@
                         <!-- Note Display -->
                         <div
                           v-if="image.note"
-                          class="w-25 text-xs text-muted-foreground line-clamp-2 px-1"
+                          class="w-30 text-xs text-muted-foreground line-clamp-2 px-1"
                           :title="image.note"
                         >
                           {{ index + 1 }}. {{ image.note }}
@@ -94,7 +101,7 @@
                         @dragleave.prevent="isDragging = false"
                         @drop.prevent="handleDrop"
                         :class="[
-                          'w-25 h-25 rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer transition flex-shrink-0',
+                          'w-30 h-30 rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer transition flex-shrink-0',
                           isDragging
                             ? 'border-primary bg-primary/10'
                             : 'border-muted-foreground/40 hover:border-primary/50 hover:bg-muted/60'
@@ -111,6 +118,10 @@
                         />
                       </div>
                     </div>
+
+                    <p class="text-xs text-muted-foreground">
+                      请选择主参考图，并可为每张图添加备注（如：包装/拆封/细节）
+                    </p>
                   </div>
 
                   <!-- Target Platform -->
@@ -128,20 +139,14 @@
                     </Select>
                   </div>
 
+                  <!-- Product Name -->
+                  <div class="space-y-2">
+                    <Label>产品名称</Label>
+                    <Input v-model="formData.productName" placeholder="请输入产品名称" />
+                  </div>
+
                   <!-- Product Features Section - Hidden on mobile -->
                   <div class="hidden lg:block space-y-4">
-                    <div class="flex items-center justify-between">
-                      <Label class="text-sm font-medium">产品卖点与爆款风格</Label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        class="gap-1.5 text-primary hover:text-primary"
-                      >
-                        <Sparkles class="h-3.5 w-3.5" />
-                        一键解析
-                      </Button>
-                    </div>
-
                     <div class="space-y-2">
                       <div class="flex items-center justify-between">
                         <Label class="text-sm">产品卖点</Label>
@@ -161,18 +166,16 @@
                         placeholder="产品名：&#10;核心卖点：&#10;适用人群：&#10;期望场景：&#10;尺寸参数："
                       />
                     </div>
-
                     <div class="space-y-2">
-                      <div class="flex items-center justify-between">
-                        <Label class="text-sm">爆款风格选择</Label>
-                      </div>
-                      <p class="text-xs text-muted-foreground">
-                        AI会基于您选择的目标平台、您的产品卖点为您推荐合适的爆款图片风格
-                      </p>
-                      <Button variant="outline" size="sm" class="w-full gap-1.5">
-                        <Sparkles class="h-3.5 w-3.5" />
-                        爆款风格分析
-                      </Button>
+                      <Label class="text-sm">生成内容数量</Label>
+                      <Select v-model="formData.quantity">
+                        <SelectTrigger class="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem v-for="option in quantityOptions" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
@@ -182,14 +185,14 @@
               <div class="flex-shrink-0 border-t bg-card p-4 space-y-3">
                 <Button
                   class="w-full"
-                  :disabled="uploadedImages.length === 0"
+                  :disabled="uploadedImages.length === 0 || !formData.productName || !formData.sellingPoints"
                   @click="handleGenerate"
                 >
                   <Sparkles class="mr-2 h-4 w-4" />
                   免费生成预览
                 </Button>
                 <p class="text-center text-xs text-muted-foreground">
-                  {{ uploadedImages.length === 0 ? '请先上传至少一张产品图片' : '点击生成预览' }}
+                  {{ uploadedImages.length === 0 ? '请先上传至少一张产品图片' : !formData.productName ? '请填写产品名称' : !formData.sellingPoints ? '请填写产品卖点' : '点击生成预览' }}
                 </p>
               </div>
             </div>
@@ -200,14 +203,146 @@
             >
               <div class="flex-1 overflow-y-auto">
                 <div class="flex flex-col h-full p-6">
-                  <div class="text-center mb-6">
-                    <h1 class="text-2xl font-bold text-foreground mb-2">AI商品套图</h1>
-                    <p class="text-sm text-muted-foreground">
-                      上传商品图，AI 即刻生成<span class="text-primary font-medium">
-                        符合多电商平台规范 </span
-                      >的高转化率商品套图
-                    </p>
+                  <!-- Generated Tasks -->
+                  <div v-if="generatedTask" class="space-y-4">
+                    <div class="bg-card rounded-2xl border p-6 space-y-4">
+                      <!-- Header -->
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                          <span class="text-2xl font-bold">{{ truncateProductName(generatedTask.productName || '产品名称') }}</span>
+                          <span class="text-sm text-muted-foreground">{{ generatedTask.timestamp }}</span>
+                        </div>
+                        <Button variant="outline" size="icon" class="rounded-lg" @click="generatedTask = null">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        </Button>
+                      </div>
+
+                      <!-- Tags -->
+                      <div class="flex flex-wrap gap-2">
+                        <span v-for="(tag, idx) in taskTags" :key="idx" class="px-3 py-1 rounded-full bg-muted text-sm">{{ tag }}</span>
+                      </div>
+
+                      <!-- Uploaded Images -->
+                      <div class="flex gap-2">
+                        <div
+                          v-for="(img, idx) in generatedTask.images"
+                          :key="idx"
+                          class="w-16 h-16 rounded-lg overflow-hidden bg-muted"
+                        >
+                          <img :src="img.preview" class="w-full h-full object-cover" />
+                        </div>
+                      </div>
+
+                      <!-- Settings -->
+                      <div class="flex items-end gap-3">
+                        <div class="space-y-1">
+                          <div class="text-xs text-muted-foreground">风格选择</div>
+                          <Select v-model="generatedTask.style">
+                            <SelectTrigger class="h-9 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem v-for="option in styleOptions" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div class="space-y-1">
+                          <div class="text-xs text-muted-foreground">分辨率选择</div>
+                          <Select v-model="generatedTask.resolution">
+                            <SelectTrigger class="h-9 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem v-for="option in resolutionOptions" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div class="space-y-1">
+                          <div class="text-xs text-muted-foreground">图片比例</div>
+                          <Select v-model="generatedTask.ratio">
+                            <SelectTrigger class="h-9 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem v-for="option in ratioOptions" :key="option.value" :value="option.value">{{ option.label }}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <!-- Generate Button -->
+                        <Button size="lg" @click="handleGenerateImages(generatedTask)">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="7.5 4.21 12 6.81 16.5 4.21"/><polyline points="7.5 19.79 7.5 14.6 3 12"/><polyline points="21 12 16.5 14.6 16.5 19.79"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                          一键生成图片
+                          <span class="ml-2">✨ 14</span>
+                        </Button>
+                      </div>
+
+                      <!-- Image Types or Generated Images -->
+                      <div v-if="generatedTask.isGenerating" class="flex flex-col items-center justify-center py-20">
+                        <svg class="animate-spin h-12 w-12 text-primary mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="text-sm text-muted-foreground">AI正在生成图片，请稍候...</p>
+                      </div>
+                      <div v-else-if="generatedTask.generatedImages" class="grid grid-cols-3 gap-4">
+                        <div
+                          v-for="(img, idx) in generatedTask.generatedImages"
+                          :key="idx"
+                          class="relative aspect-square rounded-lg overflow-hidden border group cursor-pointer bg-white"
+                        >
+                          <div class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium z-10">
+                            {{ String(idx + 1).padStart(2, '0') }} {{ img.name }}
+                          </div>
+                          <img :src="img.url" :alt="img.name" class="w-full h-full object-cover" />
+                          <div v-if="img.isRegenerating" class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </div>
+                          <div v-else class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-4">
+                            <Button size="sm" variant="secondary" class="w-full" @click="downloadImage(img.url, img.name)">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                              下载
+                            </Button>
+                            <Button size="sm" variant="secondary" class="w-full" @click="regenerateImage(generatedTask, idx)">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                              重新生成
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      <div v-else class="grid grid-cols-3 gap-3">
+                        <div
+                          v-for="(type, idx) in generatedTask.imageTypes"
+                          :key="idx"
+                          @click="type.selected = !type.selected"
+                          class="relative border-2 rounded-xl p-3 space-y-2 cursor-pointer transition-colors"
+                          :class="type.selected ? 'border-foreground' : 'border-muted hover:border-muted-foreground'"
+                        >
+                          <div class="flex items-center justify-between">
+                            <span class="px-2 py-0.5 rounded-full border text-xs font-medium">{{ type.name }}</span>
+                            <div v-if="type.selected" class="w-5 h-5 rounded-full bg-foreground text-background flex items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                          </div>
+                          <p class="text-xs text-muted-foreground line-clamp-2">{{ type.desc }}</p>
+                        </div>
+                      </div>
+
+                    </div>
                   </div>
+
+                  <!-- Empty State -->
+                  <div v-else class="flex flex-col h-full">
+                    <div class="text-center mb-6">
+                      <h1 class="text-2xl font-bold text-foreground mb-2">AI商品套图</h1>
+                      <p class="text-sm text-muted-foreground">
+                        上传商品图，AI 即刻生成<span class="text-primary font-medium">
+                          符合多电商平台规范 </span
+                        >的高转化率商品套图
+                      </p>
+                    </div>
 
                   <!-- Mobile Layout -->
                   <div class="lg:hidden space-y-4">
@@ -276,6 +411,7 @@
                       />
                     </div>
                   </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -312,7 +448,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { FileImage, Package, Sparkles, CloudUpload } from 'lucide-vue-next'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
@@ -326,6 +462,7 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 
 interface UploadedImage {
   file: File
@@ -333,18 +470,64 @@ interface UploadedImage {
   note?: string
 }
 
+const platformLabels: Record<string, string> = {
+  tiktok: 'TikTok Shop',
+  amazon: 'Amazon',
+  shopify: 'Shopify'
+}
+
+const taskTags = computed(() => {
+  if (!generatedTask.value) return []
+  return [
+    platformLabels[generatedTask.value.platform] || generatedTask.value.platform,
+    generatedTask.value.style,
+    generatedTask.value.resolution,
+    generatedTask.value.ratio
+  ]
+})
+
 const activeTab = ref('image-product-set')
 const uploadedImages = ref<UploadedImage[]>([])
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
 const editingImageIndex = ref<number | null>(null)
 const editingNote = ref('')
+const generatedTask = ref<any>(null)
+
+const styleOptions = [
+  { value: '极简留白', label: '极简留白' },
+  { value: '真实评测', label: '真实评测' },
+  { value: '美式波普', label: '美式波普' },
+  { value: '沉浸体验', label: '沉浸体验' }
+]
+
+const resolutionOptions = [
+  { value: '2K ✨ 2', label: '2K ✨ 2' },
+  { value: '4K', label: '4K' },
+  { value: 'HD', label: 'HD' }
+]
+
+const ratioOptions = [
+  { value: '1:1', label: '1:1' },
+  { value: '16:9', label: '16:9' },
+  { value: '4:3', label: '4:3' }
+]
+
+const quantityOptions = [
+  { value: '1', label: '1' },
+  { value: '2', label: '2' },
+  { value: '3', label: '3' },
+  { value: '4', label: '4' },
+  { value: '5', label: '5' }
+]
 
 const formData = ref({
   platform: 'tiktok',
+  productName: '',
   market: 'us',
   language: 'en',
   sellingPoints: '',
+  quantity: '1',
 })
 
 const examples = [
@@ -467,9 +650,96 @@ const cancelNote = () => {
 }
 
 const handleGenerate = () => {
-  console.log('Generating preview...', {
-    images: uploadedImages.value.map(img => img.file.name),
-    formData: formData.value
-  })
+  const task = {
+    id: Date.now(),
+    timestamp: new Date().toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
+    platform: formData.value.platform,
+    productName: formData.value.productName,
+    images: uploadedImages.value.map(img => ({ preview: img.preview, note: img.note })),
+    style: '极简留白',
+    resolution: '2K ✨ 2',
+    ratio: '1:1',
+    isGenerating: false,
+    generatedImages: null,
+    imageTypes: [
+      { name: '主图', selected: true, desc: '纯白背景产品主图，展现...' },
+      { name: '细节特写图', selected: true, desc: '微距镜头展示产品材质与...' },
+      { name: '场景展示图', selected: true, desc: '美式现代家居场景，体现...' },
+      { name: '功能解析图', selected: true, desc: '通过留白构图标注核心功...' },
+      { name: '尺寸对比图', selected: true, desc: '直观展示产品尺寸参数与...' },
+      { name: '人群适用图', selected: true, desc: '目标用户群体使用场景，...' },
+      { name: '品牌背书图', selected: true, desc: '极简构图展示品牌Logo与...' }
+    ]
+  }
+  generatedTask.value = task
+}
+
+const truncateProductName = (name: string) => {
+  return name.length > 20 ? name.substring(0, 20) + '...' : name
+}
+
+const downloadImage = (url: string, name: string) => {
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${name}.jpg`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+const regenerateImage = async (task: any, index: number) => {
+  const mockImageUrls = [
+    'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1529778873920-4da4926a72c2?w=600&h=600&fit=crop'
+  ]
+  
+  task.generatedImages[index].isRegenerating = true
+  
+  setTimeout(() => {
+    const randomIndex = Math.floor(Math.random() * mockImageUrls.length)
+    task.generatedImages[index].url = mockImageUrls[randomIndex]
+    task.generatedImages[index].isRegenerating = false
+  }, 1500)
+}
+
+const handleGenerateImages = async (task: any) => {
+  const selectedTypes = task.imageTypes.filter((type: any) => type.selected)
+  if (selectedTypes.length === 0) {
+    alert('请至少选择一个图片类型')
+    return
+  }
+  
+  task.isGenerating = true
+  
+  const mockImageUrls = [
+    'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1548802673-380ab8ebc7b7?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?w=600&h=600&fit=crop',
+    'https://images.unsplash.com/photo-1529778873920-4da4926a72c2?w=600&h=600&fit=crop'
+  ]
+  
+  // 模拟生成图片
+  setTimeout(() => {
+    task.generatedImages = selectedTypes.map((type: any, index: number) => ({
+      name: type.name,
+      url: mockImageUrls[index % mockImageUrls.length],
+      isRegenerating: false
+    }))
+    task.isGenerating = false
+  }, 2000)
 }
 </script>

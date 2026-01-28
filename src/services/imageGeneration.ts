@@ -43,8 +43,9 @@ export async function generateImages(
 
   return new Promise((resolve) => {
     setTimeout(() => {
-      // 模拟生成9张图片
-      const mockImages = Array.from({ length: 9 }, (_, i) => {
+      // 根据选中的风格数量生成图片
+      const count = request.styles && request.styles.length > 0 ? request.styles.length : 1
+      const mockImages = Array.from({ length: count }, (_, i) => {
         // 使用placeholder图片服务
         return `https://placehold.co/600x600/e2e8f0/64748b?text=Generated+${i + 1}`
       })

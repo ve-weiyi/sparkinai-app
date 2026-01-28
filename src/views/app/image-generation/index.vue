@@ -174,6 +174,11 @@ const downloadAllImages = () => {
 }
 
 const getImageTitle = (index: number) => {
+  if (selectedStyles.value.length > 0 && index < selectedStyles.value.length) {
+    const styleId = selectedStyles.value[index]
+    const style = styleOptions.find(s => s.id === styleId)
+    return style?.label || '商品图'
+  }
   const titles = [
     '白底主图',
     '温暖猫窝',
@@ -426,6 +431,7 @@ const getImageTitle = (index: number) => {
               <!-- 风格选择 -->
               <div>
                 <label class="text-sm font-medium mb-2 block">选择生成风格</label>
+                <p class="text-xs text-muted-foreground mb-2">已选择 {{ selectedStyles.length }} 个风格</p>
                 <div class="grid grid-cols-2 gap-2">
                   <div
                     v-for="style in styleOptions"
