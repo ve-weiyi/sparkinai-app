@@ -34,6 +34,7 @@ export default defineConfigWithVueTs(
       "@typescript-eslint/no-empty-function": "off", // 允许空函数
       "@typescript-eslint/no-empty-object-type": "off", // 允许空对象类型
       "@typescript-eslint/no-unused-vars": "off", // 使用 no-unused-vars 规则
+      "vue/multi-word-component-names": "off", // 允许单词组件名
     },
   },
 

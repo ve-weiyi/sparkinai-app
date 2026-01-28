@@ -47,8 +47,28 @@ const router = createRouter({
       path: '/app',
       component: AppLayout,
       children: appRoutes,
+      meta: { requiresAuth: true },
     },
   ],
+})
+
+// 路由守卫 - 检查认证状态
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+
+  if (requiresAuth && !token) {
+    // 需要认证但没有token，重定向到登录页
+    next({
+      path: '/login',
+      query: { redirect: to.fullPath }
+    })
+  } else if ((to.path === '/login' || to.path === '/register') && token) {
+    // 已登录用户访问登录/注册页，重定向到dashboard
+    next('/app/dashboard')
+  } else {
+    next()
+  }
 })
 
 export default router

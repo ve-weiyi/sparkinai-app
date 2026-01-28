@@ -35,23 +35,23 @@ const email = ref('')
 const code = ref('')
 const loading = ref(false)
 const codeSent = ref(false)
+const error = ref('')
 
 const handleSendCode = async (e: Event) => {
   e.preventDefault()
   loading.value = true
-  codeSent.value = true
-  loading.value = false
-  return
-  
+  error.value = ''
+
   try {
     const response = await authService.sendVerificationCode(email.value, name.value)
     if (response.success) {
       codeSent.value = true
+    } else {
+      error.value = '发送验证码失败，请重试'
     }
-  } catch (error) {
-    console.error('Send code failed:', error)
-    // 即使失败也切换到验证码页面用于测试
-    codeSent.value = true
+  } catch (err) {
+    console.error('Send code failed:', err)
+    error.value = '发送验证码失败，请重试'
   } finally {
     loading.value = false
   }
@@ -60,14 +60,19 @@ const handleSendCode = async (e: Event) => {
 const handleVerify = async (e: Event) => {
   e.preventDefault()
   loading.value = true
+  error.value = ''
   try {
-    const response = await authService.verifyAndRegister(email.value, code.value)
+    const response = await authService.verifyAndRegister(email.value, code.value, name.value)
     if (response.success) {
       localStorage.setItem('token', response.data.token)
+      localStorage.setItem('user', JSON.stringify(response.data))
       router.push('/app/dashboard')
+    } else {
+      error.value = '验证失败，请检查验证码'
     }
-  } catch (error) {
-    console.error('Verify failed:', error)
+  } catch (err) {
+    console.error('Verify failed:', err)
+    error.value = '验证失败，请检查验证码'
   } finally {
     loading.value = false
   }
@@ -88,6 +93,11 @@ const handleVerify = async (e: Event) => {
       <CardContent>
         <form @submit="handleSendCode">
           <FieldGroup>
+            <!-- 错误提示 -->
+            <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
+              {{ error }}
+            </div>
+
             <Field>
               <FieldLabel for="name">
                 Full Name
@@ -128,6 +138,11 @@ const handleVerify = async (e: Event) => {
       <CardContent>
         <form @submit="handleVerify">
           <FieldGroup>
+            <!-- 错误提示 -->
+            <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
+              {{ error }}
+            </div>
+
             <Field>
               <FieldLabel for="otp" class="sr-only">
                 Verification code

@@ -1,4 +1,4 @@
-import { Home, Image, Video, Sparkles, History } from 'lucide-vue-next'
+import { Home, Image, Video, Sparkles, History, Heart } from 'lucide-vue-next'
 import type { Component } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
 
@@ -19,10 +19,9 @@ declare module 'vue-router' {
 const DashboardPage = () => import('@/views/app/dashboard/index.vue')
 const ImageGenerationPage = () => import('@/views/app/image-generation/index.vue')
 const ProductImagesGenerationPage = () => import('@/views/app/product-images-generation/index.vue')
-const VideoGenerationPage = () => import('@/views/app/video-generation/index.vue')
-const VideoGenerationRecordsPage = () => import('@/views/app/video-generation/records.vue')
-const VideoAnalysisPage = () => import('@/views/app/video-analysis/index.vue')
+const FavoritesPage = () => import('@/views/app/favorites/index.vue')
 const UserCenterPage = () => import('@/views/app/user-center/index.vue')
+const CustomerServicePage = () => import('@/views/app/customer-service/index.vue')
 
 const AppLayout = () => import('@/layouts/AppLayout.vue')
 
@@ -35,6 +34,16 @@ export const menuConfig: RouteRecordRaw[] = [
     meta: {
       title: '图片生成',
       icon: Image,
+    },
+  },
+  {
+    path: 'favorites',
+    name: 'favorites',
+    component: FavoritesPage,
+    meta: {
+      title: '我的收藏',
+      icon: Heart,
+      showInMenu: false,
     },
   },
   // {
@@ -54,56 +63,6 @@ export const menuConfig: RouteRecordRaw[] = [
   //     title: '图片生成',
   //     icon: Image,
   //   },
-  // },
-  // {
-  //   path: 'creation',
-  //   name: 'creation',
-  //   component: AppLayout,
-  //   meta: {
-  //     title: '创作',
-  //     isGroup: true,
-  //   },
-  //   children: [
-  //     {
-  //       path: 'creation/video-generation',
-  //       name: 'video-generation',
-  //       component: VideoGenerationPage,
-  //       meta: {
-  //         title: '视频生成',
-  //         icon: Video,
-  //         badge: 'Veo 3.1等',
-  //       },
-  //     },
-  //     {
-  //       path: 'creation/records',
-  //       name: 'video-generation-records',
-  //       component: VideoGenerationRecordsPage,
-  //       meta: {
-  //         title: '生成记录',
-  //         showInMenu: false,
-  //       },
-  //     },
-  //   ],
-  // },
-  // {
-  //   path: 'tools',
-  //   name: 'tools',
-  //   component: AppLayout,
-  //   meta: {
-  //     title: '工具',
-  //     isGroup: true,
-  //   },
-  //   children: [
-  //     {
-  //       path: 'tools/video-analysis',
-  //       name: 'video-analysis',
-  //       component: VideoAnalysisPage,
-  //       meta: {
-  //         title: '视频分析',
-  //         icon: Sparkles,
-  //       },
-  //     },
-  //   ],
   // },
   // {
   //   path: 'chat-history',
@@ -136,6 +95,16 @@ appRoutes.push({
   component: UserCenterPage,
   meta: {
     title: '个人中心',
+    showInMenu: false,
+  },
+})
+
+appRoutes.push({
+  path: 'customer-service',
+  name: 'customer-service',
+  component: CustomerServicePage,
+  meta: {
+    title: '客服中心',
     showInMenu: false,
   },
 })

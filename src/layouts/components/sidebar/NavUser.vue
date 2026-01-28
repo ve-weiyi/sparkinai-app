@@ -6,6 +6,7 @@ import {
   ChevronsUpDown,
   Crown,
   Gift,
+  Headset,
   Heart,
   Languages,
   LogOut,
@@ -149,7 +150,7 @@ const handleLogout = () => {
 
           <DropdownMenuSeparator class="my-2" />
 
-          <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/user-center?tab=account')">
+          <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/favorites')">
             <Heart class="w-4 h-4 mr-2" />
             <span class="text-sm">我的收藏</span>
           </DropdownMenuItem>
@@ -166,7 +167,7 @@ const handleLogout = () => {
 
           <DropdownMenuSeparator class="my-2" />
 
-          <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/user-center')">
+          <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/user-center?tab=account')">
             <User class="w-4 h-4 mr-2" />
             <span class="text-sm">账户</span>
           </DropdownMenuItem>
@@ -208,6 +209,13 @@ const handleLogout = () => {
               </DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuSub>
+
+          <DropdownMenuSeparator class="my-2" />
+
+          <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/customer-service')">
+            <Headset class="w-4 h-4 mr-2" />
+            <span class="text-sm">客服中心</span>
+          </DropdownMenuItem>
 
           <DropdownMenuSeparator class="my-2" />
 

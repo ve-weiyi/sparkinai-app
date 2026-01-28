@@ -14,6 +14,8 @@ const planPrice = ref(Number(route.query.price) || 249)
 
 // 支付方式
 const paymentMethod = ref<'alipay' | 'wechat' | 'stripe'>('alipay')
+const loading = ref(false)
+const error = ref('')
 
 const paymentMethods = [
   { value: 'alipay', label: '支付宝', icon: '💳' },
@@ -23,15 +25,23 @@ const paymentMethods = [
 
 // 处理支付
 const handlePayment = async () => {
-  // 这里将调用支付服务
-  router.push({
-    path: '/payment/process',
-    query: {
-      plan: planName.value,
-      price: planPrice.value,
-      method: paymentMethod.value
-    }
-  })
+  loading.value = true
+  error.value = ''
+  try {
+    // 跳转到支付处理页面
+    router.push({
+      path: '/payment/process',
+      query: {
+        plan: planName.value,
+        price: planPrice.value,
+        method: paymentMethod.value
+      }
+    })
+  } catch (err) {
+    console.error('Payment failed:', err)
+    error.value = '支付失败，请重试'
+    loading.value = false
+  }
 }
 </script>
 

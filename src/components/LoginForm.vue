@@ -29,20 +29,26 @@ const router = useRouter()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const error = ref('')
 
 const handleOAuthLogin = async (provider: 'apple' | 'google') => {
   loading.value = true
+  error.value = ''
   try {
-    const response = provider === 'apple' 
+    const response = provider === 'apple'
       ? await authService.loginWithApple()
       : await authService.loginWithGoogle()
-    
+
     if (response.success) {
       localStorage.setItem('token', response.data.token)
+      localStorage.setItem('user', JSON.stringify(response.data))
       router.push('/app/dashboard')
+    } else {
+      error.value = 'OAuth登录失败，请重试'
     }
-  } catch (error) {
-    console.error('OAuth login failed:', error)
+  } catch (err) {
+    console.error('OAuth login failed:', err)
+    error.value = 'OAuth登录失败，请重试'
   } finally {
     loading.value = false
   }
@@ -51,16 +57,21 @@ const handleOAuthLogin = async (provider: 'apple' | 'google') => {
 const handleSubmit = async (e: Event) => {
   e.preventDefault()
   loading.value = true
+  error.value = ''
   try {
     const response = await authService.login(email.value, password.value)
     if (response.success) {
-      // 存储 token
+      // 存储 token 和用户信息
       localStorage.setItem('token', response.data.token)
+      localStorage.setItem('user', JSON.stringify(response.data))
       // 跳转到 dashboard
       router.push('/app/dashboard')
+    } else {
+      error.value = '登录失败，请检查邮箱和密码'
     }
-  } catch (error) {
-    console.error('Login failed:', error)
+  } catch (err) {
+    console.error('Login failed:', err)
+    error.value = '登录失败，请检查邮箱和密码'
   } finally {
     loading.value = false
   }
@@ -81,6 +92,11 @@ const handleSubmit = async (e: Event) => {
       <CardContent>
         <form @submit="handleSubmit">
           <FieldGroup>
+            <!-- 错误提示 -->
+            <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
+              {{ error }}
+            </div>
+
             <Field>
               <Button variant="outline" type="button" :disabled="loading" @click="handleOAuthLogin('apple')">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
