@@ -10,4 +10,4 @@ services:
     container_name: sparkinai-app
     restart: always
     ports:
-      - "5173:80"
+      - "19520:80"

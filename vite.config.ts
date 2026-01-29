@@ -26,7 +26,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       proxy: {
         '^/api': {
           changeOrigin: true,
-          target: 'http://localhost:5173',
+          target: 'http://localhost:19520',
           rewrite: (path) => path.replace("", ""),
         },
       },

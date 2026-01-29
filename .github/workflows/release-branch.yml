@@ -15,7 +15,7 @@ permissions:
 # 设置环境变量
 env:
   IMAGE_NAME: sparkinai-app
-  EXPOSE_PORT: 5173
+  EXPOSE_PORT: 19520
   DOCKERFILE: deploy/Dockerfile
 
 jobs:

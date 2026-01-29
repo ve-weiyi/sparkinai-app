@@ -10,7 +10,7 @@ SparkInAI is a Vue 3 + TypeScript SaaS application for AI-powered image and vide
 
 ### Running the Application
 ```bash
-pnpm dev          # Start dev server with mock API (port 5173)
+pnpm dev          # Start dev server with mock API (port 19520)
 pnpm prod         # Start dev server in production mode
 pnpm preview      # Preview production build
 ```
@@ -150,7 +150,7 @@ Type definitions are auto-generated in `auto-imports.d.ts`.
 
 ### vite.config.ts
 - Base path: `VITE_APP_BASE_PATH`
-- Dev server port: `VITE_APP_PORT=5173`
+- Dev server port: `VITE_APP_PORT=19520`
 - Path alias: `@` → `./src`
 - Mock server enabled when `VITE_MOCK_DEV_SERVER=true`
 - Build output organized by asset type (js, img, media, fonts)
