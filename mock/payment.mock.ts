@@ -1,13 +1,10 @@
-import { createDefineMock } from 'vite-plugin-mock-dev-server'
-
-const defineMock = createDefineMock((mock) => {
-  mock.url = '/api' + mock.url
-})
+import { MockHttpItem } from 'vite-plugin-mock-dev-server'
+import { defineMock } from './base.ts'
 
 // 存储订单状态（模拟数据库）
 const orderStatus: Record<string, 'pending' | 'success' | 'failed'> = {}
 
-export default defineMock([
+export const paymentMockData: MockHttpItem[] = [
   {
     url: '/payment/create',
     method: 'POST',
@@ -88,4 +85,6 @@ export default defineMock([
       }
     },
   },
-])
+]
+
+export default defineMock(paymentMockData)

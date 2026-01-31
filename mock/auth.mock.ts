@@ -1,10 +1,7 @@
-import { createDefineMock } from 'vite-plugin-mock-dev-server'
+import { MockHttpItem } from 'vite-plugin-mock-dev-server'
+import { defineMock } from './base.ts'
 
-const defineMock = createDefineMock((mock) => {
-  mock.url = '/api' + mock.url
-})
-
-export default defineMock([
+export const authMockData: MockHttpItem[] = [
   {
     url: '/auth/login',
     method: 'POST',
@@ -92,4 +89,6 @@ export default defineMock([
       },
     },
   },
-])
+]
+
+export default defineMock(authMockData)

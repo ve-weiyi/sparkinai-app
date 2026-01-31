@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,12 +19,18 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useUserData } from '@/composables/useUserData'
+import { useUserStore } from '@/store/modules/user'
 import { getRouteByPath } from '@/router/routes.ts'
 import UserPlanBadge from '@/components/UserPlanBadge.vue'
 
 const route = useRoute()
-const { currentUser, creditOptions } = useUserData()
+const store = useUserStore()
+const { currentUser, creditOptions } = storeToRefs(store)
+
+onMounted(() => {
+  store.fetchCurrentUser()
+  store.fetchCreditOptions()
+})
 
 const breadcrumbs = computed(() => {
   const result = getRouteByPath(route.path)

@@ -769,7 +769,7 @@ import {
   generateProductImages,
   regenerateProductImage,
   analyzeProductImages,
-} from '@/services/imageGeneration'
+} from '@/services/product.ts'
 
 interface UploadedImage {
   file: File

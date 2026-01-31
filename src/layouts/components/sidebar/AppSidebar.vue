@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import type { SidebarProps } from '@/components/ui/sidebar'
 import {
   Sidebar,
@@ -11,7 +12,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { RouterLink } from 'vue-router'
-import { useUserData } from '@/composables/useUserData'
+import { useUserStore } from '@/store/modules/user'
 import { Sparkles } from 'lucide-vue-next'
 import NavMain from './NavMain.vue'
 import NavUser from './NavUser.vue'
@@ -21,7 +22,8 @@ const props = withDefaults(defineProps<SidebarProps>(), {
   collapsible: 'icon',
 })
 
-const { currentUser } = useUserData()
+const store = useUserStore()
+const { currentUser } = storeToRefs(store)
 
 </script>
 

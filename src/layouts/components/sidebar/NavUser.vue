@@ -36,6 +36,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
+import { useUserStore } from '@/store/modules/user'
 
 const props = defineProps<{
   user: {
@@ -49,6 +50,7 @@ const props = defineProps<{
 
 const { isMobile } = useSidebar()
 const router = useRouter()
+const store = useUserStore()
 
 const theme = ref<'light' | 'dark' | 'system'>('system')
 
@@ -73,7 +75,7 @@ const setTheme = (newTheme: 'light' | 'dark' | 'system') => {
 }
 
 const handleLogout = () => {
-  localStorage.clear()
+  store.logout()
   sessionStorage.clear()
   router.push('/')
 }

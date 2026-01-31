@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
@@ -10,11 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useUserData } from '@/composables/useUserData'
+import { useUserStore } from '@/store/modules/user'
 import type { CreditRecord } from '@/types'
 
 const router = useRouter()
-const { currentUser } = useUserData()
+const store = useUserStore()
+const { currentUser } = storeToRefs(store)
 
 // 筛选类型
 const filterType = ref<string>('all')

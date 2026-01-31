@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,10 +29,11 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp'
-import { useUserData } from '@/composables/useUserData'
+import { useUserStore } from '@/store/modules/user'
 import { toast } from 'vue-sonner'
 
-const { currentUser } = useUserData()
+const store = useUserStore()
+const { currentUser } = storeToRefs(store)
 
 // 修改用户名
 const isEditingUsername = ref(false)

@@ -1,10 +1,6 @@
-import { createDefineMock } from 'vite-plugin-mock-dev-server'
-
-const defineMock = createDefineMock((mock) => {
-  mock.url = '/api' + mock.url
-})
-
-export default defineMock([
+import { MockHttpItem } from 'vite-plugin-mock-dev-server'
+import { defineMock } from './base.ts'
+export const userMockData: MockHttpItem[] = [
   {
     url: '/user/current',
     method: 'GET',
@@ -28,4 +24,6 @@ export default defineMock([
       { name: '视频分析/聊天', credits: 0, label: '限时免费' },
     ],
   },
-])
+]
+
+export default defineMock(userMockData)

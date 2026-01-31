@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import { authService } from '@/services/auth'
+import { useUserStore } from '@/store/modules/user'
 
 const props = defineProps<{
   class?: HTMLAttributes["class"]
@@ -30,6 +31,7 @@ const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
+const store = useUserStore()
 
 const handleOAuthLogin = async (provider: 'apple' | 'google') => {
   loading.value = true
@@ -59,12 +61,8 @@ const handleSubmit = async (e: Event) => {
   loading.value = true
   error.value = ''
   try {
-    const response = await authService.login(email.value, password.value)
+    const response = await store.login({ email: email.value, password: password.value })
     if (response.success) {
-      // 存储 token 和用户信息
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('user', JSON.stringify(response.data))
-      // 跳转到 dashboard
       router.push('/app/dashboard')
     } else {
       error.value = '登录失败，请检查邮箱和密码'

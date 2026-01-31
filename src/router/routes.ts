@@ -1,4 +1,4 @@
-import { Home, Image, Video, Sparkles, History, Heart } from 'lucide-vue-next'
+import { Image, Heart } from 'lucide-vue-next'
 import type { Component } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
 
@@ -16,14 +16,11 @@ declare module 'vue-router' {
 }
 
 // App route components (lazy loaded)
-const DashboardPage = () => import('@/views/app/dashboard/index.vue')
-const ImageGenerationPage = () => import('@/views/app/image-generation/index.vue')
 const ProductImagesGenerationPage = () => import('@/views/app/product-images-generation/index.vue')
 const FavoritesPage = () => import('@/views/app/favorites/index.vue')
 const UserCenterPage = () => import('@/views/app/user-center/index.vue')
 const CustomerServicePage = () => import('@/views/app/customer-service/index.vue')
 
-const AppLayout = () => import('@/layouts/AppLayout.vue')
 
 // Menu configuration using RouteRecordRaw with children for grouping
 export const menuConfig: RouteRecordRaw[] = [
@@ -136,7 +133,7 @@ const buildRouteMap = (
 }
 
 // Build route map for all routes
-const routeMap = new Map([...buildRouteMap(appRoutes, '/app')])
+const routeMap = new Map(buildRouteMap(appRoutes, '/app'))
 
 export const getRouteByPath = (path: string) => {
   return routeMap.get(path)
