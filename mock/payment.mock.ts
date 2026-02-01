@@ -1,5 +1,5 @@
 import { MockHttpItem } from 'vite-plugin-mock-dev-server'
-import { defineMock } from './base.ts'
+import { defineMock } from './base'
 
 // 存储订单状态（模拟数据库）
 const orderStatus: Record<string, 'pending' | 'success' | 'failed'> = {}

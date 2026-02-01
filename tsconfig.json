@@ -45,7 +45,7 @@
     "isolatedModules": true,
     "noEmit": true,
     // 其他配置
-    "allowImportingTsExtensions": true,
+    "allowImportingTsExtensions": false,
 
     // 类型声明相关配置
     "types": ["node", "vite/client"]

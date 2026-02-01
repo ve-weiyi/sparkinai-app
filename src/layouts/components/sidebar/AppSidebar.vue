@@ -16,7 +16,7 @@ import { useUserStore } from '@/store/modules/user'
 import { Sparkles } from 'lucide-vue-next'
 import NavMain from './NavMain.vue'
 import NavUser from './NavUser.vue'
-import { menuConfig } from '@/router/routes.ts'
+import { menuConfig } from '@/router/routes'
 
 const props = withDefaults(defineProps<SidebarProps>(), {
   collapsible: 'icon',
@@ -54,7 +54,7 @@ const { currentUser } = storeToRefs(store)
     <SidebarFooter>
       <NavUser
         v-if="currentUser"
-        :user="{ ...currentUser, plan: currentUser.plan, credits: currentUser.credits }"
+        :user="currentUser"
       />
     </SidebarFooter>
     <SidebarRail />

@@ -14,6 +14,18 @@ export interface EmptyReq {
 export interface EmptyResp {
 }
 
+export interface GetClientInfoReq {
+}
+
+export interface GetClientInfoResp {
+  id: number; // 访客唯一ID
+  terminal_id: string; // 终端ID
+  os: string; // 操作系统
+  browser: string; // 浏览器
+  ip_address: string; // IP地址
+  ip_source: string; // IP归属地
+}
+
 export interface GetOauthAuthorizeUrlReq {
   platform: string; // 平台
   state?: string; // 状态
@@ -47,17 +59,24 @@ export interface PhoneLoginReq {
   verify_code: string; // 验证码
 }
 
+export interface RefreshTokenReq {
+  user_id: string; // 用户id
+  grant_type: string; // 授权类型
+  refresh_token: string; // 刷新令牌
+}
+
 export interface RegisterReq {
   email: string; // 邮箱
   password: string; // 密码
   verify_code: string; // 验证码
+  username?: string; // 用户名
+  nickname?: string; // 昵称
 }
 
 export interface ResetPasswordReq {
-  email?: string; // 邮箱
-  phone?: string; // 手机号
-  code: string; // 验证码
-  new_password: string; // 新密码，6-20位
+  email: string; // 邮箱
+  password: string; // 新密码
+  verify_code: string; // 验证码
 }
 
 export interface SendEmailVerifyCodeReq {
@@ -81,6 +100,15 @@ export interface Token {
 
 
 export const AuthAPI = {
+  /** 获取客户端信息 */
+  getClientInfo(data?: GetClientInfoReq): Promise<IApiResponse<GetClientInfoResp>> {
+    return request({
+      url: "/api/v1/auth/client-info",
+      method: "GET",
+      data: data,
+    });
+  },
+
   /** 邮箱登录 */
   emailLogin(data?: EmailLoginReq): Promise<IApiResponse<LoginResp>> {
     return request({
@@ -153,11 +181,29 @@ export const AuthAPI = {
     });
   },
 
+  /** 刷新token */
+  refreshToken(data?: RefreshTokenReq): Promise<IApiResponse<LoginResp>> {
+    return request({
+      url: "/api/v1/auth/refresh-token",
+      method: "POST",
+      data: data,
+    });
+  },
+
   /** 注册 */
   register(data?: RegisterReq): Promise<IApiResponse<EmptyResp>> {
     return request({
       url: "/api/v1/auth/register",
       method: "POST",
+      data: data,
+    });
+  },
+
+  /** 注销 */
+  logoff(data?: EmptyReq): Promise<IApiResponse<EmptyResp>> {
+    return request({
+      url: "/api/v1/auth/logoff",
+      method: "DELETE",
       data: data,
     });
   },

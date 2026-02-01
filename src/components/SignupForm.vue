@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { cn } from '@/lib/utils.ts'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -23,7 +23,8 @@ import {
 } from '@/components/ui/input-otp'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
-import { authService } from '@/services/auth'
+import { AuthAPI } from '@/api/auth'
+import { toast } from 'vue-sonner'
 
 const props = defineProps<{
   class?: HTMLAttributes["class"]
@@ -32,6 +33,7 @@ const props = defineProps<{
 const router = useRouter()
 const name = ref('')
 const email = ref('')
+const password = ref('')
 const code = ref('')
 const loading = ref(false)
 const codeSent = ref(false)
@@ -43,12 +45,11 @@ const handleSendCode = async (e: Event) => {
   error.value = ''
 
   try {
-    const response = await authService.sendVerificationCode(email.value, name.value)
-    if (response.success) {
-      codeSent.value = true
-    } else {
-      error.value = '发送验证码失败，请重试'
-    }
+    await AuthAPI.sendEmailVerifyCode({
+      email: email.value,
+      type: 'register',
+    })
+    codeSent.value = true
   } catch (err) {
     console.error('Send code failed:', err)
     error.value = '发送验证码失败，请重试'
@@ -62,13 +63,15 @@ const handleVerify = async (e: Event) => {
   loading.value = true
   error.value = ''
   try {
-    const response = await authService.verifyAndRegister(email.value, code.value, name.value)
-    if (response.success) {
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('user', JSON.stringify(response.data))
-      router.push('/app/dashboard')
-    } else {
-      error.value = '验证失败，请检查验证码'
+    const res = await AuthAPI.register({
+      email: email.value,
+      password: password.value,
+      verify_code: code.value,
+      nickname: name.value,
+    } as any)
+    if (res.code === 200) {
+      toast.success('注册成功')
+      router.push('/login')
     }
   } catch (err) {
     console.error('Verify failed:', err)
@@ -115,6 +118,12 @@ const handleVerify = async (e: Event) => {
                 placeholder="m@example.com"
                 required
               />
+            </Field>
+            <Field>
+              <FieldLabel for="password">
+                Password
+              </FieldLabel>
+              <Input id="password" v-model="password" type="password" required />
             </Field>
             <Field>
               <Button type="submit" :disabled="loading">

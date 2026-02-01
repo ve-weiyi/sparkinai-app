@@ -1,5 +1,5 @@
 import { MockHttpItem } from 'vite-plugin-mock-dev-server'
-import { defineMock } from './base.ts'
+import { defineMock } from './base'
 
 export const productMockData: MockHttpItem[] = [
   {

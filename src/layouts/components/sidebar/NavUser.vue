@@ -15,7 +15,7 @@ import {
   ShoppingCart,
   Sparkles,
   Sun,
-  User,
+  User as UserIcon,
 } from 'lucide-vue-next'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -37,15 +37,10 @@ import {
 } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { useUserStore } from '@/store/modules/user'
+import type { GetUserProfileResp } from '@/api/me'
 
 const props = defineProps<{
-  user: {
-    name: string
-    email: string
-    avatar: string
-    plan: string
-    credits: number
-  }
+  user: GetUserProfileResp
 }>()
 
 const { isMobile } = useSidebar()
@@ -91,15 +86,15 @@ const handleLogout = () => {
             class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground px-4"
           >
             <Avatar class="h-8 w-8 rounded-lg">
-              <AvatarImage :src="user.avatar" :alt="user.name" />
+              <AvatarImage :src="user.avatar" :alt="user.nickname" />
               <AvatarFallback class="rounded-lg bg-green-600 text-white">
-                {{ user.name[0] }}
+                {{ user.nickname[0] || '' }}
               </AvatarFallback>
             </Avatar>
             <div
               class="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden"
             >
-              <span class="truncate font-medium">{{ user.name }}</span>
+              <span class="truncate font-medium">{{ user.nickname }}</span>
               <span class="truncate text-xs">{{ user.email }}</span>
             </div>
             <ChevronsUpDown class="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
@@ -113,13 +108,13 @@ const handleLogout = () => {
         >
           <div class="flex items-center gap-2 px-1 py-2 min-w-0">
             <Avatar class="h-9 w-9 rounded-lg flex-shrink-0">
-              <AvatarImage :src="user.avatar" :alt="user.name" />
+              <AvatarImage :src="user.avatar" :alt="user.nickname" />
               <AvatarFallback class="rounded-lg bg-green-600 text-white">
-                {{ user.name[0] }}
+                {{ user.nickname[0] || ''}}
               </AvatarFallback>
             </Avatar>
             <div class="min-w-0 flex-1">
-              <p class="font-semibold text-sm truncate">{{ user.name }}</p>
+              <p class="font-semibold text-sm truncate">{{ user.nickname }}</p>
               <p class="text-xs text-muted-foreground truncate">{{ user.email }}</p>
             </div>
           </div>
@@ -170,7 +165,7 @@ const handleLogout = () => {
           <DropdownMenuSeparator class="my-2" />
 
           <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/user-center?tab=account')">
-            <User class="w-4 h-4 mr-2" />
+            <UserIcon class="w-4 h-4 mr-2" />
             <span class="text-sm">账户</span>
           </DropdownMenuItem>
 

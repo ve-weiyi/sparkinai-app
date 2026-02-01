@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useUserStore } from '@/store/modules/user'
-import { getRouteByPath } from '@/router/routes.ts'
+import { getRouteByPath } from '@/router/routes'
 import UserPlanBadge from '@/components/UserPlanBadge.vue'
 
 const route = useRoute()

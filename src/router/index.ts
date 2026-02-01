@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
-import { appRoutes } from '@/router/routes.ts'
+import { appRoutes } from '@/router/routes'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

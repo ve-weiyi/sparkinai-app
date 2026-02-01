@@ -8,7 +8,7 @@ export interface BalanceLogItem {
   balance_before: number; // 变动前余额
   balance_after: number; // 变动后余额
   description: string; // 变动描述
-  created_at: string; // 创建时间
+  created_at: number; // 创建时间
 }
 
 export interface CreditRuleItem {
@@ -47,18 +47,19 @@ export interface GetUserProfileReq {
 }
 
 export interface GetUserProfileResp {
-  id: string; // 用户ID
-  name: string; // 昵称
+  user_id: string; // 用户ID（UUID）
+  username: string; // 用户名
+  nickname: string; // 昵称
+  avatar: string; // 头像URL
   email: string; // 邮箱
   phone: string; // 手机号
-  avatar: string; // 头像URL
   status: number; // 账号状态
   plan: string; // 会员计划
   free_usage: number; // 免费使用次数
   token_balance: number; // Token余额
   credits: number; // 积分
   total_generations: number; // 累计生成次数
-  created_at: string; // 注册时间
+  created_at: number; // 注册时间
 }
 
 export interface PageQuery {
@@ -72,21 +73,10 @@ export interface UpdateUserProfileReq {
 }
 
 export interface UpdateUserProfileResp {
-  success: boolean; // 是否更新成功
-  message: string; // 提示信息
 }
 
 
-export const UserAPI = {
-  /** 获取积分规则 */
-  getUserCredits(data?: GetUserProfileReq): Promise<IApiResponse<GetUserCreditsResp>> {
-    return request({
-      url: "/api/v1/user/credits",
-      method: "GET",
-      data: data,
-    });
-  },
-
+export const MeAPI = {
   /** 扣除用户额度 */
   deductUserQuota(data?: DeductUserQuotaReq): Promise<IApiResponse<DeductUserQuotaResp>> {
     return request({
@@ -118,6 +108,15 @@ export const UserAPI = {
   getUserBalanceLogs(data?: GetUserBalanceLogsReq): Promise<IApiResponse<GetUserBalanceLogsResp>> {
     return request({
       url: "/api/v1/user/me/balance-logs",
+      method: "GET",
+      data: data,
+    });
+  },
+
+  /** 获取当前用户积分规则 */
+  getUserCredits(data?: GetUserProfileReq): Promise<IApiResponse<GetUserCreditsResp>> {
+    return request({
+      url: "/api/v1/user/me/credits",
       method: "GET",
       data: data,
     });

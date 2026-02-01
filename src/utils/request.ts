@@ -43,7 +43,7 @@ axiosInstance.interceptors.request.use(
       [HeaderXTerminalId]: terminalId,
       [HeaderXTerminalToken]: terminalToken,
       [HeaderUid]: uid,
-      [HeaderAuthorization]: accessToken,
+      [HeaderToken]: accessToken,
     });
     return config;
   },
@@ -68,10 +68,12 @@ axiosInstance.interceptors.response.use(
       case 400:
         return Promise.reject(new Error(msg || "请求参数错误"));
       case 401:
+        await redirectToLogin(msg || "用户未登录");
         return Promise.reject(new Error(msg || "用户未登录"));
       case 402:
         return retryWithRefresh(response.config);
       case 403:
+        await redirectToLogin(msg || "无权限访问");
         return Promise.reject(new Error(msg || "无权限访问"));
       default:
         return Promise.reject(new Error(msg || "系统错误"));

@@ -24,7 +24,18 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Heart, Download, Trash2, Image as ImageIcon, Video as VideoIcon } from 'lucide-vue-next'
-import type { FavoriteItem } from '@/types'
+type FavoriteItem = {
+  id: string
+  type: 'image' | 'video'
+  title: string
+  thumbnail: string
+  prompt?: string
+  style?: string
+  duration?: string
+  createdAt: string
+  favoritedAt: string
+  tags?: string[]
+}
 import { toast } from 'vue-sonner'
 
 // 筛选类型

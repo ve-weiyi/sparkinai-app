@@ -1,12 +1,13 @@
 import { defineStore } from 'pinia'
-import type { User, CreditOption } from '@/types'
-import { authService } from '@/services/auth'
-import { userService } from '@/services/user'
+import type { GetUserProfileResp, CreditRuleItem } from '@/api/me'
+import { AuthAPI } from '@/api/auth'
+import { MeAPI } from '@/api/me'
+import { AuthStorage } from '@/utils/auth'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    user: null as User | null,
-    creditOptions: [] as CreditOption[],
+    user: null as GetUserProfileResp | null,
+    creditOptions: [] as CreditRuleItem[],
     loading: false,
     error: null as Error | null,
   }),
@@ -16,13 +17,20 @@ export const useUserStore = defineStore('user', {
   },
   actions: {
     async login(credentials: { email: string; password: string }) {
-      const response = await authService.login(credentials.email, credentials.password)
-      if (response.success) {
-        localStorage.setItem('token', response.data.token)
-        localStorage.setItem('user', JSON.stringify(response.data))
-        this.user = response.data
+      const res = await AuthAPI.emailLogin({
+        email: credentials.email,
+        password: credentials.password,
+      } as any)
+      const token = res.data.token
+      const uid = res.data.user_id
+      if (token?.access_token) {
+        AuthStorage.setTokens(uid, token.access_token, token.refresh_token || '')
+        localStorage.setItem('token', token.access_token)
       }
-      return response
+      const profile = await MeAPI.getUserProfile({})
+      localStorage.setItem('user', JSON.stringify(profile.data))
+      this.user = profile.data
+      return { success: true }
     },
     logout() {
       localStorage.removeItem('token')
@@ -36,7 +44,8 @@ export const useUserStore = defineStore('user', {
         if (storedUser) {
           this.user = JSON.parse(storedUser)
         } else {
-          this.user = await userService.getCurrentUser()
+          const profile = await MeAPI.getUserProfile({})
+          this.user = profile.data
         }
       } catch (e) {
         this.error = e as Error
@@ -46,12 +55,13 @@ export const useUserStore = defineStore('user', {
     },
     async fetchCreditOptions() {
       try {
-        this.creditOptions = await userService.getCreditOptions()
+        const res = await MeAPI.getUserCredits({})
+        this.creditOptions = res.data.list || []
       } catch (e) {
         this.error = e as Error
       }
     },
-    async refreshToken(payload: { user_id: string; grant_type: string; refresh_token: string }) {
+    async refreshToken(_payload: { user_id: string; grant_type: string; refresh_token: string }) {
       throw new Error('Not implemented')
     },
     resetAllState() {

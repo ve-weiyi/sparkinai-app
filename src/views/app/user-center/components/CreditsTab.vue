@@ -12,7 +12,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useUserStore } from '@/store/modules/user'
-import type { CreditRecord } from '@/types'
+type CreditRecord = {
+  id: string
+  type: 'earn' | 'spend' | 'refund' | 'expire'
+  amount: number
+  balance: number
+  description: string
+  createdAt: string
+  relatedOrder?: string
+}
 
 const router = useRouter()
 const store = useUserStore()

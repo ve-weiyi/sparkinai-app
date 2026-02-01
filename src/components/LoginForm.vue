@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { cn } from "@/lib/utils.ts"
+import { cn } from "@/lib/utils"
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
-import { authService } from '@/services/auth'
+import { AuthAPI } from '@/api/auth'
 import { useUserStore } from '@/store/modules/user'
 
 const props = defineProps<{
@@ -37,17 +37,15 @@ const handleOAuthLogin = async (provider: 'apple' | 'google') => {
   loading.value = true
   error.value = ''
   try {
-    const response = provider === 'apple'
-      ? await authService.loginWithApple()
-      : await authService.loginWithGoogle()
-
-    if (response.success) {
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('user', JSON.stringify(response.data))
-      router.push('/app/dashboard')
-    } else {
-      error.value = 'OAuth登录失败，请重试'
+    const { data } = await AuthAPI.getOauthAuthorizeUrl({
+      platform: provider,
+      state: 'login',
+    })
+    if (data.authorize_url) {
+      window.location.href = data.authorize_url
+      return
     }
+    error.value = 'OAuth登录失败，请重试'
   } catch (err) {
     console.error('OAuth login failed:', err)
     error.value = 'OAuth登录失败，请重试'

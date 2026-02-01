@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-vue-next'
-import { createPayment, alipayPayment, wechatPayment, stripePayment, queryPaymentStatus } from '@/services/payment'
+import { PaymentAPI } from '@/api/payment'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,34 +21,37 @@ const orderId = ref('')
 onMounted(async () => {
   try {
     // 创建订单
-    const response = await createPayment({
-      planName: planName.value,
-      amount: amount.value,
-      method: paymentMethod.value as any
+    const response = await PaymentAPI.createPayment({
+      method: paymentMethod.value,
     })
-
-    orderId.value = response.orderId
+    orderId.value = response.data.order_id
 
     // 根据支付方式处理
     if (paymentMethod.value === 'alipay') {
       // 支付宝：跳转到支付页面
-      const alipayResponse = await alipayPayment(orderId.value, amount.value)
+      const alipayResponse = await PaymentAPI.payWithAlipay({
+        order_id: orderId.value,
+      })
       // 实际项目中应该跳转到支付宝页面
-      // window.location.href = alipayResponse.paymentUrl
+      // window.location.href = alipayResponse.data.payment_url
       // 这里模拟支付成功
       simulatePayment()
     } else if (paymentMethod.value === 'wechat') {
       // 微信：显示二维码
-      const wechatResponse = await wechatPayment(orderId.value, amount.value)
-      qrCode.value = wechatResponse.qrCode || ''
+      const wechatResponse = await PaymentAPI.payWithWechat({
+        order_id: orderId.value,
+      })
+      qrCode.value = wechatResponse.data.qr_code || ''
       loading.value = false
       // 轮询支付状态
       pollPaymentStatus()
     } else if (paymentMethod.value === 'stripe') {
       // Stripe：跳转到Stripe页面
-      const stripeResponse = await stripePayment(orderId.value, amount.value)
+      const stripeResponse = await PaymentAPI.payWithStripe({
+        order_id: orderId.value,
+      })
       // 实际项目中应该跳转到Stripe页面
-      // window.location.href = stripeResponse.paymentUrl
+      // window.location.href = stripeResponse.data.payment_url
       // 这里模拟支付成功
       simulatePayment()
     }
@@ -85,8 +88,10 @@ const simulatePayment = () => {
 // 轮询支付状态
 const pollPaymentStatus = () => {
   const interval = setInterval(async () => {
-    const status = await queryPaymentStatus(orderId.value)
-    if (status.status === 'success') {
+    const status = await PaymentAPI.getPaymentStatus({
+      order_id: orderId.value,
+    })
+    if (status.data.status === 'success') {
       clearInterval(interval)
       router.push({
         path: '/payment/result',
@@ -97,7 +102,7 @@ const pollPaymentStatus = () => {
           amount: amount.value
         }
       })
-    } else if (status.status === 'failed') {
+    } else if (status.data.status === 'failed') {
       clearInterval(interval)
       router.push({
         path: '/payment/result',

@@ -39,7 +39,7 @@ const { currentUser } = storeToRefs(store)
 const isEditingUsername = ref(false)
 const newUsername = ref('')
 const editUsername = () => {
-  newUsername.value = currentUser.value?.name || ''
+  newUsername.value = currentUser.value?.nickname || ''
   isEditingUsername.value = true
 }
 const saveUsername = () => {
@@ -168,7 +168,7 @@ const deleteAccount = () => {
       <div class="flex justify-between items-start">
         <div class="space-y-1">
           <h3 class="text-base font-semibold">用户名</h3>
-          <p class="text-sm text-gray-500">{{ currentUser?.name || '未设置' }}</p>
+            <p class="text-sm text-gray-500">{{ currentUser?.nickname || '未设置' }}</p>
         </div>
         <Dialog v-model:open="isEditingUsername">
           <DialogTrigger as-child>

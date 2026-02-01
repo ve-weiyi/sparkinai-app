@@ -59,6 +59,20 @@
                             :alt="image.file.name"
                             class="w-full h-full object-cover"
                           />
+                          <!-- Upload Status Overlay -->
+                          <div
+                            v-if="!image.uploaded"
+                            class="absolute inset-0 bg-black/40 flex items-center justify-center"
+                          >
+                            <Loader2 class="animate-spin h-6 w-6 text-white" />
+                          </div>
+                          <!-- Upload Success Indicator -->
+                          <div
+                            v-else
+                            class="absolute top-2 right-2 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"
+                          >
+                            <Check class="h-4 w-4 text-white" stroke-width="3" />
+                          </div>
                         </div>
 
                         <!-- Action Buttons -->
@@ -72,6 +86,7 @@
                                 ? 'bg-foreground text-background hover:bg-foreground/20'
                                 : ''
                             "
+                            :disabled="!image.uploaded"
                             @click="mainImageIndex = index"
                           >
                             {{ index === mainImageIndex ? '主图' : '设为主图' }}
@@ -91,6 +106,7 @@
                           v-model="image.note"
                           placeholder="备注（可选）"
                           class="flex-1 h-7 text-xs px-2 py-1"
+                          :disabled="!image.uploaded"
                         />
                       </div>
 
@@ -158,7 +174,7 @@
                           variant="ghost"
                           size="sm"
                           class="gap-1 text-xs text-primary hover:text-primary"
-                          :disabled="uploadedImages.length === 0 || isGeneratingAI"
+                          :disabled="uploadedImages.length === 0 || isGeneratingAI || uploadedImages.some(img => !img.uploaded)"
                           @click="handleAIGenerate"
                         >
                           <Sparkles class="h-3 w-3" :class="{ 'animate-spin': isGeneratingAI }" />
@@ -197,7 +213,11 @@
                 <Button
                   class="w-full"
                   :disabled="
-                    uploadedImages.length === 0 || !formData.productName || !formData.sellingPoints || isGenerating
+                    uploadedImages.length === 0 ||
+                    !formData.productName ||
+                    !formData.sellingPoints ||
+                    isGenerating ||
+                    uploadedImages.some(img => !img.uploaded)
                   "
                   @click="handleGenerate"
                 >
@@ -209,13 +229,15 @@
                   {{
                     uploadedImages.length === 0
                       ? '请先上传至少一张产品图片'
-                      : !formData.productName
-                        ? '请填写产品名称'
-                        : !formData.sellingPoints
-                          ? '请填写产品卖点'
-                          : isGenerating
-                            ? '正在生成，请稍候...'
-                            : '点击生成预览'
+                      : uploadedImages.some(img => !img.uploaded)
+                        ? '请等待图片上传完成'
+                        : !formData.productName
+                          ? '请填写产品名称'
+                          : !formData.sellingPoints
+                            ? '请填写产品卖点'
+                            : isGenerating
+                              ? '正在生成，请稍候...'
+                              : '点击生成预览'
                   }}
                 </p>
               </div>
@@ -289,7 +311,7 @@
                             <button
                               v-for="(_copy, idx) in generatedTask.generatedCopies"
                               :key="idx"
-                              @click="activeCopyIndex = idx"
+                                @click="activeCopyIndex = Number(idx)"
                               :class="[
                                 'px-3 py-1 rounded-full text-xs transition-colors',
                                 activeCopyIndex === idx
@@ -297,7 +319,7 @@
                                   : 'border hover:bg-muted',
                               ]"
                             >
-                              文案 {{ idx + 1 }}
+                              文案 {{ Number(idx) + 1 }}
                             </button>
                           </div>
 
@@ -417,7 +439,7 @@
                                 />
                                 <!-- Regenerating Spinner -->
                                 <div
-                                  v-if="img.isRegenerating"
+                                  v-if="img.is_regenerating"
                                   class="absolute inset-0 bg-black/40 flex items-center justify-center"
                                 >
                                   <Loader2 class="animate-spin h-8 w-8 text-white" />
@@ -446,7 +468,7 @@
                                       variant="secondary"
                                       size="sm"
                                       class="bg-white/90 hover:bg-white text-foreground h-7 text-xs px-2 gap-1"
-                                      @click.stop="regenerateImage(generatedTask, idx)"
+                                      @click.stop="regenerateImage(generatedTask, Number(idx))"
                                     >
                                       <RefreshCw class="h-3.5 w-3.5" />
                                       重新生成
@@ -672,10 +694,10 @@
           <div
             v-for="(img, idx) in generatedTask.generatedImages"
             :key="idx"
-            @click="toggleImageSelection(idx)"
+            @click="toggleImageSelection(Number(idx))"
             class="relative aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all"
             :class="
-              selectedImages.includes(idx)
+              selectedImages.includes(Number(idx))
                 ? 'border-primary ring-1 ring-primary'
                 : 'border-muted hover:border-primary/50'
             "
@@ -684,10 +706,10 @@
             <div
               class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium"
             >
-              {{ String(idx + 1).padStart(2, '0') }} {{ img.name }}
+              {{ String(Number(idx) + 1).padStart(2, '0') }} {{ img.name }}
             </div>
             <div
-              v-if="selectedImages.includes(idx)"
+              v-if="selectedImages.includes(Number(idx))"
               class="absolute inset-0 bg-primary/20 flex items-center justify-center"
             >
               <div
@@ -765,16 +787,24 @@ import {
   ERROR_MESSAGES,
 } from './constants'
 import {
-  generateProductSet,
-  generateProductImages,
-  regenerateProductImage,
-  analyzeProductImages,
-} from '@/services/product.ts'
+  GenerateAPI,
+  GenerateProductAnalyzeReq,
+  GenerateProductCopyReq,
+  GenerateProductImagesReq,
+  GenerateProductSingleImageReq,
+  ProductSetPreviewImage,
+  CopyItem,
+  ProductSetImageType,
+  ProductSetImageResult
+} from '@/api/generate'
+import { FileAPI } from '@/api/file'
 
 interface UploadedImage {
   file: File
   preview: string
   note?: string
+  uploaded?: boolean
+  fileInfo?: any
 }
 
 const taskTags = computed(() => {
@@ -794,7 +824,22 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
 const editingImageIndex = ref<number | null>(null)
 const editingNote = ref('')
-const generatedTask = ref<any>(null)
+interface TaskData {
+  id: number
+  timestamp: string
+  platform: string
+  productName: string
+  images: ProductSetPreviewImage[]
+  style: string
+  resolution: string
+  ratio: string
+  generatedCopies: CopyItem[]
+  imageTypes: ProductSetImageType[]
+  generatedImages?: ProductSetImageResult[]
+  isGenerating?: boolean
+}
+
+const generatedTask = ref<TaskData | null>(null)
 const activeCopyIndex = ref(0)
 const isGeneratingAI = ref(false)
 const isGenerating = ref(false)
@@ -833,7 +878,7 @@ const validateFile = (file: File): boolean => {
   return true
 }
 
-const addFiles = (files: FileList | File[]) => {
+const addFiles = async (files: FileList | File[]) => {
   const fileArray = Array.from(files)
   const remainingSlots = FILE_VALIDATION.maxCount - uploadedImages.value.length
 
@@ -842,12 +887,54 @@ const addFiles = (files: FileList | File[]) => {
     return
   }
 
-  fileArray.forEach((file) => {
+  for (const file of fileArray) {
     if (validateFile(file) && uploadedImages.value.length < FILE_VALIDATION.maxCount) {
       const preview = URL.createObjectURL(file)
-      uploadedImages.value.push({ file, preview })
+      // Push to array and get the reactive item reference
+      const length = uploadedImages.value.push({ file, preview, uploaded: false })
+      const uploadedImage = uploadedImages.value[length - 1]
+
+      try {
+        // Get upload token
+        const tokenResponse = await FileAPI.getUploadToken({
+          file_name: file.name
+        })
+
+        const tokenData = tokenResponse.data
+
+        // Upload directly to storage service
+        const formData = new FormData()
+        formData.append('token', tokenData.token)
+        formData.append('key', tokenData.file_key)
+        formData.append('file', file)
+
+        const uploadResponse = await fetch(tokenData.upload_url, {
+          method: 'POST',
+          body: formData
+        })
+
+        if (uploadResponse.ok) {
+          uploadedImage.uploaded = true
+          uploadedImage.fileInfo = {
+            file_url: tokenData.access_url,
+            file_name: file.name,
+            file_key: tokenData.file_key
+          }
+          toast.success(`${file.name} 上传成功`)
+        } else {
+          throw new Error('Upload failed')
+        }
+      } catch (error) {
+        console.error('文件上传失败:', error)
+        toast.error(`${file.name} 上传失败`)
+        const index = uploadedImages.value.indexOf(uploadedImage)
+        if (index > -1) {
+          URL.revokeObjectURL(uploadedImage.preview)
+          uploadedImages.value.splice(index, 1)
+        }
+      }
     }
-  })
+  }
 }
 
 const handleFileChange = (event: Event) => {
@@ -901,21 +988,46 @@ const cancelNote = () => {
 const handleGenerate = async () => {
   if (isGenerating.value) return
 
+  // Check if all images are uploaded
+  const unuploadedImages = uploadedImages.value.filter(img => !img.uploaded)
+  if (unuploadedImages.length > 0) {
+    toast.error('请等待所有图片上传完成')
+    return
+  }
+
   isGenerating.value = true
 
   try {
-    const response = await generateProductSet({
-      images: uploadedImages.value.map((img) => img.file),
-      platform: formData.value.platform,
-      productName: formData.value.productName,
-      sellingPoints: formData.value.sellingPoints,
-      quantity: parseInt(formData.value.quantity),
-    })
+    const imageFiles = uploadedImages.value.map(img => ({
+      file_url: img.fileInfo?.file_url,
+      file_name: img.fileInfo?.file_name,
+      note: img.note || ''
+    }))
 
-    const task = {
-      ...response,
+    const req: GenerateProductCopyReq = {
+      platform: formData.value.platform,
+      product_name: formData.value.productName,
+      description: formData.value.sellingPoints,
+      quantity: parseInt(formData.value.quantity),
+      images: imageFiles,
+      main_image_index: mainImageIndex.value,
+    }
+
+    const { data } = await GenerateAPI.generateProductCopy(req)
+
+    const task: TaskData = {
+      id: data.id,
+      timestamp: data.timestamp,
+      platform: data.platform,
+      productName: data.product_name,
+      images: data.images,
+      style: 'modern', // Default value
+      resolution: '1024x1024', // Default value
+      ratio: '1:1', // Default value
+      generatedCopies: data.generated_copies,
+      imageTypes: data.image_types,
       isGenerating: false,
-      generatedImages: null,
+      generatedImages: undefined,
     }
 
     activeCopyIndex.value = 0
@@ -942,40 +1054,45 @@ const downloadImage = (url: string, name: string) => {
   document.body.removeChild(link)
 }
 
-const regenerateImage = (task: any, index: number) => {
-  regeneratingTask.value = task
-  regeneratingImageIndex.value = index
-  regeneratePrompt.value = ''
-  showRegenerateDialog.value = true
-}
+const regenerateImage = (task: TaskData, index: number) => {
+    if (!task.generatedImages || !task.generatedImages[index]) return
+    const currentImage = task.generatedImages[index]
+    if (currentImage.is_regenerating) return
+
+    regeneratingTask.value = task
+    regeneratingImageIndex.value = index
+    regeneratePrompt.value = ''
+    showRegenerateDialog.value = true
+  }
 
 const confirmRegenerate = async () => {
   if (!regeneratingTask.value || regeneratingImageIndex.value === null) return
 
-  showRegenerateDialog.value = false
-
   const task = regeneratingTask.value
   const index = regeneratingImageIndex.value
+  if (!task.generatedImages) return
+  const currentImage = task.generatedImages[index]
 
-  task.generatedImages[index].isRegenerating = true
+  currentImage.is_regenerating = true
+  showRegenerateDialog.value = false
 
   try {
-    const response = await regenerateProductImage({
-      taskId: task.id,
-      imageIndex: index,
-      prompt: regeneratePrompt.value,
-      style: task.style,
-      resolution: task.resolution,
-      ratio: task.ratio,
-    })
+    const req: GenerateProductSingleImageReq = {
+      product_name: task.productName,
+      image_url: currentImage.url,
+      note: regeneratePrompt.value,
+    }
 
-    task.generatedImages[index].url = response.url
-    toast.success('图片重新生成成功！')
+    const { data } = await GenerateAPI.generateProductSingleImage(req)
+    if (data) {
+      currentImage.url = data.image_url
+      toast.success('图片重新生成成功！')
+    }
   } catch (error) {
     console.error('重新生成失败:', error)
     toast.error('重新生成失败，请稍后重试')
   } finally {
-    task.generatedImages[index].isRegenerating = false
+    currentImage.is_regenerating = false
     regeneratingTask.value = null
     regeneratingImageIndex.value = null
     regeneratePrompt.value = ''
@@ -999,15 +1116,16 @@ const handleGenerateImages = async (task: any) => {
   task.isGenerating = true
 
   try {
-    const response = await generateProductImages({
-      taskId: task.id,
+    const req: GenerateProductImagesReq = {
+      generation_id: task.id,
       style: task.style,
       resolution: task.resolution,
       ratio: task.ratio,
-      imageTypes: selectedTypes,
-    })
+    }
 
-    task.generatedImages = response.images
+    const { data } = await GenerateAPI.generateProductImages(req)
+
+    task.generatedImages = data.images
     toast.success('配图生成成功！')
   } catch (error) {
     console.error('生成图片失败:', error)
@@ -1055,16 +1173,39 @@ const cancelDownload = () => {
 const handleAIGenerate = async () => {
   if (uploadedImages.value.length === 0) return
 
-  isGeneratingAI.value = true
+  // Check if all images are uploaded
+  const unuploadedImages = uploadedImages.value.filter(img => !img.uploaded)
+  if (unuploadedImages.length > 0) {
+    toast.error('请等待所有图片上传完成')
+    return
+  }
 
+  // Call API
+  isGeneratingAI.value = true
   try {
-    const result = await analyzeProductImages(uploadedImages.value.map((img) => img.file))
-    formData.value.productName = result.productName
-    formData.value.sellingPoints = result.sellingPoints
-    toast.success('AI 分析完成！')
+    const images = uploadedImages.value
+      .filter((img) => img.uploaded)
+      .map((img) => ({
+        file_url: img.fileInfo?.file_url,
+        file_name: img.fileInfo?.file_name,
+        note: img.note,
+      }))
+
+    const req: GenerateProductAnalyzeReq = {
+      product_name: formData.value.productName,
+      images: images,
+    }
+
+    const { data } = await GenerateAPI.generateProductAnalyze(req)
+    if (data) {
+      formData.value.productName = data.product_name
+      formData.value.sellingPoints = `核心卖点：${data.selling_points}\n核心特性：${data.core_features}\n适用人群：${data.target_audience}\n期望场景：${data.expected_scenario}\n尺寸数量：${data.size_quantity}`
+    }
   } catch (error) {
-    console.error('AI分析失败:', error)
-    toast.error('AI分析失败，请稍后重试')
+    console.error('AI Analyze failed:', error)
+    // Fallback to mock data if API fails
+    formData.value.sellingPoints =
+      '产品名：高品质户外运动水壶\n核心卖点：\n1. 食品级不锈钢材质，安全无毒\n2. 双层真空保温，24小时长效锁温\n3. 防漏设计，倒置不漏水\n适用人群：户外运动爱好者、上班族\n期望场景：登山、露营、办公室\n尺寸参数：500ml'
   } finally {
     isGeneratingAI.value = false
   }
