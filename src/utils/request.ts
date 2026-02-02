@@ -66,6 +66,7 @@ axiosInstance.interceptors.response.use(
       case 200:
         break;
       case 400:
+        await redirectToLogin(msg || "请求参数错误");
         return Promise.reject(new Error(msg || "请求参数错误"));
       case 401:
         await redirectToLogin(msg || "用户未登录");

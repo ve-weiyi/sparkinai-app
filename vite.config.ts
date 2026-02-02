@@ -24,6 +24,16 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       port: Number(env.VITE_APP_PORT),
       open: true,
       proxy: {
+        '/api/v1/openai': {
+          target: env.VITE_AI_API_URL,
+          changeOrigin: true,
+          rewrite: (path) => path.replace("", ""),
+          bypass(req, res, options) {
+            const proxyURL = options.target + options.rewrite(req.url);
+            console.log("proxyURL", proxyURL);
+            res.setHeader("x-req-proxyURL", proxyURL); // 设置响应头可以看到
+          },
+        },
         // 代理 /dev-api 的请求
         [env.VITE_API_BASE_URL]: {
           changeOrigin: true,

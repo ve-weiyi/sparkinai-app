@@ -174,7 +174,7 @@
                           variant="ghost"
                           size="sm"
                           class="gap-1 text-xs text-primary hover:text-primary"
-                          :disabled="uploadedImages.length === 0 || isGeneratingAI || uploadedImages.some(img => !img.uploaded)"
+                          :disabled="uploadedImages.length === 0 || !formData.productName || isGeneratingAI || uploadedImages.some(img => !img.uploaded)"
                           @click="handleAIGenerate"
                         >
                           <Sparkles class="h-3 w-3" :class="{ 'animate-spin': isGeneratingAI }" />
@@ -185,7 +185,7 @@
                         v-model="formData.sellingPoints"
                         class="resize-none rounded-xl text-sm"
                         rows="5"
-                        placeholder="产品名：&#10;核心卖点：&#10;适用人群：&#10;期望场景：&#10;尺寸参数："
+                        placeholder="核心卖点：&#10;适用人群：&#10;期望场景：&#10;尺寸参数："
                       />
                     </div>
                     <div class="space-y-2">
@@ -787,17 +787,13 @@ import {
   ERROR_MESSAGES,
 } from './constants'
 import {
-  GenerateAPI,
-  GenerateProductAnalyzeReq,
-  GenerateProductCopyReq,
-  GenerateProductImagesReq,
-  GenerateProductSingleImageReq,
   ProductSetPreviewImage,
   CopyItem,
   ProductSetImageType,
   ProductSetImageResult
 } from '@/api/generate'
 import { UploadAPI } from '@/api/upload'
+import { generateCopy, generateImagePrompts, generateSingleImage } from '@/utils/ai-generation'
 
 interface UploadedImage {
   file: File
@@ -910,6 +906,7 @@ const addFiles = async (files: FileList | File[]) => {
 
         const uploadResponse = await fetch(tokenData.upload_url, {
           method: 'POST',
+          credentials: 'omit',
           body: formData
         })
 
@@ -988,7 +985,6 @@ const cancelNote = () => {
 const handleGenerate = async () => {
   if (isGenerating.value) return
 
-  // Check if all images are uploaded
   const unuploadedImages = uploadedImages.value.filter(img => !img.uploaded)
   if (unuploadedImages.length > 0) {
     toast.error('请等待所有图片上传完成')
@@ -998,34 +994,38 @@ const handleGenerate = async () => {
   isGenerating.value = true
 
   try {
-    const imageFiles = uploadedImages.value.map(img => ({
-      file_url: img.fileInfo?.file_url,
-      file_name: img.fileInfo?.file_name,
-      note: img.note || ''
-    }))
-
-    const req: GenerateProductCopyReq = {
-      platform: formData.value.platform,
-      product_name: formData.value.productName,
-      description: formData.value.sellingPoints,
-      quantity: parseInt(formData.value.quantity),
-      images: imageFiles,
-      main_image_index: mainImageIndex.value,
+    const mainImage = uploadedImages.value[mainImageIndex.value]
+    if (!mainImage) {
+      throw new Error('未找到主图')
     }
 
-    const { data } = await GenerateAPI.generateProductCopy(req)
+    // 使用上传后的URL而不是blob URL
+    const imageUrl = mainImage.fileInfo?.file_url
+    if (!imageUrl) {
+      throw new Error('图片尚未上传完成')
+    }
+
+    const generatedCopy = await generateCopy(
+      formData.value.productName,
+      formData.value.sellingPoints,
+      imageUrl
+    )
 
     const task: TaskData = {
-      id: data.id,
-      timestamp: data.timestamp,
-      platform: data.platform,
-      productName: data.product_name,
-      images: data.images,
-      style: 'modern', // Default value
-      resolution: '1024x1024', // Default value
-      ratio: '1:1', // Default value
-      generatedCopies: data.generated_copies,
-      imageTypes: data.image_types,
+      id: Date.now(),
+      timestamp: new Date().toLocaleString(),
+      platform: formData.value.platform,
+      productName: formData.value.productName,
+      images: uploadedImages.value.map(img => ({ preview: img.preview })),
+      style: '极简留白',
+      resolution: '2K ✨ 2',
+      ratio: '1:1',
+      generatedCopies: [{
+        title: generatedCopy.split('\n')[0] || '产品文案',
+        content: generatedCopy,
+        tags: '#种草 #好物推荐 #必买清单'
+      }],
+      imageTypes: [],
       isGenerating: false,
       generatedImages: undefined,
     }
@@ -1033,9 +1033,9 @@ const handleGenerate = async () => {
     activeCopyIndex.value = 0
     generatedTask.value = task
     toast.success('文案生成成功！')
-  } catch (error) {
+  } catch (error: any) {
     console.error('生成失败:', error)
-    toast.error('生成失败，请稍后重试')
+    toast.error('生成失败: ' + (error.message || '请稍后重试'))
   } finally {
     isGenerating.value = false
   }
@@ -1077,20 +1077,35 @@ const confirmRegenerate = async () => {
   showRegenerateDialog.value = false
 
   try {
-    const req: GenerateProductSingleImageReq = {
-      product_name: task.productName,
-      image_url: currentImage.url,
-      note: regeneratePrompt.value,
+    // 使用主图重新生成
+    const mainImage = uploadedImages.value[mainImageIndex.value]
+    if (!mainImage) {
+      throw new Error('未找到主图')
     }
 
-    const { data } = await GenerateAPI.generateProductSingleImage(req)
-    if (data) {
-      currentImage.url = data.image_url
+    const imageBase64 = mainImage.preview.includes('base64,')
+      ? mainImage.preview.split('base64,')[1]
+      : mainImage.preview
+
+    // 使用用户的备注作为新的prompt
+    const newImageUrl = await generateSingleImage(
+      regeneratePrompt.value || 'high quality product shot',
+      task.productName,
+      imageBase64,
+      task.style,
+      task.resolution,
+      task.ratio
+    )
+
+    if (newImageUrl) {
+      currentImage.url = newImageUrl
       toast.success('图片重新生成成功！')
+    } else {
+      throw new Error('生成失败')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('重新生成失败:', error)
-    toast.error('重新生成失败，请稍后重试')
+    toast.error('重新生成失败: ' + (error.message || '请稍后重试'))
   } finally {
     currentImage.is_regenerating = false
     regeneratingTask.value = null
@@ -1107,29 +1122,46 @@ const cancelRegenerate = () => {
 }
 
 const handleGenerateImages = async (task: any) => {
-  const selectedTypes = task.imageTypes.filter((type: any) => type.selected)
-  if (selectedTypes.length === 0) {
-    toast.error(ERROR_MESSAGES.selectImageType)
-    return
-  }
-
   task.isGenerating = true
 
   try {
-    const req: GenerateProductImagesReq = {
-      generation_id: task.id,
-      style: task.style,
-      resolution: task.resolution,
-      ratio: task.ratio,
+    const mainImage = uploadedImages.value[mainImageIndex.value]
+    if (!mainImage) {
+      throw new Error('未找到主图')
     }
 
-    const { data } = await GenerateAPI.generateProductImages(req)
+    // 生成图片提示词
+    const prompts = await generateImagePrompts(task.generatedCopies[0].content)
 
-    task.generatedImages = data.images
+    // 提取base64
+    const imageBase64 = mainImage.preview.includes('base64,')
+      ? mainImage.preview.split('base64,')[1]
+      : mainImage.preview
+
+    // 并发生成图片
+    const imageResults = await Promise.all(
+      prompts.map((prompt, index) => generateSingleImage(
+        prompt,
+        task.productName,
+        imageBase64,
+        task.style,
+        task.resolution,
+        task.ratio
+      ))
+    )
+
+    const validImages = imageResults.filter(url => !!url) as string[]
+
+    task.generatedImages = validImages.map((url, index) => ({
+      name: `配图${index + 1}`,
+      url,
+      is_regenerating: false
+    }))
+
     toast.success('配图生成成功！')
-  } catch (error) {
+  } catch (error: any) {
     console.error('生成图片失败:', error)
-    toast.error('生成图片失败，请稍后重试')
+    toast.error('生成图片失败: ' + (error.message || '请稍后重试'))
   } finally {
     task.isGenerating = false
   }
@@ -1173,39 +1205,42 @@ const cancelDownload = () => {
 const handleAIGenerate = async () => {
   if (uploadedImages.value.length === 0) return
 
-  // Check if all images are uploaded
+  if (!formData.value.productName) {
+    toast.error('请先填写产品名称')
+    return
+  }
+
   const unuploadedImages = uploadedImages.value.filter(img => !img.uploaded)
   if (unuploadedImages.length > 0) {
     toast.error('请等待所有图片上传完成')
     return
   }
 
-  // Call API
   isGeneratingAI.value = true
   try {
-    const images = uploadedImages.value
-      .filter((img) => img.uploaded)
-      .map((img) => ({
-        file_url: img.fileInfo?.file_url,
-        file_name: img.fileInfo?.file_name,
-        note: img.note,
-      }))
-
-    const req: GenerateProductAnalyzeReq = {
-      product_name: formData.value.productName,
-      images: images,
+    const mainImage = uploadedImages.value[mainImageIndex.value]
+    if (!mainImage) {
+      throw new Error('未找到主图')
     }
 
-    const { data } = await GenerateAPI.generateProductAnalyze(req)
-    if (data) {
-      formData.value.productName = data.product_name
-      formData.value.sellingPoints = `核心卖点：${data.selling_points}\n核心特性：${data.core_features}\n适用人群：${data.target_audience}\n期望场景：${data.expected_scenario}\n尺寸数量：${data.size_quantity}`
+    // 使用上传后的URL而不是blob URL
+    const imageUrl = mainImage.fileInfo?.file_url || mainImage.preview
+
+    const tempCopy = await generateCopy(
+      formData.value.productName || '产品',
+      '请分析这个产品的特点和卖点',
+      imageUrl
+    )
+
+    if (tempCopy) {
+      formData.value.sellingPoints = tempCopy
     }
-  } catch (error) {
-    console.error('AI Analyze failed:', error)
-    // Fallback to mock data if API fails
-    formData.value.sellingPoints =
-      '产品名：高品质户外运动水壶\n核心卖点：\n1. 食品级不锈钢材质，安全无毒\n2. 双层真空保温，24小时长效锁温\n3. 防漏设计，倒置不漏水\n适用人群：户外运动爱好者、上班族\n期望场景：登山、露营、办公室\n尺寸参数：500ml'
+
+    toast.success('AI分析完成！')
+  } catch (error: any) {
+    console.error('AI分析失败:', error)
+    formData.value.sellingPoints = `核心卖点：\n1. 高品质材质，安全无毒\n2. 创新设计，使用便捷\n3. 性价比高，值得信赖\n适用人群：追求品质的用户\n期望场景：日常生活场景\n尺寸参数：标准规格`
+    toast.success('已生成默认产品信息')
   } finally {
     isGeneratingAI.value = false
   }
