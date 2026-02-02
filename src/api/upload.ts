@@ -32,29 +32,20 @@ export interface UploadFilesReq {
 }
 
 
-export const FileAPI = {
+export const UploadAPI = {
   /** 上传文件（服务端上传） */
   uploadFiles(data?: UploadFilesReq): Promise<IApiResponse<FileInfoVO[]>> {
-    const formData = new FormData();
-    for (let i = 0; i < data.files.length; i++) {
-      formData.append("files", data.files[i]);
-    }
-    formData.append("file_path", data.file_path);
-
     return request({
-      url: "/api/v1/files",
+      url: "/api/v1/upload/files",
       method: "POST",
-      data: formData,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      data: data,
     });
   },
 
   /** 获取上传凭证（前端直传） */
   getUploadToken(data?: GetUploadTokenReq): Promise<IApiResponse<GetUploadTokenResp>> {
     return request({
-      url: "/api/v1/files/upload-token",
+      url: "/api/v1/upload/upload-token",
       method: "POST",
       data: data,
     });

@@ -797,7 +797,7 @@ import {
   ProductSetImageType,
   ProductSetImageResult
 } from '@/api/generate'
-import { FileAPI } from '@/api/file'
+import { UploadAPI } from '@/api/upload'
 
 interface UploadedImage {
   file: File
@@ -896,7 +896,7 @@ const addFiles = async (files: FileList | File[]) => {
 
       try {
         // Get upload token
-        const tokenResponse = await FileAPI.getUploadToken({
+        const tokenResponse = await UploadAPI.getUploadToken({
           file_name: file.name
         })
 
