@@ -793,7 +793,7 @@ import {
   ProductSetImageResult
 } from '@/api/generate'
 import { UploadAPI } from '@/api/upload'
-import { generateCopy, generateImagePrompts, generateSingleImage } from '@/utils/ai-generation'
+import { generateCopy, generateImagePrompts, generateSingleImage, analyzeProductSellingPoints } from '@/utils/ai-generation'
 
 interface UploadedImage {
   file: File
@@ -1005,10 +1005,11 @@ const handleGenerate = async () => {
       throw new Error('图片尚未上传完成')
     }
 
-    const generatedCopy = await generateCopy(
+    const generatedCopies = await generateCopy(
       formData.value.productName,
       formData.value.sellingPoints,
-      imageUrl
+      imageUrl,
+      Number(formData.value.quantity)
     )
 
     const task: TaskData = {
@@ -1020,11 +1021,7 @@ const handleGenerate = async () => {
       style: '极简留白',
       resolution: '2K ✨ 2',
       ratio: '1:1',
-      generatedCopies: [{
-        title: generatedCopy.split('\n')[0] || '产品文案',
-        content: generatedCopy,
-        tags: '#种草 #好物推荐 #必买清单'
-      }],
+      generatedCopies: generatedCopies,
       imageTypes: [],
       isGenerating: false,
       generatedImages: undefined,
@@ -1226,14 +1223,13 @@ const handleAIGenerate = async () => {
     // 使用上传后的URL而不是blob URL
     const imageUrl = mainImage.fileInfo?.file_url || mainImage.preview
 
-    const tempCopy = await generateCopy(
+    const analysisResult = await analyzeProductSellingPoints(
       formData.value.productName || '产品',
-      '请分析这个产品的特点和卖点',
       imageUrl
     )
 
-    if (tempCopy) {
-      formData.value.sellingPoints = tempCopy
+    if (analysisResult) {
+      formData.value.sellingPoints = analysisResult
     }
 
     toast.success('AI分析完成！')

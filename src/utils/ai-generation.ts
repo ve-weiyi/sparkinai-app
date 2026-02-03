@@ -2,12 +2,65 @@ import OpenAI from "openai";
 
 // 配置信息 - 使用后端代理，无需API Key
 const CONFIG = {
-  textModel: "doubao-seed-1-6-lite-251015",
+  textModel: "qwen-vl-plus",
   imageModel: "doubao-seedream-4-5-251128"
 };
 
+export interface GeneratedCopy {
+  title: string;
+  content: string;
+  tags: string;
+}
+
+// 分析产品卖点
+export async function analyzeProductSellingPoints(productName: string, imageUrl: string): Promise<string> {
+  try {
+    const response = await fetch('/api/v1/openai/chat/completions', {
+      method: 'POST',
+      credentials: 'omit',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: CONFIG.textModel,
+        reasoning_effort: "medium",
+        messages: [
+          {
+            role: "system",
+            content: `你是一个专业的电商选品专家和产品经理。
+请仔细观察这张产品图，结合产品名称，深入分析该产品的核心卖点、适用人群和使用场景。
+要求：
+1. 分析要客观、专业、有深度。
+2. 输出格式清晰，分条列出。
+3. 不需要写成广告文案，而是提供用于撰写文案的原材料。
+4. 建议包含以下维度：
+   - 核心卖点（Unique Selling Proposition）
+   - 适用人群（Target Audience）
+   - 期望场景（Usage Scenarios）
+   - 视觉特征（Visual Features）`
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: `产品名称：${productName}\n请分析这个产品的特点和卖点。` },
+              { type: "image_url", image_url: { url: imageUrl } }
+            ]
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error?.message || 'API Error');
+    return data.choices?.[0]?.message?.content || "";
+  } catch (error) {
+    console.error('分析卖点失败:', error);
+    throw error;
+  }
+}
+
 // 生成文案
-export async function generateCopy(productName: string, description: string, imageUrl: string): Promise<string> {
+export async function generateCopy(productName: string, description: string, imageUrl: string, quantity: number = 1): Promise<GeneratedCopy[]> {
   try {
     const response = await fetch('/api/v1/openai/chat/completions', {
       method: 'POST',
@@ -22,8 +75,18 @@ export async function generateCopy(productName: string, description: string, ima
           {
             role: "system",
             content: `你是一个小红书爆款文案专家。
-请仔细观察这张产品图，结合用户卖点，写一篇极具吸引力的种草文案。
-要求：标题带Emoji，正文口语化，分段清晰，结尾带标签。`
+请仔细观察这张产品图，结合用户卖点，写 ${quantity} 篇极具吸引力的种草文案。
+要求：
+1. 每篇文案风格略有不同（例如：干货科普风、情感共鸣风、惊喜安利风）。
+2. 标题带Emoji，正文口语化，分段清晰，结尾带标签。
+3. 返回格式必须为纯 JSON 数组，不包含 markdown 标记，格式如下：
+[
+  {
+    "title": "标题",
+    "content": "正文内容",
+    "tags": "#标签1 #标签2"
+  }
+]`
           },
           {
             role: "user",
@@ -38,7 +101,23 @@ export async function generateCopy(productName: string, description: string, ima
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.error?.message || 'API Error');
-    return data.choices?.[0]?.message?.content || "";
+
+    const content = data.choices?.[0]?.message?.content || "[]";
+    // 清理 markdown 标记
+    const jsonStr = content.replace(/```json/g, "").replace(/```/g, "").trim();
+
+    try {
+      const parsed = JSON.parse(jsonStr);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.error("文案解析失败:", e);
+      // 降级处理：如果解析失败，尝试直接作为单篇文案返回
+      return [{
+        title: "产品文案",
+        content: content,
+        tags: "#推荐 #好物"
+      }];
+    }
   } catch (error) {
     console.error('生成文案失败:', error);
     throw error;
