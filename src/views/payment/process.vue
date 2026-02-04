@@ -20,40 +20,19 @@ const orderId = ref('')
 // 初始化支付
 onMounted(async () => {
   try {
-    // 创建订单
-    const response = await PaymentAPI.createPayment({
-      method: paymentMethod.value,
+    const packageId = Number(route.query.packageId) || 1
+    const response = await PaymentAPI.createPaymentOrder({
+      package_id: packageId,
+      channel_code: paymentMethod.value,
     })
-    orderId.value = response.data.order_id
+    orderId.value = response.data.order_no
 
-    // 根据支付方式处理
-    if (paymentMethod.value === 'alipay') {
-      // 支付宝：跳转到支付页面
-      const alipayResponse = await PaymentAPI.payWithAlipay({
-        order_id: orderId.value,
-      })
-      // 实际项目中应该跳转到支付宝页面
-      // window.location.href = alipayResponse.data.payment_url
-      // 这里模拟支付成功
+    if (paymentMethod.value === 'alipay' || paymentMethod.value === 'stripe') {
       simulatePayment()
     } else if (paymentMethod.value === 'wechat') {
-      // 微信：显示二维码
-      const wechatResponse = await PaymentAPI.payWithWechat({
-        order_id: orderId.value,
-      })
-      qrCode.value = wechatResponse.data.qr_code || ''
+      qrCode.value = 'mock-qr-code'
       loading.value = false
-      // 轮询支付状态
       pollPaymentStatus()
-    } else if (paymentMethod.value === 'stripe') {
-      // Stripe：跳转到Stripe页面
-      const stripeResponse = await PaymentAPI.payWithStripe({
-        order_id: orderId.value,
-      })
-      // 实际项目中应该跳转到Stripe页面
-      // window.location.href = stripeResponse.data.payment_url
-      // 这里模拟支付成功
-      simulatePayment()
     }
   } catch (error) {
     console.error('支付初始化失败:', error)
@@ -69,7 +48,6 @@ onMounted(async () => {
   }
 })
 
-// 模拟支付（用于演示）
 const simulatePayment = () => {
   processing.value = true
   setTimeout(() => {
@@ -85,34 +63,35 @@ const simulatePayment = () => {
   }, 2000)
 }
 
-// 轮询支付状态
 const pollPaymentStatus = () => {
   const interval = setInterval(async () => {
-    const status = await PaymentAPI.getPaymentStatus({
-      order_id: orderId.value,
-    })
-    if (status.data.status === 'success') {
+    try {
+      const status = await PaymentAPI.getPaymentOrder({ orderNo: orderId.value })
+      if (status.data.status === 2) {
+        clearInterval(interval)
+        router.push({
+          path: '/payment/result',
+          query: {
+            status: 'success',
+            orderId: orderId.value,
+            plan: planName.value,
+            amount: amount.value
+          }
+        })
+      } else if (status.data.status === 3) {
+        clearInterval(interval)
+        router.push({
+          path: '/payment/result',
+          query: {
+            status: 'failed',
+            orderId: orderId.value,
+            plan: planName.value,
+            amount: amount.value
+          }
+        })
+      }
+    } catch (error) {
       clearInterval(interval)
-      router.push({
-        path: '/payment/result',
-        query: {
-          status: 'success',
-          orderId: orderId.value,
-          plan: planName.value,
-          amount: amount.value
-        }
-      })
-    } else if (status.data.status === 'failed') {
-      clearInterval(interval)
-      router.push({
-        path: '/payment/result',
-        query: {
-          status: 'failed',
-          orderId: orderId.value,
-          plan: planName.value,
-          amount: amount.value
-        }
-      })
     }
   }, 3000)
 }

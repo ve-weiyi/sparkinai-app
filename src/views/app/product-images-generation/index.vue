@@ -786,12 +786,6 @@ import {
   FILE_VALIDATION,
   ERROR_MESSAGES,
 } from './constants'
-import {
-  ProductSetPreviewImage,
-  CopyItem,
-  ProductSetImageType,
-  ProductSetImageResult
-} from '@/api/generate'
 import { UploadAPI } from '@/api/upload'
 import { generateCopy, generateImagePrompts, generateSingleImage, analyzeProductSellingPoints } from '@/utils/ai-generation'
 
@@ -801,6 +795,34 @@ interface UploadedImage {
   note?: string
   uploaded?: boolean
   fileInfo?: any
+}
+
+export interface CopyItem {
+  title: string; // 标题
+  content: string; //内容
+  tags: string; // 标签列表
+}
+
+export interface ImageItem {
+  file_url?: string;
+  file_name?: string;
+  note?: string; // 备注
+}
+
+export interface ProductSetImageResult {
+  name: string;
+  url: string;
+  is_regenerating: boolean;
+}
+
+export interface ProductSetImageType {
+  name: string;
+  selected: boolean;
+  desc: string;
+}
+
+export interface ProductSetPreviewImage {
+  preview: string;
 }
 
 const taskTags = computed(() => {

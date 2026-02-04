@@ -1,103 +1,76 @@
 import request from "@/utils/request";
+import type { CreatePaymentOrderResp, GetPaymentOrderReq, GetRechargePackagesReq, GetAccountTransactionListReq, GetAccountTransactionListResp, CreatePaymentOrderReq, GetPaymentOrderListReq, GetPaymentOrderListResp, GetPaymentOrderResp, GetRechargePackagesResp, GetUserAccountReq, GetUserAccountResp } from "./types";
 
-
-export interface CreatePaymentReq {
-  method: string; // 支付方式
-}
-
-export interface CreatePaymentResp {
-  success: boolean; 
-  order_id: string; 
-  payment_url: string; 
-  message: string; 
-}
-
-export interface GetPaymentStatusReq {
-  order_id: string; 
-}
-
-export interface GetPaymentStatusResp {
-  status: string; 
-  order_id: string; 
-}
-
-export interface PayWithAlipayReq {
-  order_id: string; 
-}
-
-export interface PayWithAlipayResp {
-  success: boolean; 
-  order_id: string; 
-  payment_url: string; 
-  message: string; 
-}
-
-export interface PayWithStripeReq {
-  order_id: string; 
-}
-
-export interface PayWithStripeResp {
-  success: boolean; 
-  order_id: string; 
-  payment_url: string; 
-  message: string; 
-}
-
-export interface PayWithWechatReq {
-  order_id: string; 
-}
-
-export interface PayWithWechatResp {
-  success: boolean; 
-  order_id: string; 
-  qr_code: string; 
-  message: string; 
-}
-
-
+/** 支付管理 */
 export const PaymentAPI = {
-  /** 支付宝支付 */
-  payWithAlipay(data?: PayWithAlipayReq): Promise<IApiResponse<PayWithAlipayResp>> {
+  /** 获取用户账户信息 */
+  getUserAccount(params?: GetUserAccountReq): Promise<IApiResponse<GetUserAccountResp>> {
     return request({
-      url: "/api/v1/payment/alipay",
-      method: "POST",
-      data: data,
+      url: `/api/v1/payment/account`,
+      method: "GET",
+      params: params,
+    });
+  },
+
+  /** 获取账户流水列表 */
+  getAccountTransactionList(params?: GetAccountTransactionListReq): Promise<IApiResponse<GetAccountTransactionListResp>> {
+    return request({
+      url: `/api/v1/payment/account/transactions`,
+      method: "GET",
+      params: params,
     });
   },
 
   /** 创建支付订单 */
-  createPayment(data?: CreatePaymentReq): Promise<IApiResponse<CreatePaymentResp>> {
+  createPaymentOrder(data?: CreatePaymentOrderReq): Promise<IApiResponse<CreatePaymentOrderResp>> {
     return request({
-      url: "/api/v1/payment/create",
+      url: `/api/v1/payment/orders`,
       method: "POST",
       data: data,
     });
   },
 
-  /** 获取支付状态 */
-  getPaymentStatus(data?: GetPaymentStatusReq): Promise<IApiResponse<GetPaymentStatusResp>> {
+  /** 获取支付订单列表 */
+  getPaymentOrderList(params?: GetPaymentOrderListReq): Promise<IApiResponse<GetPaymentOrderListResp>> {
     return request({
-      url: "/api/v1/payment/status/:orderId",
+      url: `/api/v1/payment/orders`,
       method: "GET",
-      data: data,
+      params: params,
     });
   },
 
-  /** Stripe支付 */
-  payWithStripe(data?: PayWithStripeReq): Promise<IApiResponse<PayWithStripeResp>> {
+  /** 查询支付订单 */
+  getPaymentOrder(params?: GetPaymentOrderReq): Promise<IApiResponse<GetPaymentOrderResp>> {
     return request({
-      url: "/api/v1/payment/stripe",
-      method: "POST",
-      data: data,
+      url: `/api/v1/payment/orders/${params.orderNo}`,
+      method: "GET",
+      params: params,
     });
   },
 
-  /** 微信支付 */
-  payWithWechat(data?: PayWithWechatReq): Promise<IApiResponse<PayWithWechatResp>> {
+  /** 获取充值套餐列表 */
+  getRechargePackages(params?: GetRechargePackagesReq): Promise<IApiResponse<GetRechargePackagesResp>> {
     return request({
-      url: "/api/v1/payment/wechat",
-      method: "POST",
-      data: data,
+      url: `/api/v1/payment/packages`,
+      method: "GET",
+      params: params,
     });
   },
+
+  /** 支付宝支付回调 */
+  alipayNotify(): Promise<IApiResponse<any>> {
+    return request({
+      url: `/api/v1/payment/notify/alipay`,
+      method: "POST",
+    });
+  },
+
+  /** 微信支付回调 */
+  wechatNotify(): Promise<IApiResponse<any>> {
+    return request({
+      url: `/api/v1/payment/notify/wechat`,
+      method: "POST",
+    });
+  },
+
 };

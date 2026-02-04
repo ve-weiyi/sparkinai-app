@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { useUserStore } from '@/store/modules/user'
-import type { GetUserProfileResp } from '@/api/me'
+import type { GetUserProfileResp } from '@/api/types'
 
 const props = defineProps<{
   user: GetUserProfileResp

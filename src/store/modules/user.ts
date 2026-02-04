@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { GetUserProfileResp, CreditRuleItem } from '@/api/me'
+import type { GetUserProfileResp, CreditRuleItem } from '@/api/types'
 import { AuthAPI } from '@/api/auth'
 import { MeAPI } from '@/api/me'
 import { AuthStorage } from '@/utils/auth'
