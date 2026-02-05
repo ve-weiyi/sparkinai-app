@@ -1,5 +1,18 @@
 import request from "@/utils/request";
-import type { CreatePaymentOrderResp, GetPaymentOrderReq, GetRechargePackagesReq, GetAccountTransactionListReq, GetAccountTransactionListResp, CreatePaymentOrderReq, GetPaymentOrderListReq, GetPaymentOrderListResp, GetPaymentOrderResp, GetRechargePackagesResp, GetUserAccountReq, GetUserAccountResp } from "./types";
+import type {
+  CreatePaymentOrderReq,
+  CreatePaymentOrderResp,
+  GetAccountTransactionListReq,
+  GetAccountTransactionListResp,
+  GetPaymentOrderListReq,
+  GetPaymentOrderListResp,
+  GetPaymentOrderReq,
+  GetPaymentOrderResp,
+  GetRechargePackagesReq,
+  GetRechargePackagesResp,
+  GetUserAccountReq,
+  GetUserAccountResp
+} from "./types";
 
 /** 支付管理 */
 export const PaymentAPI = {

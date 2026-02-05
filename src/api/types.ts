@@ -11,6 +11,17 @@ export interface AccountTransactionItem {
   created_at: number;
 }
 
+// 可用引擎项
+export interface AvailableEngineItem {
+  id: number; // 引擎ID
+  name: string; // 引擎名称
+  engine_type: string; // 引擎类型
+  model_name: string; // 模型名称
+  provider_name: string; // 供应商名称
+  description: string; // 引擎描述
+  is_default: boolean; // 是否为默认引擎
+}
+
 // 余额变动记录项
 export interface BalanceLogItem {
   id: number; // 记录ID
@@ -20,6 +31,42 @@ export interface BalanceLogItem {
   balance_after: number; // 变动后余额
   description: string; // 变动描述
   created_at: number; // 创建时间
+}
+
+// Chat 响应选项
+export interface ChatChoice {
+  index: number; // 选项索引
+  message: ChatMessage; // 消息内容
+  finish_reason: string; // 结束原因
+}
+
+// Chat 请求（对应 OpenAI Chat Completions）
+export interface ChatCompletionReq {
+  engine_id: number; // 引擎ID（必填，后端从engine获取模型参数和提示词模板）
+  variables?: Record<string, any>; // 动态变量（用于模板替换）
+}
+
+// Chat 响应（对应 OpenAI Chat Completions）
+export interface ChatCompletionResp {
+  id: string; // 请求ID
+  object: string; // 对象类型
+  created: number; // 创建时间戳
+  model: string; // 使用的模型
+  choices: ChatChoice[]; // 生成的选项列表
+  usage: ChatUsage; // token使用统计
+}
+
+// ==================== 通用 Chat 接口（对应 OpenAI Chat Completions API）====================
+export interface ChatMessage {
+  role: string; // 角色：system/user/assistant
+  content: string; // 消息内容
+}
+
+// Chat 使用统计
+export interface ChatUsage {
+  prompt_tokens: number; // 提示词token数
+  completion_tokens: number; // 完成token数
+  total_tokens: number; // 总token数
 }
 
 // 创建支付订单请求
@@ -131,6 +178,16 @@ export interface GetAccountTransactionListResp {
   list: AccountTransactionItem[];
 }
 
+// ==================== 引擎配置相关 ====================
+export interface GetAvailableEnginesReq {
+  engine_type?: string; // 引擎类型筛选
+}
+
+// 获取可用引擎列表响应
+export interface GetAvailableEnginesResp {
+  list: AvailableEngineItem[]; // 引擎列表
+}
+
 export interface GetClientInfoReq {
 }
 
@@ -152,7 +209,7 @@ export interface GetGenerationReq {
 export interface GetGenerationResp extends GenerationItem {
 }
 
-// 获取生成记录列表请求
+// ==================== 生成记录相关 ====================
 export interface GetGenerationsReq extends PageQuery {
   status?: number; // 生成状态筛选
 }
@@ -278,6 +335,25 @@ export interface IdsReq {
   ids: number[];
 }
 
+// 图片数据
+export interface ImageData {
+  url: string; // 图片URL
+  b64_json: string; // Base64编码的图片
+  revised_prompt: string; // 修订后的提示词
+}
+
+// ==================== 通用 Images 接口（对应 OpenAI Images API）====================
+export interface ImageGenerationReq {
+  engine_id: number; // 引擎ID（必填，后端从engine获取模型参数）
+  variables?: Record<string, any>; // 动态变量（用于模板替换）
+}
+
+// 图片生成响应（对应 OpenAI Images Generation）
+export interface ImageGenerationResp {
+  created: number; // 创建时间戳
+  data: ImageData[]; // 生成的图片列表
+}
+
 // 用户登录请求（账号-密码/验证码登录）
 export interface LoginReq {
   username: string;
@@ -371,6 +447,7 @@ export interface RefreshTokenReq {
 export interface RegisterReq {
   email: string; // 邮箱
   password: string; // 密码
+  confirm_password?: string; // 确认密码
   verify_code: string; // 验证码
   username?: string; // 用户名
   nickname?: string; // 昵称
@@ -380,6 +457,7 @@ export interface RegisterReq {
 export interface ResetPasswordReq {
   email: string; // 邮箱
   password: string; // 新密码
+  confirm_password?: string; // 新密码
   verify_code: string; // 验证码
 }
 

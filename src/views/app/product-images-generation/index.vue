@@ -3,19 +3,8 @@
     <div class="relative flex w-full flex-col h-[calc(100vh-4rem)] overflow-hidden">
       <!-- Tabs Header -->
       <div class="w-full px-6">
-        <!--        <div class="space-y-2">-->
-        <!--          <h1 class="text-2xl font-semibold">AI商品套图</h1>-->
-        <!--          <p class="text-sm text-muted-foreground">-->
-        <!--            上传商品图，AI 即刻生成 符合多电商平台规范 的高质化商品套图-->
-        <!--          </p>-->
-        <!--        </div>-->
-
         <Tabs v-model="activeTab" class="w-auto mt-1">
           <TabsList class="h-10">
-            <!--            <TabsTrigger value="image-generator" class="gap-2 px-4">-->
-            <!--              <FileImage class="h-4 w-4" />-->
-            <!--              图片生成-->
-            <!--            </TabsTrigger>-->
             <TabsTrigger value="image-product-set" class="gap-2 px-4">
               <Package class="h-4 w-4" />
               商品套图
@@ -153,7 +142,7 @@
                           v-for="option in PLATFORM_OPTIONS"
                           :key="option.value"
                           :value="option.value"
-                          >{{ option.label }}</SelectItem
+                        >{{ option.label }}</SelectItem
                         >
                       </SelectContent>
                     </Select>
@@ -199,7 +188,7 @@
                             v-for="option in QUANTITY_OPTIONS"
                             :key="option.value"
                             :value="option.value"
-                            >{{ option.label }}</SelectItem
+                          >{{ option.label }}</SelectItem
                           >
                         </SelectContent>
                       </Select>
@@ -256,11 +245,11 @@
                       <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                           <span class="text-2xl font-bold">{{
-                            truncateProductName(generatedTask.productName || '产品名称')
-                          }}</span>
+                              truncateProductName(generatedTask.productName || '产品名称')
+                            }}</span>
                           <span class="text-sm text-muted-foreground">{{
-                            generatedTask.timestamp
-                          }}</span>
+                              generatedTask.timestamp
+                            }}</span>
                         </div>
                         <Button
                           variant="outline"
@@ -278,7 +267,7 @@
                           v-for="(tag, idx) in taskTags"
                           :key="idx"
                           class="px-3 py-1 rounded-full bg-muted text-sm"
-                          >{{ tag }}</span
+                        >{{ tag }}</span
                         >
                       </div>
 
@@ -311,7 +300,7 @@
                             <button
                               v-for="(_copy, idx) in generatedTask.generatedCopies"
                               :key="idx"
-                                @click="activeCopyIndex = Number(idx)"
+                              @click="activeCopyIndex = Number(idx)"
                               :class="[
                                 'px-3 py-1 rounded-full text-xs transition-colors',
                                 activeCopyIndex === idx
@@ -369,7 +358,7 @@
                                   v-for="option in STYLE_OPTIONS"
                                   :key="option.value"
                                   :value="option.value"
-                                  >{{ option.label }}</SelectItem
+                                >{{ option.label }}</SelectItem
                                 >
                               </SelectContent>
                             </Select>
@@ -385,7 +374,7 @@
                                   v-for="option in RESOLUTION_OPTIONS"
                                   :key="option.value"
                                   :value="option.value"
-                                  >{{ option.label }}</SelectItem
+                                >{{ option.label }}</SelectItem
                                 >
                               </SelectContent>
                             </Select>
@@ -401,7 +390,7 @@
                                   v-for="option in RATIO_OPTIONS"
                                   :key="option.value"
                                   :value="option.value"
-                                  >{{ option.label }}</SelectItem
+                                >{{ option.label }}</SelectItem
                                 >
                               </SelectContent>
                             </Select>
@@ -494,8 +483,8 @@
                             >
                               <div class="flex items-center justify-between">
                                 <span class="px-2 py-0.5 rounded-full border text-xs font-medium">{{
-                                  type.name
-                                }}</span>
+                                    type.name
+                                  }}</span>
                                 <div
                                   v-if="type.selected"
                                   class="w-5 h-5 rounded-full bg-foreground text-background flex items-center justify-center"
@@ -520,7 +509,7 @@
                       <p class="text-sm text-muted-foreground">
                         上传商品图，AI 即刻生成 <span class="text-primary font-medium">
                           符合多电商平台规范 </span
-                        >的高质化商品套图
+                      >的高质化商品套图
                       </p>
                     </div>
 
@@ -722,7 +711,7 @@
         </div>
         <div class="flex items-center justify-between">
           <span class="text-sm text-muted-foreground"
-            >已选择 {{ selectedImages.length }} /
+          >已选择 {{ selectedImages.length }} /
             {{ generatedTask.generatedImages.length }} 张</span
           >
           <div class="flex gap-3">
@@ -787,7 +776,7 @@ import {
   ERROR_MESSAGES,
 } from './constants'
 import { UploadAPI } from '@/api/upload'
-import { generateCopy, generateImagePrompts, generateSingleImage, analyzeProductSellingPoints } from '@/utils/ai-generation'
+import { GenerateAPI } from '@/api/generate'
 
 interface UploadedImage {
   file: File
@@ -1004,61 +993,7 @@ const cancelNote = () => {
   editingNote.value = ''
 }
 
-const handleGenerate = async () => {
-  if (isGenerating.value) return
 
-  const unuploadedImages = uploadedImages.value.filter(img => !img.uploaded)
-  if (unuploadedImages.length > 0) {
-    toast.error('请等待所有图片上传完成')
-    return
-  }
-
-  isGenerating.value = true
-
-  try {
-    const mainImage = uploadedImages.value[mainImageIndex.value]
-    if (!mainImage) {
-      throw new Error('未找到主图')
-    }
-
-    // 使用上传后的URL而不是blob URL
-    const imageUrl = mainImage.fileInfo?.file_url
-    if (!imageUrl) {
-      throw new Error('图片尚未上传完成')
-    }
-
-    const generatedCopies = await generateCopy(
-      formData.value.productName,
-      formData.value.sellingPoints,
-      imageUrl,
-      Number(formData.value.quantity)
-    )
-
-    const task: TaskData = {
-      id: Date.now(),
-      timestamp: new Date().toLocaleString(),
-      platform: formData.value.platform,
-      productName: formData.value.productName,
-      images: uploadedImages.value.map(img => ({ preview: img.preview })),
-      style: '极简留白',
-      resolution: '2K ✨ 2',
-      ratio: '1:1',
-      generatedCopies: generatedCopies,
-      imageTypes: [],
-      isGenerating: false,
-      generatedImages: undefined,
-    }
-
-    activeCopyIndex.value = 0
-    generatedTask.value = task
-    toast.success('文案生成成功！')
-  } catch (error: any) {
-    console.error('生成失败:', error)
-    toast.error('生成失败: ' + (error.message || '请稍后重试'))
-  } finally {
-    isGenerating.value = false
-  }
-}
 
 const truncateProductName = (name: string) => {
   return name.length > 20 ? name.substring(0, 20) + '...' : name
@@ -1074,64 +1009,17 @@ const downloadImage = (url: string, name: string) => {
 }
 
 const regenerateImage = (task: TaskData, index: number) => {
-    if (!task.generatedImages || !task.generatedImages[index]) return
-    const currentImage = task.generatedImages[index]
-    if (currentImage.is_regenerating) return
-
-    regeneratingTask.value = task
-    regeneratingImageIndex.value = index
-    regeneratePrompt.value = ''
-    showRegenerateDialog.value = true
-  }
-
-const confirmRegenerate = async () => {
-  if (!regeneratingTask.value || regeneratingImageIndex.value === null) return
-
-  const task = regeneratingTask.value
-  const index = regeneratingImageIndex.value
-  if (!task.generatedImages) return
+  if (!task.generatedImages || !task.generatedImages[index]) return
   const currentImage = task.generatedImages[index]
+  if (currentImage.is_regenerating) return
 
-  currentImage.is_regenerating = true
-  showRegenerateDialog.value = false
-
-  try {
-    // 使用主图重新生成
-    const mainImage = uploadedImages.value[mainImageIndex.value]
-    if (!mainImage) {
-      throw new Error('未找到主图')
-    }
-
-    const imageBase64 = mainImage.preview.includes('base64,')
-      ? mainImage.preview.split('base64,')[1]
-      : mainImage.preview
-
-    // 使用用户的备注作为新的prompt
-    const newImageUrl = await generateSingleImage(
-      regeneratePrompt.value || 'high quality product shot',
-      task.productName,
-      imageBase64,
-      task.style,
-      task.resolution,
-      task.ratio
-    )
-
-    if (newImageUrl) {
-      currentImage.url = newImageUrl
-      toast.success('图片重新生成成功！')
-    } else {
-      throw new Error('生成失败')
-    }
-  } catch (error: any) {
-    console.error('重新生成失败:', error)
-    toast.error('重新生成失败: ' + (error.message || '请稍后重试'))
-  } finally {
-    currentImage.is_regenerating = false
-    regeneratingTask.value = null
-    regeneratingImageIndex.value = null
-    regeneratePrompt.value = ''
-  }
+  regeneratingTask.value = task
+  regeneratingImageIndex.value = index
+  regeneratePrompt.value = ''
+  showRegenerateDialog.value = true
 }
+
+
 
 const cancelRegenerate = () => {
   showRegenerateDialog.value = false
@@ -1140,51 +1028,7 @@ const cancelRegenerate = () => {
   regeneratePrompt.value = ''
 }
 
-const handleGenerateImages = async (task: any) => {
-  task.isGenerating = true
 
-  try {
-    const mainImage = uploadedImages.value[mainImageIndex.value]
-    if (!mainImage) {
-      throw new Error('未找到主图')
-    }
-
-    // 生成图片提示词
-    const prompts = await generateImagePrompts(task.generatedCopies[0].content)
-
-    // 提取base64
-    const imageBase64 = mainImage.preview.includes('base64,')
-      ? mainImage.preview.split('base64,')[1]
-      : mainImage.preview
-
-    // 并发生成图片
-    const imageResults = await Promise.all(
-      prompts.map((prompt, index) => generateSingleImage(
-        prompt,
-        task.productName,
-        imageBase64,
-        task.style,
-        task.resolution,
-        task.ratio
-      ))
-    )
-
-    const validImages = imageResults.filter(url => !!url) as string[]
-
-    task.generatedImages = validImages.map((url, index) => ({
-      name: `配图${index + 1}`,
-      url,
-      is_regenerating: false
-    }))
-
-    toast.success('配图生成成功！')
-  } catch (error: any) {
-    console.error('生成图片失败:', error)
-    toast.error('生成图片失败: ' + (error.message || '请稍后重试'))
-  } finally {
-    task.isGenerating = false
-  }
-}
 
 const downloadAllImages = (task: any) => {
   if (!task.generatedImages) return
@@ -1221,6 +1065,27 @@ const cancelDownload = () => {
   selectedImages.value = []
 }
 
+
+
+// 复制文案内容
+const copyCopyText = async () => {
+  if (!generatedTask.value?.generatedCopies?.[activeCopyIndex.value]) return
+
+  const copy = generatedTask.value.generatedCopies[activeCopyIndex.value]
+  const text = `${copy.title}\n\n${copy.content}\n\n${copy.tags}`
+
+  try {
+    await navigator.clipboard.writeText(text)
+    toast.success('复制成功！')
+  } catch (error) {
+    console.error('复制失败:', error)
+    toast.error('复制失败，请稍后重试')
+  }
+}
+
+// ============ AI模型调用方法 ============
+
+// AI分析产品卖点
 const handleAIGenerate = async () => {
   if (uploadedImages.value.length === 0) return
 
@@ -1237,46 +1102,276 @@ const handleAIGenerate = async () => {
 
   isGeneratingAI.value = true
   try {
+    // 获取主图URL
     const mainImage = uploadedImages.value[mainImageIndex.value]
-    if (!mainImage) {
-      throw new Error('未找到主图')
+    const imageUrl = mainImage?.fileInfo?.file_url || ''
+
+    // 获取默认的分析卖点引擎
+    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: 'analysis' })
+    const defaultEngine = enginesResp.data?.list?.find(e => e.is_default) || enginesResp.data?.list?.[0]
+
+    if (!defaultEngine) {
+      throw new Error('未找到可用的AI引擎')
     }
 
-    // 使用上传后的URL而不是blob URL
-    const imageUrl = mainImage.fileInfo?.file_url || mainImage.preview
+    // 调用 Chat API 分析卖点
+    const response = await GenerateAPI.chatCompletion({
+      engine_id: defaultEngine.id,
+      variables: {
+        product_name: formData.value.productName,
+        image_url: imageUrl
+      }
+    })
 
-    const analysisResult = await analyzeProductSellingPoints(
-      formData.value.productName || '产品',
-      imageUrl
-    )
-
-    if (analysisResult) {
-      formData.value.sellingPoints = analysisResult
+    if (response.data?.choices && response.data.choices.length > 0) {
+      formData.value.sellingPoints = response.data.choices[0].message.content
+      toast.success('AI分析完成')
+    } else {
+      throw new Error('AI分析返回结果为空')
     }
 
-    toast.success('AI分析完成！')
   } catch (error: any) {
-    console.error('AI分析失败:', error)
-    formData.value.sellingPoints = `核心卖点：\n1. 高品质材质，安全无毒\n2. 创新设计，使用便捷\n3. 性价比高，值得信赖\n适用人群：追求品质的用户\n期望场景：日常生活场景\n尺寸参数：标准规格`
-    toast.success('已生成默认产品信息')
+    console.error('生成失败:', error)
+    toast.error('生成失败: ' + (error.message || '请稍后重试'))
   } finally {
     isGeneratingAI.value = false
   }
 }
 
-// 复制文案内容
-const copyCopyText = async () => {
-  if (!generatedTask.value?.generatedCopies?.[activeCopyIndex.value]) return
+// 生成文案
+const handleGenerate = async () => {
+  if (isGenerating.value) return
 
-  const copy = generatedTask.value.generatedCopies[activeCopyIndex.value]
-  const text = `${copy.title}\n\n${copy.content}\n\n${copy.tags}`
+  const unuploadedImages = uploadedImages.value.filter(img => !img.uploaded)
+  if (unuploadedImages.length > 0) {
+    toast.error('请等待所有图片上传完成')
+    return
+  }
+
+  isGenerating.value = true
 
   try {
-    await navigator.clipboard.writeText(text)
-    toast.success('复制成功！')
-  } catch (error) {
-    console.error('复制失败:', error)
-    toast.error('复制失败，请稍后重试')
+    const mainImage = uploadedImages.value[mainImageIndex.value]
+    if (!mainImage) {
+      throw new Error('未找到主图')
+    }
+
+    // 使用上传后的URL
+    const imageUrl = mainImage.fileInfo?.file_url
+    if (!imageUrl) {
+      throw new Error('图片尚未上传完成')
+    }
+
+    // 获取默认的文案生成引擎
+    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: 'copy' })
+    const defaultEngine = enginesResp.data?.list?.find(e => e.is_default) || enginesResp.data?.list?.[0]
+
+    if (!defaultEngine) {
+      throw new Error('未找到可用的AI引擎')
+    }
+
+    // 调用 Chat API 生成文案
+    const response = await GenerateAPI.chatCompletion({
+      engine_id: defaultEngine.id,
+      variables: {
+        product_name: formData.value.productName,
+        selling_points: formData.value.sellingPoints,
+        platform: formData.value.platform,
+        image_url: imageUrl,
+        quantity: parseInt(formData.value.quantity)
+      }
+    })
+
+    if (!response.data?.choices || response.data.choices.length === 0) {
+      throw new Error('AI生成返回结果为空')
+    }
+
+    // 解析生成的文案
+    const generatedCopies: CopyItem[] = []
+
+    // 尝试从每个choice中解析文案
+    for (const choice of response.data.choices) {
+      try {
+        const content = choice.message.content
+        // 尝试解析JSON
+        const parsed = JSON.parse(content)
+        if (Array.isArray(parsed)) {
+          generatedCopies.push(...parsed)
+        } else if (parsed.title && parsed.content) {
+          generatedCopies.push(parsed)
+        }
+      } catch (e) {
+        // 如果不是JSON格式，直接使用文本内容
+        generatedCopies.push({
+          title: formData.value.productName,
+          content: choice.message.content,
+          tags: ''
+        })
+      }
+    }
+
+    if (generatedCopies.length === 0) {
+      throw new Error('未能解析出有效的文案')
+    }
+
+    // 创建任务数据
+    const task: TaskData = {
+      id: Date.now(),
+      timestamp: new Date().toLocaleString(),
+      platform: formData.value.platform,
+      productName: formData.value.productName,
+      images: uploadedImages.value.map(img => ({ preview: img.preview })),
+      style: '极简留白',
+      resolution: '2K ✨ 2',
+      ratio: '1:1',
+      generatedCopies: generatedCopies,
+      imageTypes: [],
+      isGenerating: false,
+      generatedImages: [], // 文案生成阶段还没有图片
+    }
+
+    activeCopyIndex.value = 0
+    generatedTask.value = task
+    toast.success('文案生成成功！请选择文案后点击"生成套图"')
+    isGenerating.value = false
+
+  } catch (error: any) {
+    console.error('生成文案失败:', error)
+    toast.error('生成文案失败: ' + (error.message || '请稍后重试'))
+    isGenerating.value = false
+  }
+}
+
+// 生成套图
+const handleGenerateImages = async (task: any) => {
+  // 如果已经有生成的图片，提示用户
+  if (task.generatedImages && task.generatedImages.length > 0) {
+    toast.info('图片已生成，如需重新生成请创建新任务')
+    return
+  }
+
+  // 检查是否选择了文案
+  if (!task.generatedCopies || task.generatedCopies.length === 0) {
+    toast.error('请先生成文案')
+    return
+  }
+
+  // 获取选中的文案
+  const selectedCopy = task.generatedCopies[activeCopyIndex.value]
+  if (!selectedCopy) {
+    toast.error('请选择一条文案')
+    return
+  }
+
+  task.isGenerating = true
+
+  try {
+    // 获取主图URL
+    const mainImage = uploadedImages.value[mainImageIndex.value]
+    const imageUrl = mainImage?.fileInfo?.file_url || ''
+
+    // 获取默认的图片生成引擎
+    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: 'image_set' })
+    const defaultEngine = enginesResp.data?.list?.find(e => e.is_default) || enginesResp.data?.list?.[0]
+
+    if (!defaultEngine) {
+      throw new Error('未找到可用的图片生成引擎')
+    }
+
+    // 调用 Images API 生成套图
+    const response = await GenerateAPI.imageGeneration({
+      engine_id: defaultEngine.id,
+      variables: {
+        product_name: task.productName,
+        copy_title: selectedCopy.title,
+        copy_content: selectedCopy.content,
+        image_url: imageUrl,
+        style: task.style,
+        resolution: task.resolution,
+        ratio: task.ratio
+      }
+    })
+
+    if (!response.data?.data || response.data.data.length === 0) {
+      throw new Error('图片生成返回结果为空')
+    }
+
+    // 将生成的图片添加到任务中
+    task.generatedImages = response.data.data.map((img, idx) => ({
+      name: `图片${idx + 1}`,
+      url: img.url || img.b64_json,
+      is_regenerating: false
+    }))
+
+    toast.success('套图生成成功！')
+  } catch (error: any) {
+    console.error('生成图片失败:', error)
+    toast.error('生成图片失败: ' + (error.message || '请稍后重试'))
+  } finally {
+    task.isGenerating = false
+  }
+}
+
+// 重新生成单张图片
+const confirmRegenerate = async () => {
+  if (!regeneratingTask.value || regeneratingImageIndex.value === null) return
+
+  const task = regeneratingTask.value
+  const index = regeneratingImageIndex.value
+  if (!task.generatedImages) return
+  const currentImage = task.generatedImages[index]
+
+  currentImage.is_regenerating = true
+  showRegenerateDialog.value = false
+
+  try {
+    // 获取默认的图片生成引擎
+    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: 'image' })
+    const defaultEngine = enginesResp.data?.list?.find(e => e.is_default) || enginesResp.data?.list?.[0]
+
+    if (!defaultEngine) {
+      throw new Error('未找到可用的图片生成引擎')
+    }
+
+    // 获取选中的文案
+    const selectedCopy = task.generatedCopies?.[activeCopyIndex.value]
+
+    // 获取主图URL
+    const mainImage = uploadedImages.value[mainImageIndex.value]
+    const imageUrl = mainImage?.fileInfo?.file_url || ''
+
+    // 调用 Images API 重新生成单张图片
+    const response = await GenerateAPI.imageGeneration({
+      engine_id: defaultEngine.id,
+      variables: {
+        product_name: task.productName,
+        copy_title: selectedCopy?.title || '',
+        copy_content: selectedCopy?.content || '',
+        image_url: imageUrl,
+        style: task.style,
+        resolution: task.resolution,
+        ratio: task.ratio,
+        custom_prompt: regeneratePrompt.value
+      }
+    })
+
+    if (!response.data?.data || response.data.data.length === 0) {
+      throw new Error('图片生成返回结果为空')
+    }
+
+    // 替换原图片
+    const newImageData = response.data.data[0]
+    currentImage.url = newImageData.url || newImageData.b64_json
+
+    toast.success('图片重新生成成功！')
+
+  } catch (error: any) {
+    console.error('重新生成失败:', error)
+    toast.error('重新生成失败: ' + (error.message || '请稍后重试'))
+  } finally {
+    currentImage.is_regenerating = false
+    regeneratingTask.value = null
+    regeneratingImageIndex.value = null
   }
 }
 

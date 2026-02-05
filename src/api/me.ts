@@ -1,5 +1,19 @@
 import request from "@/utils/request";
-import type { GetUserCreditsResp, DeactivateAccountReq, ReactivateAccountReq, ReactivateAccountResp, DeductUserQuotaResp, GetUserProfileReq, GetUserBalanceLogsReq, GetUserBalanceLogsResp, DeactivateAccountResp, DeductUserQuotaReq, GetUserProfileResp, UpdateUserProfileReq, UpdateUserProfileResp } from "./types";
+import type {
+  DeactivateAccountReq,
+  DeactivateAccountResp,
+  DeductUserQuotaReq,
+  DeductUserQuotaResp,
+  GetUserBalanceLogsReq,
+  GetUserBalanceLogsResp,
+  GetUserCreditsResp,
+  GetUserProfileReq,
+  GetUserProfileResp,
+  ReactivateAccountReq,
+  ReactivateAccountResp,
+  UpdateUserProfileReq,
+  UpdateUserProfileResp
+} from "./types";
 
 /** 个人中心 */
 export const MeAPI = {

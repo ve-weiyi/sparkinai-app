@@ -12,9 +12,17 @@ export interface GeneratedCopy {
   tags: string;
 }
 
+// 获取提示词内容 - 简化版本，不再依赖 PromptAPI
+async function getPromptContent(scene: string, platform: string = 'universal'): Promise<string> {
+  // 由于 PromptAPI 已被删除，这里返回空字符串，使用默认提示词
+  return '';
+}
+
 // 分析产品卖点
 export async function analyzeProductSellingPoints(productName: string, imageUrl: string): Promise<string> {
   try {
+    const systemPrompt = await getPromptContent('product_analysis');
+    
     const response = await fetch('/api/v1/openai/chat/completions', {
       method: 'POST',
       credentials: 'omit',
@@ -27,7 +35,7 @@ export async function analyzeProductSellingPoints(productName: string, imageUrl:
         messages: [
           {
             role: "system",
-            content: `# Role: 电商选品分析助手
+            content: systemPrompt || `# Role: 电商选品分析助手
 
 ## Profile:
 **Language**: 中文
@@ -89,8 +97,10 @@ export async function analyzeProductSellingPoints(productName: string, imageUrl:
 }
 
 // 生成文案
-export async function generateCopy(productName: string, description: string, imageUrl: string, quantity: number = 1): Promise<GeneratedCopy[]> {
+export async function generateCopy(productName: string, description: string, imageUrl: string, quantity: number = 1, platform: string = 'xiaohongshu'): Promise<GeneratedCopy[]> {
   try {
+    const systemPrompt = await getPromptContent('copy_generation', platform);
+    
     const response = await fetch('/api/v1/openai/chat/completions', {
       method: 'POST',
       credentials: 'omit',
@@ -103,7 +113,7 @@ export async function generateCopy(productName: string, description: string, ima
         messages: [
           {
             role: "system",
-            content: `# Role: 小红书爆款文案策略师
+            content: systemPrompt || `# Role: 小红书爆款文案策略师
 
 ## Profile:
 **Language**: 中文
@@ -189,6 +199,8 @@ export async function generateCopy(productName: string, description: string, ima
 // 策划生图 Prompt
 export async function generateImagePrompts(copyText: string): Promise<string[]> {
   try {
+    const systemPrompt = await getPromptContent('image_prompt_generation');
+    
     const response = await fetch('/api/v1/openai/chat/completions', {
       method: 'POST',
       credentials: 'omit',
@@ -200,7 +212,7 @@ export async function generateImagePrompts(copyText: string): Promise<string[]> 
         messages: [
           {
             role: "system",
-            content: `你是一个专业的视觉导演。
+            content: systemPrompt || `你是一个专业的视觉导演。
 请根据刚刚生成的小红书文案，策划 4 个不同的摄影场景，用于生成配图。
 要求：
 1. 每个场景必须基于文案中提到的使用场景或氛围。

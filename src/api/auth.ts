@@ -1,5 +1,22 @@
 import request from "@/utils/request";
-import type { GetClientInfoResp, LoginReq, OauthLoginReq, RefreshTokenReq, SendEmailVerifyCodeReq, GetOauthAuthorizeUrlReq, GetOauthAuthorizeUrlResp, SendPhoneVerifyCodeReq, RegisterReq, EmailLoginReq, EmptyResp, EmptyReq, LoginResp, ResetPasswordReq, PhoneLoginReq, GetClientInfoReq } from "./types";
+import type {
+  EmailLoginReq,
+  EmptyReq,
+  EmptyResp,
+  GetClientInfoReq,
+  GetClientInfoResp,
+  GetOauthAuthorizeUrlReq,
+  GetOauthAuthorizeUrlResp,
+  LoginReq,
+  LoginResp,
+  OauthLoginReq,
+  PhoneLoginReq,
+  RefreshTokenReq,
+  RegisterReq,
+  ResetPasswordReq,
+  SendEmailVerifyCodeReq,
+  SendPhoneVerifyCodeReq
+} from "./types";
 
 /** 登录认证 */
 export const AuthAPI = {

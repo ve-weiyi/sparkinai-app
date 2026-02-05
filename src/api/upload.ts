@@ -1,5 +1,10 @@
 import request from "@/utils/request";
-import type { UploadFilesReq, FileInfoVO, GetUploadTokenReq, GetUploadTokenResp } from "./types";
+import type {
+  FileInfoVO,
+  GetUploadTokenReq,
+  GetUploadTokenResp,
+  UploadFilesReq
+} from "./types";
 
 /** 文件上传 */
 export const UploadAPI = {
