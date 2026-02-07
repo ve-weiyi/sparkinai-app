@@ -1,26 +1,26 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { CheckCircle2, XCircle, Home, FileText } from 'lucide-vue-next'
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle2, XCircle, Home, FileText } from "lucide-vue-next";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
 // 支付状态
-const status = ref<'success' | 'failed'>(route.query.status as any || 'success')
-const orderId = ref(route.query.orderId as string || 'ORD' + Date.now())
-const planName = ref(route.query.plan as string || '专业版')
-const amount = ref(route.query.amount as string || '249')
+const status = ref<"success" | "failed">((route.query.status as any) || "success");
+const orderId = ref((route.query.orderId as string) || "ORD" + Date.now());
+const planName = ref((route.query.plan as string) || "专业版");
+const amount = ref((route.query.amount as string) || "249");
 
 const goToHome = () => {
-  router.push('/app/dashboard')
-}
+  router.push("/app/dashboard");
+};
 
 const goToOrders = () => {
-  router.push('/app/user-center?tab=subscription')
-}
+  router.push("/app/user-center?tab=subscription");
+};
 </script>
 
 <template>
@@ -69,7 +69,7 @@ const goToOrders = () => {
               </div>
               <div v-if="status === 'success'" class="flex justify-between">
                 <span class="text-sm text-gray-600">支付时间</span>
-                <span class="text-sm">{{ new Date().toLocaleString('zh-CN') }}</span>
+                <span class="text-sm">{{ new Date().toLocaleString("zh-CN") }}</span>
               </div>
             </div>
 
@@ -83,9 +83,7 @@ const goToOrders = () => {
                 <FileText class="w-4 h-4 mr-2" />
                 查看订单
               </Button>
-              <Button v-else @click="router.back()" size="lg">
-                重新支付
-              </Button>
+              <Button v-else @click="router.back()" size="lg">重新支付</Button>
             </div>
           </div>
         </CardContent>

@@ -1,9 +1,7 @@
-import OpenAI from "openai";
-
 // 配置信息 - 使用后端代理，无需API Key
-const CONFIG = {
+const AI_CONFIG = {
   textModel: "qwen-vl-plus",
-  imageModel: "doubao-seedream-4-5-251128"
+  imageModel: "doubao-seedream-4-5-251128",
 };
 
 export interface GeneratedCopy {
@@ -13,29 +11,34 @@ export interface GeneratedCopy {
 }
 
 // 获取提示词内容 - 简化版本，不再依赖 PromptAPI
-async function getPromptContent(scene: string, platform: string = 'universal'): Promise<string> {
+async function getPromptContent(_scene: string, _platform: string = "universal"): Promise<string> {
   // 由于 PromptAPI 已被删除，这里返回空字符串，使用默认提示词
-  return '';
+  return "";
 }
 
 // 分析产品卖点
-export async function analyzeProductSellingPoints(productName: string, imageUrl: string): Promise<string> {
+export async function analyzeProductSellingPoints(
+  productName: string,
+  imageUrl: string
+): Promise<string> {
   try {
-    const systemPrompt = await getPromptContent('product_analysis');
-    
-    const response = await fetch('/api/v1/openai/chat/completions', {
-      method: 'POST',
-      credentials: 'omit',
+    const systemPrompt = await getPromptContent("product_analysis");
+
+    const response = await fetch("/api/v1/openai/chat/completions", {
+      method: "POST",
+      credentials: "omit",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: CONFIG.textModel,
+        model: AI_CONFIG.textModel,
         reasoning_effort: "medium",
         messages: [
           {
             role: "system",
-            content: systemPrompt || `# Role: 电商选品分析助手
+            content:
+              systemPrompt ||
+              `# Role: 电商选品分析助手
 
 ## Profile:
 **Language**: 中文
@@ -74,46 +77,54 @@ export async function analyzeProductSellingPoints(productName: string, imageUrl:
 ### 4. 视觉特征
 - 外观：XXX
 - 细节：XXX
-- 调性：XXX`
+- 调性：XXX`,
           },
           {
             role: "user",
             content: [
               { type: "text", text: `产品名称：${productName}` },
-              { type: "image_url", image_url: { url: imageUrl } }
-            ]
-          }
-        ]
-      })
+              { type: "image_url", image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+      }),
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error?.message || 'API Error');
+    if (!response.ok) throw new Error(data.error?.message || "API Error");
     return data.choices?.[0]?.message?.content || "";
   } catch (error) {
-    console.error('分析卖点失败:', error);
+    console.error("分析卖点失败:", error);
     throw error;
   }
 }
 
 // 生成文案
-export async function generateCopy(productName: string, description: string, imageUrl: string, quantity: number = 1, platform: string = 'xiaohongshu'): Promise<GeneratedCopy[]> {
+export async function generateCopy(
+  productName: string,
+  description: string,
+  imageUrl: string,
+  quantity: number = 1,
+  platform: string = "xiaohongshu"
+): Promise<GeneratedCopy[]> {
   try {
-    const systemPrompt = await getPromptContent('copy_generation', platform);
-    
-    const response = await fetch('/api/v1/openai/chat/completions', {
-      method: 'POST',
-      credentials: 'omit',
+    const systemPrompt = await getPromptContent("copy_generation", platform);
+
+    const response = await fetch("/api/v1/openai/chat/completions", {
+      method: "POST",
+      credentials: "omit",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: CONFIG.textModel,
+        model: AI_CONFIG.textModel,
         reasoning_effort: "medium",
         messages: [
           {
             role: "system",
-            content: systemPrompt || `# Role: 小红书爆款文案策略师
+            content:
+              systemPrompt ||
+              `# Role: 小红书爆款文案策略师
 
 ## Profile:
 **Language**: 中文
@@ -158,25 +169,28 @@ export async function generateCopy(productName: string, description: string, ima
     "content": "正文内容",
     "tags": "#标签1 #标签2"
   }
-]`
+]`,
           },
           {
             role: "user",
             content: [
               { type: "text", text: `产品：${productName}\n卖点：${description}` },
-              { type: "image_url", image_url: { url: imageUrl } }
-            ]
-          }
-        ]
-      })
+              { type: "image_url", image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+      }),
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error?.message || 'API Error');
+    if (!response.ok) throw new Error(data.error?.message || "API Error");
 
     const content = data.choices?.[0]?.message?.content || "[]";
     // 清理 markdown 标记
-    const jsonStr = content.replace(/```json/g, "").replace(/```/g, "").trim();
+    const jsonStr = content
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
 
     try {
       const parsed = JSON.parse(jsonStr);
@@ -184,14 +198,16 @@ export async function generateCopy(productName: string, description: string, ima
     } catch (e) {
       console.error("文案解析失败:", e);
       // 降级处理：如果解析失败，尝试直接作为单篇文案返回
-      return [{
-        title: "产品文案",
-        content: content,
-        tags: "#推荐 #好物"
-      }];
+      return [
+        {
+          title: "产品文案",
+          content: content,
+          tags: "#推荐 #好物",
+        },
+      ];
     }
   } catch (error) {
-    console.error('生成文案失败:', error);
+    console.error("生成文案失败:", error);
     throw error;
   }
 }
@@ -199,39 +215,44 @@ export async function generateCopy(productName: string, description: string, ima
 // 策划生图 Prompt
 export async function generateImagePrompts(copyText: string): Promise<string[]> {
   try {
-    const systemPrompt = await getPromptContent('image_prompt_generation');
-    
-    const response = await fetch('/api/v1/openai/chat/completions', {
-      method: 'POST',
-      credentials: 'omit',
+    const systemPrompt = await getPromptContent("image_prompt_generation");
+
+    const response = await fetch("/api/v1/openai/chat/completions", {
+      method: "POST",
+      credentials: "omit",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: CONFIG.textModel,
+        model: AI_CONFIG.textModel,
         messages: [
           {
             role: "system",
-            content: systemPrompt || `你是一个专业的视觉导演。
+            content:
+              systemPrompt ||
+              `你是一个专业的视觉导演。
 请根据刚刚生成的小红书文案，策划 4 个不同的摄影场景，用于生成配图。
 要求：
 1. 每个场景必须基于文案中提到的使用场景或氛围。
 2. 必须包含"产品主体"。
 3. 输出为英文提示词 (Stable Diffusion 格式)。
-4. 返回格式：纯 JSON 数组，例如 ["prompt1", "prompt2", "prompt3", "prompt4"]，不要任何 Markdown 标记。`
+4. 返回格式：纯 JSON 数组，例如 ["prompt1", "prompt2", "prompt3", "prompt4"]，不要任何 Markdown 标记。`,
           },
-          { role: "user", content: `文案内容：\n${copyText}` }
-        ]
-      })
+          { role: "user", content: `文案内容：\n${copyText}` },
+        ],
+      }),
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error?.message || 'API Error');
+    if (!response.ok) throw new Error(data.error?.message || "API Error");
 
     let prompts: string[] = [];
     try {
       let planContent = data.choices?.[0]?.message?.content || "[]";
-      planContent = planContent.replace(/```json/g, "").replace(/```/g, "").trim();
+      planContent = planContent
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
       const parsed = JSON.parse(planContent);
       prompts = parsed.prompts || parsed.scenes || parsed.data || parsed || [];
       if (!Array.isArray(prompts)) prompts = [];
@@ -244,7 +265,7 @@ export async function generateImagePrompts(copyText: string): Promise<string[]> 
       "clean background, studio lighting, high quality, 4k",
       "lifestyle scene, cozy atmosphere, soft light",
       "minimalist composition, pastel colors",
-      "outdoor nature background, sunlight"
+      "outdoor nature background, sunlight",
     ];
     while (prompts.length < 4) {
       prompts.push(defaultPrompts[prompts.length]);
@@ -253,13 +274,13 @@ export async function generateImagePrompts(copyText: string): Promise<string[]> 
 
     return prompts;
   } catch (error) {
-    console.error('生成图片提示词失败:', error);
+    console.error("生成图片提示词失败:", error);
     // 返回默认提示词
     return [
       "clean background, studio lighting, high quality, 4k",
       "lifestyle scene, cozy atmosphere, soft light",
       "minimalist composition, pastel colors",
-      "outdoor nature background, sunlight"
+      "outdoor nature background, sunlight",
     ];
   }
 }
@@ -269,9 +290,9 @@ export async function generateSingleImage(
   prompt: string,
   productName: string,
   imageBase64: string,
-  style: string = '极简留白',
-  resolution: string = '2K ✨ 2',
-  ratio: string = '1:1'
+  style: string = "极简留白",
+  resolution: string = "2K ✨ 2",
+  ratio: string = "1:1"
 ): Promise<string | null> {
   try {
     // 计算尺寸
@@ -280,28 +301,28 @@ export async function generateSingleImage(
 
     // 根据分辨率设定基准
     let baseSize = 2048;
-    if (resolution === '4K') baseSize = 4096;
-    if (resolution === 'HD') baseSize = 1024;
+    if (resolution === "4K") baseSize = 4096;
+    if (resolution === "HD") baseSize = 1024;
 
     // 根据比例调整
     switch (ratio) {
-      case '1:1':
+      case "1:1":
         width = baseSize;
         height = baseSize;
         break;
-      case '3:4':
+      case "3:4":
         width = Math.round(baseSize * 0.75);
         height = baseSize;
         break;
-      case '4:3':
+      case "4:3":
         width = baseSize;
         height = Math.round(baseSize * 0.75);
         break;
-      case '9:16':
+      case "9:16":
         width = Math.round(baseSize * 0.5625);
         height = baseSize;
         break;
-      case '16:9':
+      case "16:9":
         width = baseSize;
         height = Math.round(baseSize * 0.5625);
         break;
@@ -317,20 +338,20 @@ export async function generateSingleImage(
     const size = `${width}x${height}`;
 
     const payload = {
-      model: CONFIG.imageModel,
+      model: AI_CONFIG.imageModel,
       prompt: `${prompt}, ${style} style, (product shot:1.2), high quality, ${resolution}, ${productName}`,
       image_base64: imageBase64,
       size: size,
-      response_format: "url"
+      response_format: "url",
     };
 
     const res = await fetch(`/api/v1/openai/images/generations`, {
       method: "POST",
-      credentials: 'omit',
+      credentials: "omit",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();

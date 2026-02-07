@@ -130,7 +130,7 @@ const handleVerify = async (e: Event) => {
                 {{ loading ? '发送中...' : 'Create Account' }}
               </Button>
               <FieldDescription class="text-center">
-                Already have an account? <a href="/login">Sign in</a>
+                Already have an account? <RouterLink to="/login">Sign in</RouterLink>
               </FieldDescription>
             </Field>
           </FieldGroup>

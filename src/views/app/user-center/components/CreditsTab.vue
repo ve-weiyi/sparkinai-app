@@ -1,151 +1,151 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { storeToRefs } from "pinia";
+import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useUserStore } from '@/store/modules/user'
+} from "@/components/ui/select";
+import { useUserStore } from "@/store/modules/user";
 type CreditRecord = {
-  id: string
-  type: 'earn' | 'spend' | 'refund' | 'expire'
-  amount: number
-  balance: number
-  description: string
-  createdAt: string
-  relatedOrder?: string
-}
+  id: string;
+  type: "earn" | "spend" | "refund" | "expire";
+  amount: number;
+  balance: number;
+  description: string;
+  createdAt: string;
+  relatedOrder?: string;
+};
 
-const router = useRouter()
-const store = useUserStore()
-const { currentUser } = storeToRefs(store)
+const router = useRouter();
+const store = useUserStore();
+const { currentUser } = storeToRefs(store);
 
 // 筛选类型
-const filterType = ref<string>('all')
+const filterType = ref<string>("all");
 
 // 模拟积分记录数据
 const creditRecords = ref<CreditRecord[]>([
   {
-    id: '1',
-    type: 'earn',
+    id: "1",
+    type: "earn",
     amount: 100,
     balance: 106,
-    description: '购买专业版套餐',
-    createdAt: '2026-01-26 14:30:00',
-    relatedOrder: 'ORD20260126001'
+    description: "购买专业版套餐",
+    createdAt: "2026-01-26 14:30:00",
+    relatedOrder: "ORD20260126001",
   },
   {
-    id: '2',
-    type: 'earn',
+    id: "2",
+    type: "earn",
     amount: 10,
     balance: 16,
-    description: '邀请好友注册',
-    createdAt: '2026-01-25 10:15:00'
+    description: "邀请好友注册",
+    createdAt: "2026-01-25 10:15:00",
   },
   {
-    id: '3',
-    type: 'spend',
+    id: "3",
+    type: "spend",
     amount: -5,
     balance: 6,
-    description: '生成产品图片',
-    createdAt: '2026-01-24 16:45:00'
+    description: "生成产品图片",
+    createdAt: "2026-01-24 16:45:00",
   },
   {
-    id: '4',
-    type: 'spend',
+    id: "4",
+    type: "spend",
     amount: -3,
     balance: 11,
-    description: '生成产品视频',
-    createdAt: '2026-01-23 09:20:00'
+    description: "生成产品视频",
+    createdAt: "2026-01-23 09:20:00",
   },
   {
-    id: '5',
-    type: 'refund',
+    id: "5",
+    type: "refund",
     amount: 5,
     balance: 14,
-    description: '生成失败退款',
-    createdAt: '2026-01-22 18:30:00'
+    description: "生成失败退款",
+    createdAt: "2026-01-22 18:30:00",
   },
   {
-    id: '6',
-    type: 'earn',
+    id: "6",
+    type: "earn",
     amount: 10,
     balance: 9,
-    description: '每日签到奖励',
-    createdAt: '2026-01-21 08:00:00'
-  }
-])
+    description: "每日签到奖励",
+    createdAt: "2026-01-21 08:00:00",
+  },
+]);
 
 // 筛选后的记录
 const filteredRecords = computed(() => {
-  if (filterType.value === 'all') {
-    return creditRecords.value
+  if (filterType.value === "all") {
+    return creditRecords.value;
   }
-  return creditRecords.value.filter(record => record.type === filterType.value)
-})
+  return creditRecords.value.filter((record) => record.type === filterType.value);
+});
 
 // 获取类型标签
-const getTypeLabel = (type: CreditRecord['type']) => {
+const getTypeLabel = (type: CreditRecord["type"]) => {
   const labels = {
-    earn: '获得',
-    spend: '消费',
-    refund: '退款',
-    expire: '过期'
-  }
-  return labels[type]
-}
+    earn: "获得",
+    spend: "消费",
+    refund: "退款",
+    expire: "过期",
+  };
+  return labels[type];
+};
 
 // 获取类型样式
-const getTypeVariant = (type: CreditRecord['type']) => {
+const getTypeVariant = (type: CreditRecord["type"]) => {
   const variants = {
-    earn: 'default',
-    spend: 'secondary',
-    refund: 'outline',
-    expire: 'destructive'
-  }
-  return variants[type] as 'default' | 'secondary' | 'outline' | 'destructive'
-}
+    earn: "default",
+    spend: "secondary",
+    refund: "outline",
+    expire: "destructive",
+  };
+  return variants[type] as "default" | "secondary" | "outline" | "destructive";
+};
 
 // 获取金额颜色
 const getAmountColor = (amount: number) => {
-  if (amount > 0) return 'text-green-600'
-  if (amount < 0) return 'text-red-600'
-  return 'text-gray-600'
-}
+  if (amount > 0) return "text-green-600";
+  if (amount < 0) return "text-red-600";
+  return "text-gray-600";
+};
 
 // 格式化金额
 const formatAmount = (amount: number) => {
-  if (amount > 0) return `+${amount}`
-  return amount.toString()
-}
+  if (amount > 0) return `+${amount}`;
+  return amount.toString();
+};
 
 // 跳转到定价页面
 const goToPricing = () => {
-  router.push('/pricing')
-}
+  router.push("/pricing");
+};
 
 // 统计数据
 const stats = computed(() => {
   const totalEarned = creditRecords.value
-    .filter(r => r.type === 'earn' || r.type === 'refund')
-    .reduce((sum, r) => sum + Math.abs(r.amount), 0)
+    .filter((r) => r.type === "earn" || r.type === "refund")
+    .reduce((sum, r) => sum + Math.abs(r.amount), 0);
 
   const totalSpent = creditRecords.value
-    .filter(r => r.type === 'spend')
-    .reduce((sum, r) => sum + Math.abs(r.amount), 0)
+    .filter((r) => r.type === "spend")
+    .reduce((sum, r) => sum + Math.abs(r.amount), 0);
 
   return {
     totalEarned,
     totalSpent,
-    current: currentUser.value?.credits || 0
-  }
-})
+    current: currentUser.value?.credits || 0,
+  };
+});
 </script>
 
 <template>
@@ -225,9 +225,7 @@ const stats = computed(() => {
               <p :class="['text-xl font-bold', getAmountColor(record.amount)]">
                 {{ formatAmount(record.amount) }}
               </p>
-              <p class="text-xs text-gray-500">
-                余额: {{ record.balance }}
-              </p>
+              <p class="text-xs text-gray-500">余额: {{ record.balance }}</p>
             </div>
           </div>
         </div>
@@ -240,9 +238,7 @@ const stats = computed(() => {
             <p class="text-gray-600 mb-2">暂无积分记录</p>
             <p class="text-sm text-gray-500">购买套餐或完成任务即可获得积分</p>
           </div>
-          <Button @click="goToPricing" class="mt-4">
-            立即购买
-          </Button>
+          <Button @click="goToPricing" class="mt-4">立即购买</Button>
         </div>
       </div>
     </div>

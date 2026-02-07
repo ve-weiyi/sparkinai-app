@@ -1,10 +1,10 @@
 <template>
-  <div class="flex flex-1 flex-col">
-    <div class="relative flex w-full flex-col h-[calc(100vh-4rem)] overflow-hidden">
+  <div class="product-root flex flex-1 flex-col">
+    <div class="product-shell relative flex w-full flex-col h-[calc(100vh-4rem)] overflow-hidden">
       <!-- Tabs Header -->
-      <div class="w-full px-6">
+      <div class="tabs-wrap w-full px-6">
         <Tabs v-model="activeTab" class="w-auto mt-1">
-          <TabsList class="h-10">
+          <TabsList class="tabs-list h-10">
             <TabsTrigger value="image-product-set" class="gap-2 px-4">
               <Package class="h-4 w-4" />
               商品套图
@@ -15,11 +15,11 @@
 
       <!-- Main Content -->
       <div class="flex-1 px-6 py-4 overflow-hidden">
-        <Card class="relative w-full h-full overflow-hidden rounded-2xl py-0">
+        <Card class="product-card relative w-full h-full overflow-hidden rounded-3xl py-0">
           <div class="flex flex-col lg:flex-row h-full overflow-hidden">
             <!-- Left Panel - Form -->
             <div
-              class="flex flex-col w-full h-[60%] lg:h-full overflow-auto lg:flex-shrink-0 bg-card border-b lg:border-b-0 lg:border-r lg:w-[28rem] rounded-t-2xl lg:rounded-tl-2xl lg:rounded-bl-2xl"
+              class="left-panel flex flex-col w-full h-[60%] lg:h-full overflow-auto lg:flex-shrink-0 bg-card border-b lg:border-b-0 lg:border-r lg:w-[28rem] rounded-t-2xl lg:rounded-tl-2xl lg:rounded-bl-2xl"
             >
               <div class="flex-1 min-h-0 overflow-y-auto">
                 <div class="flex flex-col gap-4 p-6">
@@ -27,11 +27,13 @@
                   <div class="space-y-2">
                     <div class="flex items-center justify-between text-sm font-medium">
                       <span class="text-foreground">上传图片</span>
-                      <span class="text-muted-foreground">{{ uploadedImages.length }}/{{ FILE_VALIDATION.maxCount }}</span>
+                      <span class="text-muted-foreground">
+                        {{ uploadedImages.length }}/{{ FILE_VALIDATION.maxCount }}
+                      </span>
                     </div>
 
                     <div
-                      class="flex flex-wrap items-start gap-4 p-4 rounded-2xl border bg-muted/20"
+                      class="upload-zone flex flex-wrap items-start gap-4 p-4 rounded-2xl border"
                     >
                       <!-- Uploaded Images Preview -->
                       <div
@@ -78,7 +80,7 @@
                             :disabled="!image.uploaded"
                             @click="mainImageIndex = index"
                           >
-                            {{ index === mainImageIndex ? '主图' : '设为主图' }}
+                            {{ index === mainImageIndex ? "主图" : "设为主图" }}
                           </Button>
                           <Button
                             variant="outline"
@@ -133,7 +135,7 @@
                   <!-- Target Platform -->
                   <div class="space-y-2">
                     <Label>目标平台</Label>
-                    <Select v-model="formData.platform">
+                    <Select v-model="formState.platform">
                       <SelectTrigger class="w-full">
                         <SelectValue />
                       </SelectTrigger>
@@ -142,8 +144,9 @@
                           v-for="option in PLATFORM_OPTIONS"
                           :key="option.value"
                           :value="option.value"
-                        >{{ option.label }}</SelectItem
                         >
+                          {{ option.label }}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -151,7 +154,7 @@
                   <!-- Product Name -->
                   <div class="space-y-2">
                     <Label>产品名称</Label>
-                    <Input v-model="formData.productName" placeholder="请输入产品名称" />
+                    <Input v-model="formState.productName" placeholder="请输入产品名称" />
                   </div>
 
                   <!-- Product Features Section - Hidden on mobile -->
@@ -163,15 +166,23 @@
                           variant="ghost"
                           size="sm"
                           class="gap-1 text-xs text-primary hover:text-primary"
-                          :disabled="uploadedImages.length === 0 || !formData.productName || isGeneratingAI || uploadedImages.some(img => !img.uploaded)"
+                          :disabled="
+                            uploadedImages.length === 0 ||
+                            !formState.productName ||
+                            isAnalyzingSellingPoints ||
+                            uploadedImages.some((img) => !img.uploaded)
+                          "
                           @click="analyzeProductSellingPoints"
                         >
-                          <Sparkles class="h-3 w-3" :class="{ 'animate-spin': isGeneratingAI }" />
-                          {{ isGeneratingAI ? 'AI分析中...' : 'AI生成' }}
+                          <Sparkles
+                            class="h-3 w-3"
+                            :class="{ 'animate-spin': isAnalyzingSellingPoints }"
+                          />
+                          {{ isAnalyzingSellingPoints ? "AI分析中..." : "AI生成" }}
                         </Button>
                       </div>
                       <Textarea
-                        v-model="formData.sellingPoints"
+                        v-model="formState.sellingPoints"
                         class="resize-none rounded-xl text-sm"
                         rows="5"
                         placeholder="核心卖点：&#10;适用人群：&#10;期望场景：&#10;尺寸参数："
@@ -179,7 +190,7 @@
                     </div>
                     <div class="space-y-2">
                       <Label class="text-sm">生成内容数量</Label>
-                      <Select v-model="formData.quantity">
+                      <Select v-model="formState.quantity">
                         <SelectTrigger class="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -188,8 +199,9 @@
                             v-for="option in QUANTITY_OPTIONS"
                             :key="option.value"
                             :value="option.value"
-                          >{{ option.label }}</SelectItem
                           >
+                            {{ option.label }}
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -200,33 +212,33 @@
               <!-- Footer Actions -->
               <div class="flex-shrink-0 border-t bg-card p-4 space-y-3">
                 <Button
-                  class="w-full"
+                  class="w-full generate-cta"
                   :disabled="
                     uploadedImages.length === 0 ||
-                    !formData.productName ||
-                    !formData.sellingPoints ||
-                    isGenerating ||
-                    uploadedImages.some(img => !img.uploaded)
+                    !formState.productName ||
+                    !formState.sellingPoints ||
+                    isGeneratingCopy ||
+                    uploadedImages.some((img) => !img.uploaded)
                   "
                   @click="generateProductCopy"
                 >
-                  <Loader2 v-if="isGenerating" class="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 v-if="isGeneratingCopy" class="mr-2 h-4 w-4 animate-spin" />
                   <Sparkles v-else class="mr-2 h-4 w-4" />
-                  {{ isGenerating ? '生成中...' : '立即生成' }}
+                  {{ isGeneratingCopy ? "生成中..." : "立即生成" }}
                 </Button>
                 <p class="text-center text-xs text-muted-foreground">
                   {{
                     uploadedImages.length === 0
-                      ? '请先上传至少一张产品图片'
-                      : uploadedImages.some(img => !img.uploaded)
-                        ? '请等待图片上传完成'
-                        : !formData.productName
-                          ? '请填写产品名称'
-                          : !formData.sellingPoints
-                            ? '请填写产品卖点'
-                            : isGenerating
-                              ? '正在生成，请稍候...'
-                              : '点击生成预览'
+                      ? "请先上传至少一张产品图片"
+                      : uploadedImages.some((img) => !img.uploaded)
+                        ? "请等待图片上传完成"
+                        : !formState.productName
+                          ? "请填写产品名称"
+                          : !formState.sellingPoints
+                            ? "请填写产品卖点"
+                            : isGeneratingCopy
+                              ? "正在生成，请稍候..."
+                              : "点击生成预览"
                   }}
                 </p>
               </div>
@@ -234,28 +246,31 @@
 
             <!-- Right Panel - Preview -->
             <div
-              class="relative flex flex-col flex-1 h-[40%] lg:h-full min-h-0 bg-muted/20 rounded-b-2xl lg:rounded-br-2xl lg:rounded-tr-2xl overflow-hidden"
+              class="right-panel relative flex flex-col flex-1 h-[40%] lg:h-full min-h-0 bg-muted/20 rounded-b-2xl lg:rounded-br-2xl lg:rounded-tr-2xl overflow-hidden"
             >
               <div class="flex-1 overflow-y-auto">
-                <div class="flex flex-col min-h-full p-6" :class="{ 'justify-center': !generatedTask }">
+                <div
+                  class="flex flex-col min-h-full p-6"
+                  :class="{ 'justify-center': !currentTask }"
+                >
                   <!-- Generated Tasks -->
-                  <div v-if="generatedTask" class="space-y-4">
+                  <div v-if="currentTask" class="space-y-4">
                     <div class="bg-card rounded-2xl border p-6 space-y-4">
                       <!-- Header -->
                       <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                          <span class="text-2xl font-bold">{{
-                              truncateProductName(generatedTask.productName || '产品名称')
-                            }}</span>
-                          <span class="text-sm text-muted-foreground">{{
-                              generatedTask.timestamp
-                            }}</span>
+                          <span class="text-2xl font-bold">
+                            {{ truncateProductName(currentTask.productName || "产品名称") }}
+                          </span>
+                          <span class="text-sm text-muted-foreground">
+                            {{ currentTask.timestamp }}
+                          </span>
                         </div>
                         <Button
                           variant="outline"
                           size="icon"
                           class="rounded-lg"
-                          @click="generatedTask = null"
+                          @click="currentTask = null"
                         >
                           <Trash2 class="h-5 w-5" />
                         </Button>
@@ -264,17 +279,18 @@
                       <!-- Tags -->
                       <div class="flex flex-wrap gap-2">
                         <span
-                          v-for="(tag, idx) in taskTags"
+                          v-for="(tag, idx) in currentTaskTags"
                           :key="idx"
                           class="px-3 py-1 rounded-full bg-muted text-sm"
-                        >{{ tag }}</span
                         >
+                          {{ tag }}
+                        </span>
                       </div>
 
                       <!-- Uploaded Images -->
                       <div class="flex gap-2">
                         <div
-                          v-for="(img, idx) in generatedTask.images"
+                          v-for="(img, idx) in currentTask.images"
                           :key="idx"
                           class="w-16 h-16 rounded-lg overflow-hidden bg-muted"
                         >
@@ -289,7 +305,12 @@
                             <Edit class="h-5 w-5" />
                             <span class="text-base font-medium">文案内容</span>
                           </div>
-                          <Button variant="ghost" size="sm" class="h-8 gap-1" @click="copyCopyText">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            class="h-8 gap-1"
+                            @click="copySelectedCopyText"
+                          >
                             <Copy class="h-4 w-4" />
                             复制
                           </Button>
@@ -298,12 +319,12 @@
                         <div class="bg-muted/30 rounded-lg space-y-3">
                           <div class="flex gap-2">
                             <button
-                              v-for="(_copy, idx) in generatedTask.generatedCopies"
+                              v-for="(_copy, idx) in currentTask.generatedCopies"
                               :key="idx"
-                              @click="activeCopyIndex = Number(idx)"
+                              @click="selectedCopyIndex = Number(idx)"
                               :class="[
                                 'px-3 py-1 rounded-full text-xs transition-colors',
-                                activeCopyIndex === idx
+                                selectedCopyIndex === idx
                                   ? 'bg-foreground text-background'
                                   : 'border hover:bg-muted',
                               ]"
@@ -314,13 +335,13 @@
 
                           <div class="space-y-3">
                             <h4 class="text-base font-medium">
-                              {{ generatedTask.generatedCopies[activeCopyIndex].title }}
+                              {{ currentTask.generatedCopies[selectedCopyIndex].title }}
                             </h4>
                             <p class="text-sm leading-relaxed text-muted-foreground">
-                              {{ generatedTask.generatedCopies[activeCopyIndex].content }}
+                              {{ currentTask.generatedCopies[selectedCopyIndex].content }}
                             </p>
                             <p class="text-sm text-muted-foreground">
-                              {{ generatedTask.generatedCopies[activeCopyIndex].tags }}
+                              {{ currentTask.generatedCopies[selectedCopyIndex].tags }}
                             </p>
                           </div>
                         </div>
@@ -334,11 +355,11 @@
                             <span class="text-base font-medium">文案配图</span>
                           </div>
                           <Button
-                            v-if="generatedTask.generatedImages"
+                            v-if="currentTask.generatedImages"
                             variant="ghost"
                             size="sm"
                             class="h-8 gap-1"
-                            @click="downloadAllImages(generatedTask)"
+                            @click="openDownloadDialog(currentTask)"
                           >
                             <Download class="h-4 w-4" />
                             批量下载
@@ -349,7 +370,7 @@
                         <div class="flex items-end gap-3">
                           <div class="space-y-1">
                             <div class="text-xs text-muted-foreground">风格选择</div>
-                            <Select v-model="generatedTask.style">
+                            <Select v-model="currentTask.style">
                               <SelectTrigger class="h-9 text-sm">
                                 <SelectValue />
                               </SelectTrigger>
@@ -358,14 +379,15 @@
                                   v-for="option in STYLE_OPTIONS"
                                   :key="option.value"
                                   :value="option.value"
-                                >{{ option.label }}</SelectItem
                                 >
+                                  {{ option.label }}
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div class="space-y-1">
                             <div class="text-xs text-muted-foreground">分辨率选择</div>
-                            <Select v-model="generatedTask.resolution">
+                            <Select v-model="currentTask.resolution">
                               <SelectTrigger class="h-9 text-sm">
                                 <SelectValue />
                               </SelectTrigger>
@@ -374,14 +396,15 @@
                                   v-for="option in RESOLUTION_OPTIONS"
                                   :key="option.value"
                                   :value="option.value"
-                                >{{ option.label }}</SelectItem
                                 >
+                                  {{ option.label }}
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div class="space-y-1">
                             <div class="text-xs text-muted-foreground">图片比例</div>
-                            <Select v-model="generatedTask.ratio">
+                            <Select v-model="currentTask.ratio">
                               <SelectTrigger class="h-9 text-sm">
                                 <SelectValue />
                               </SelectTrigger>
@@ -390,13 +413,14 @@
                                   v-for="option in RATIO_OPTIONS"
                                   :key="option.value"
                                   :value="option.value"
-                                >{{ option.label }}</SelectItem
                                 >
+                                  {{ option.label }}
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <!-- Generate Button -->
-                          <Button size="lg" @click="generateProductImageSet(generatedTask)">
+                          <Button size="lg" @click="generateImageSet(currentTask)">
                             <Box class="mr-2 h-5 w-5" />
                             一键生成图片
                             <span class="ml-2">✨ 14</span>
@@ -405,16 +429,16 @@
 
                         <!-- Image Types or Generated Images -->
                         <div
-                          v-if="generatedTask.isGenerating"
+                          v-if="currentTask.isGeneratingImages"
                           class="flex flex-col items-center justify-center py-20"
                         >
                           <Loader2 class="animate-spin h-12 w-12 text-primary mb-4" />
                           <p class="text-sm text-muted-foreground">AI正在生成图片，请稍候...</p>
                         </div>
-                        <div v-else-if="generatedTask.generatedImages" class="space-y-4">
+                        <div v-else-if="currentTask.generatedImages" class="space-y-4">
                           <div class="grid grid-cols-3 gap-4">
                             <div
-                              v-for="(img, idx) in generatedTask.generatedImages"
+                              v-for="(img, idx) in currentTask.generatedImages"
                               :key="idx"
                               class="space-y-3"
                             >
@@ -428,7 +452,7 @@
                                 />
                                 <!-- Regenerating Spinner -->
                                 <div
-                                  v-if="img.is_regenerating"
+                                  v-if="img.isRegenerating"
                                   class="absolute inset-0 bg-black/40 flex items-center justify-center"
                                 >
                                   <Loader2 class="animate-spin h-8 w-8 text-white" />
@@ -457,7 +481,7 @@
                                       variant="secondary"
                                       size="sm"
                                       class="bg-white/90 hover:bg-white text-foreground h-7 text-xs px-2 gap-1"
-                                      @click.stop="regenerateImage(generatedTask, Number(idx))"
+                                      @click.stop="regenerateImage(currentTask, Number(idx))"
                                     >
                                       <RefreshCw class="h-3.5 w-3.5" />
                                       重新生成
@@ -471,7 +495,7 @@
                         <div v-else class="grid grid-cols-3 gap-3">
                           <div v-if="false">
                             <div
-                              v-for="(type, idx) in generatedTask.imageTypes"
+                              v-for="(type, idx) in currentTask.imageTypes"
                               :key="idx"
                               @click="type.selected = !type.selected"
                               class="relative border-2 rounded-xl p-3 space-y-2 cursor-pointer transition-colors"
@@ -482,9 +506,9 @@
                               "
                             >
                               <div class="flex items-center justify-between">
-                                <span class="px-2 py-0.5 rounded-full border text-xs font-medium">{{
-                                    type.name
-                                  }}</span>
+                                <span class="px-2 py-0.5 rounded-full border text-xs font-medium">
+                                  {{ type.name }}
+                                </span>
                                 <div
                                   v-if="type.selected"
                                   class="w-5 h-5 rounded-full bg-foreground text-background flex items-center justify-center"
@@ -493,7 +517,7 @@
                                 </div>
                               </div>
                               <p class="text-xs text-muted-foreground line-clamp-2">
-                                {{ type.desc }}
+                                {{ type.description }}
                               </p>
                             </div>
                           </div>
@@ -507,9 +531,9 @@
                     <div class="text-center mb-6">
                       <h1 class="text-2xl font-bold text-foreground mb-2">AI商品套图</h1>
                       <p class="text-sm text-muted-foreground">
-                        上传商品图，AI 即刻生成 <span class="text-primary font-medium">
-                          符合多电商平台规范 </span
-                      >的高质化商品套图
+                        上传商品图，AI 即刻生成
+                        <span class="text-primary font-medium">符合多电商平台规范</span>
+                        的高质化商品套图
                       </p>
                     </div>
 
@@ -540,7 +564,7 @@
                           <div
                             class="absolute top-3 left-3 z-10 px-2 py-0.5 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center text-xs font-bold"
                           >
-                            {{ String(index + 2).padStart(2, '0') }}
+                            {{ String(index + 2).padStart(2, "0") }}
                           </div>
                           <div
                             v-if="example.label"
@@ -583,7 +607,7 @@
                         <div
                           class="absolute top-3 left-3 z-10 px-2.5 py-0.5 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center text-sm font-bold"
                         >
-                          {{ String(index + 2).padStart(2, '0') }}
+                          {{ String(index + 2).padStart(2, "0") }}
                         </div>
                         <div
                           v-if="example.label"
@@ -655,7 +679,7 @@
         </DialogHeader>
         <div class="py-4">
           <Textarea
-            v-model="regeneratePrompt"
+            v-model="regenerationPrompt"
             placeholder="例如：调整光线更明亮，背景更简洁..."
             class="resize-none"
             rows="4"
@@ -672,7 +696,7 @@
     <div
       v-if="showDownloadDialog"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      @click="cancelDownload"
+      @click="closeDownloadDialog"
     >
       <div
         class="bg-card rounded-2xl p-6 w-full max-w-2xl mx-4 shadow-xl max-h-[80vh] overflow-y-auto"
@@ -681,12 +705,12 @@
         <h3 class="text-lg font-semibold mb-4">选择要下载的图片</h3>
         <div class="grid grid-cols-3 gap-4 mb-6">
           <div
-            v-for="(img, idx) in generatedTask.generatedImages"
+            v-for="(img, idx) in currentTask.generatedImages"
             :key="idx"
             @click="toggleImageSelection(Number(idx))"
             class="relative aspect-square rounded-lg overflow-hidden border cursor-pointer transition-all"
             :class="
-              selectedImages.includes(Number(idx))
+              selectedImageIndexes.includes(Number(idx))
                 ? 'border-primary ring-1 ring-primary'
                 : 'border-muted hover:border-primary/50'
             "
@@ -695,10 +719,10 @@
             <div
               class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium"
             >
-              {{ String(Number(idx) + 1).padStart(2, '0') }} {{ img.name }}
+              {{ String(Number(idx) + 1).padStart(2, "0") }} {{ img.name }}
             </div>
             <div
-              v-if="selectedImages.includes(Number(idx))"
+              v-if="selectedImageIndexes.includes(Number(idx))"
               class="absolute inset-0 bg-primary/20 flex items-center justify-center"
             >
               <div
@@ -710,14 +734,13 @@
           </div>
         </div>
         <div class="flex items-center justify-between">
-          <span class="text-sm text-muted-foreground"
-          >已选择 {{ selectedImages.length }} /
-            {{ generatedTask.generatedImages.length }} 张</span
-          >
+          <span class="text-sm text-muted-foreground">
+            已选择 {{ selectedImageIndexes.length }} / {{ currentTask.generatedImages.length }} 张
+          </span>
           <div class="flex gap-3">
-            <Button variant="outline" @click="cancelDownload">取消</Button>
-            <Button @click="confirmDownload" :disabled="selectedImages.length === 0">
-              确认下载 ({{ selectedImages.length }})
+            <Button variant="outline" @click="closeDownloadDialog">取消</Button>
+            <Button @click="downloadSelectedImages" :disabled="selectedImageIndexes.length === 0">
+              确认下载 ({{ selectedImageIndexes.length }})
             </Button>
           </div>
         </div>
@@ -727,8 +750,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
-import { toast } from 'vue-sonner'
+import { ref, computed, onUnmounted } from "vue";
+import { toast } from "vue-sonner";
 import {
   Package,
   Sparkles,
@@ -742,20 +765,20 @@ import {
   Eye,
   Check,
   Loader2,
-} from 'lucide-vue-next'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
+} from "lucide-vue-next";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -763,7 +786,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 import {
   PLATFORM_OPTIONS,
   PLATFORM_LABELS,
@@ -774,509 +797,456 @@ import {
   EXAMPLE_IMAGES,
   FILE_VALIDATION,
   ERROR_MESSAGES,
-} from './constants'
-import { UploadAPI } from '@/api/upload'
-import { GenerateAPI } from '@/api/generate'
+} from "./constants";
+import { UploadAPI } from "@/api/upload";
+import { GenerateAPI } from "@/api/generate";
+import type { GeneratedCopy, GenerationTask, UploadedImage } from "./types";
 
-interface UploadedImage {
-  file: File
-  preview: string
-  note?: string
-  uploaded?: boolean
-  fileInfo?: any
-}
+const activeTab = ref("image-product-set");
+const uploadedImages = ref<UploadedImage[]>([]);
+const mainImageIndex = ref(0);
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const isDragging = ref(false);
+const editingImageIndex = ref<number | null>(null);
+const editingNote = ref("");
+const currentTask = ref<GenerationTask | null>(null);
+const selectedCopyIndex = ref(0);
+const isAnalyzingSellingPoints = ref(false);
+const isGeneratingCopy = ref(false);
+const showDownloadDialog = ref(false);
+const selectedImageIndexes = ref<number[]>([]);
+const previewImageUrl = ref("");
+const showRegenerateDialog = ref(false);
+const regenerationPrompt = ref("");
+const regenerationImageIndex = ref<number | null>(null);
+const regenerationTask = ref<GenerationTask | null>(null);
 
-export interface CopyItem {
-  title: string; // 标题
-  content: string; //内容
-  tags: string; // 标签列表
-}
-
-export interface ImageItem {
-  file_url?: string;
-  file_name?: string;
-  note?: string; // 备注
-}
-
-export interface ProductSetImageResult {
-  name: string;
-  url: string;
-  is_regenerating: boolean;
-}
-
-export interface ProductSetImageType {
-  name: string;
-  selected: boolean;
-  desc: string;
-}
-
-export interface ProductSetPreviewImage {
-  preview: string;
-}
-
-const taskTags = computed(() => {
-  if (!generatedTask.value) return []
+const currentTaskTags = computed(() => {
+  if (!currentTask.value) return [];
   return [
-    PLATFORM_LABELS[generatedTask.value.platform] || generatedTask.value.platform,
-    generatedTask.value.style,
-    generatedTask.value.resolution,
-    generatedTask.value.ratio,
-  ]
-})
+    PLATFORM_LABELS[currentTask.value.platform] || currentTask.value.platform,
+    currentTask.value.style,
+    currentTask.value.resolution,
+    currentTask.value.ratio,
+  ];
+});
 
-const activeTab = ref('image-product-set')
-const uploadedImages = ref<UploadedImage[]>([])
-const mainImageIndex = ref(0)
-const fileInputRef = ref<HTMLInputElement | null>(null)
-const isDragging = ref(false)
-const editingImageIndex = ref<number | null>(null)
-const editingNote = ref('')
-interface TaskData {
-  id: number
-  timestamp: string
-  platform: string
-  productName: string
-  images: ProductSetPreviewImage[]
-  style: string
-  resolution: string
-  ratio: string
-  generatedCopies: CopyItem[]
-  imageTypes: ProductSetImageType[]
-  generatedImages?: ProductSetImageResult[]
-  isGenerating?: boolean
-}
-
-const generatedTask = ref<TaskData | null>(null)
-const activeCopyIndex = ref(0)
-const isGeneratingAI = ref(false)
-const isGenerating = ref(false)
-const showDownloadDialog = ref(false)
-const selectedImages = ref<number[]>([])
-const previewImageUrl = ref('')
-const showRegenerateDialog = ref(false)
-const regeneratePrompt = ref('')
-const regeneratingImageIndex = ref<number | null>(null)
-const regeneratingTask = ref<any>(null)
-
-const formData = ref({
-  platform: 'xiaohongshu',
-  productName: '',
-  market: 'us',
-  language: 'en',
-  sellingPoints: '',
-  quantity: '1',
-})
+const formState = ref({
+  platform: "xiaohongshu",
+  productName: "",
+  market: "us",
+  language: "en",
+  sellingPoints: "",
+  quantity: "1",
+});
 
 const triggerFileInput = () => {
-  fileInputRef.value?.click()
-}
+  fileInputRef.value?.click();
+};
 
 const validateFile = (file: File): boolean => {
   if (!FILE_VALIDATION.acceptedTypes.includes(file.type)) {
-    toast.error(ERROR_MESSAGES.invalidFileType)
-    return false
+    toast.error(ERROR_MESSAGES.invalidFileType);
+    return false;
   }
 
   if (file.size > FILE_VALIDATION.maxSize) {
-    toast.error(ERROR_MESSAGES.fileTooLarge(file.name))
-    return false
+    toast.error(ERROR_MESSAGES.fileTooLarge(file.name));
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 const addFiles = async (files: FileList | File[]) => {
-  const fileArray = Array.from(files)
-  const remainingSlots = FILE_VALIDATION.maxCount - uploadedImages.value.length
+  const fileArray = Array.from(files);
+  const remainingSlots = FILE_VALIDATION.maxCount - uploadedImages.value.length;
 
   if (fileArray.length > remainingSlots) {
-    toast.error(ERROR_MESSAGES.tooManyFiles(remainingSlots))
-    return
+    toast.error(ERROR_MESSAGES.tooManyFiles(remainingSlots));
+    return;
   }
 
   for (const file of fileArray) {
     if (validateFile(file) && uploadedImages.value.length < FILE_VALIDATION.maxCount) {
-      const preview = URL.createObjectURL(file)
+      const preview = URL.createObjectURL(file);
       // Push to array and get the reactive item reference
-      const length = uploadedImages.value.push({ file, preview, uploaded: false })
-      const uploadedImage = uploadedImages.value[length - 1]
+      const length = uploadedImages.value.push({ file, preview, uploaded: false });
+      const uploadedImage = uploadedImages.value[length - 1];
 
       try {
         // Get upload token
         const tokenResponse = await UploadAPI.getUploadToken({
           file_path: "product",
-          file_name: file.name
-        })
+          file_name: file.name,
+        });
 
-        const tokenData = tokenResponse.data
+        const tokenData = tokenResponse.data;
 
         // Upload directly to storage service
-        const formData = new FormData()
-        formData.append('token', tokenData.token)
-        formData.append('key', tokenData.file_key)
-        formData.append('file', file)
+        const uploadFormData = new FormData();
+        uploadFormData.append("token", tokenData.token);
+        uploadFormData.append("key", tokenData.file_key);
+        uploadFormData.append("file", file);
 
         const uploadResponse = await fetch(tokenData.upload_url, {
-          method: 'POST',
-          credentials: 'omit',
-          body: formData
-        })
+          method: "POST",
+          credentials: "omit",
+          body: uploadFormData,
+        });
 
         if (uploadResponse.ok) {
-          uploadedImage.uploaded = true
+          uploadedImage.uploaded = true;
           uploadedImage.fileInfo = {
-            file_url: tokenData.access_url,
-            file_name: file.name,
-            file_key: tokenData.file_key
-          }
-          toast.success(`${file.name} 上传成功`)
+            fileUrl: tokenData.access_url,
+            fileName: file.name,
+            fileKey: tokenData.file_key,
+          };
+          toast.success(`${file.name} 上传成功`);
         } else {
-          throw new Error('Upload failed')
+          throw new Error("Upload failed");
         }
       } catch (error) {
-        console.error('文件上传失败:', error)
-        toast.error(`${file.name} 上传失败`)
-        const index = uploadedImages.value.indexOf(uploadedImage)
+        console.error("文件上传失败:", error);
+        toast.error(`${file.name} 上传失败`);
+        const index = uploadedImages.value.indexOf(uploadedImage);
         if (index > -1) {
-          URL.revokeObjectURL(uploadedImage.preview)
-          uploadedImages.value.splice(index, 1)
+          URL.revokeObjectURL(uploadedImage.preview);
+          uploadedImages.value.splice(index, 1);
         }
       }
     }
   }
-}
+};
 
 const handleFileChange = (event: Event) => {
-  const target = event.target as HTMLInputElement
+  const target = event.target as HTMLInputElement;
   if (target.files && target.files.length > 0) {
-    addFiles(target.files)
-    target.value = ''
+    addFiles(target.files);
+    target.value = "";
   }
-}
+};
 
 const handleDrop = (event: DragEvent) => {
-  isDragging.value = false
+  isDragging.value = false;
   if (event.dataTransfer?.files) {
-    addFiles(event.dataTransfer.files)
+    addFiles(event.dataTransfer.files);
   }
-}
+};
 
 const removeImage = (index: number) => {
-  URL.revokeObjectURL(uploadedImages.value[index].preview)
-  uploadedImages.value.splice(index, 1)
+  URL.revokeObjectURL(uploadedImages.value[index].preview);
+  uploadedImages.value.splice(index, 1);
 
   // 调整主图索引
   if (mainImageIndex.value === index) {
-    mainImageIndex.value = 0
+    mainImageIndex.value = 0;
   } else if (mainImageIndex.value > index) {
-    mainImageIndex.value--
+    mainImageIndex.value--;
   }
-}
+};
 
 const previewImage = (url: string) => {
-  previewImageUrl.value = url
-}
+  previewImageUrl.value = url;
+};
 
 const closePreview = () => {
-  previewImageUrl.value = ''
-}
+  previewImageUrl.value = "";
+};
 
 const saveNote = () => {
   if (editingImageIndex.value !== null && uploadedImages.value[editingImageIndex.value]) {
-    uploadedImages.value[editingImageIndex.value].note = editingNote.value
-    editingImageIndex.value = null
-    editingNote.value = ''
+    uploadedImages.value[editingImageIndex.value].note = editingNote.value;
+    editingImageIndex.value = null;
+    editingNote.value = "";
   }
-}
+};
 
 const cancelNote = () => {
-  editingImageIndex.value = null
-  editingNote.value = ''
-}
-
-
+  editingImageIndex.value = null;
+  editingNote.value = "";
+};
 
 const truncateProductName = (name: string) => {
-  return name.length > 20 ? name.substring(0, 20) + '...' : name
-}
+  return name.length > 20 ? name.substring(0, 20) + "..." : name;
+};
 
 const downloadImage = (url: string, name: string) => {
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${name}.jpg`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${name}.jpg`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
-const regenerateImage = (task: TaskData, index: number) => {
-  if (!task.generatedImages || !task.generatedImages[index]) return
-  const currentImage = task.generatedImages[index]
-  if (currentImage.is_regenerating) return
+const regenerateImage = (task: GenerationTask, index: number) => {
+  if (!task.generatedImages || !task.generatedImages[index]) return;
+  const currentImage = task.generatedImages[index];
+  if (currentImage.isRegenerating) return;
 
-  regeneratingTask.value = task
-  regeneratingImageIndex.value = index
-  regeneratePrompt.value = ''
-  showRegenerateDialog.value = true
-}
-
-
+  regenerationTask.value = task;
+  regenerationImageIndex.value = index;
+  regenerationPrompt.value = "";
+  showRegenerateDialog.value = true;
+};
 
 const cancelRegenerate = () => {
-  showRegenerateDialog.value = false
-  regeneratingTask.value = null
-  regeneratingImageIndex.value = null
-  regeneratePrompt.value = ''
-}
+  showRegenerateDialog.value = false;
+  regenerationTask.value = null;
+  regenerationImageIndex.value = null;
+  regenerationPrompt.value = "";
+};
 
+const openDownloadDialog = (task: GenerationTask) => {
+  if (!task.generatedImages) return;
 
-
-const downloadAllImages = (task: any) => {
-  if (!task.generatedImages) return
-
-  selectedImages.value = task.generatedImages.map((_: any, idx: number) => idx)
-  showDownloadDialog.value = true
-}
+  selectedImageIndexes.value = task.generatedImages.map((_, idx) => idx);
+  showDownloadDialog.value = true;
+};
 
 const toggleImageSelection = (index: number) => {
-  const idx = selectedImages.value.indexOf(index)
+  const idx = selectedImageIndexes.value.indexOf(index);
   if (idx > -1) {
-    selectedImages.value.splice(idx, 1)
+    selectedImageIndexes.value.splice(idx, 1);
   } else {
-    selectedImages.value.push(index)
+    selectedImageIndexes.value.push(index);
   }
-}
+};
 
-const confirmDownload = () => {
-  if (!generatedTask.value?.generatedImages || selectedImages.value.length === 0) return
+const downloadSelectedImages = () => {
+  if (!currentTask.value?.generatedImages || selectedImageIndexes.value.length === 0) return;
 
-  selectedImages.value.forEach((imgIndex: number, index: number) => {
+  selectedImageIndexes.value.forEach((imgIndex: number, index: number) => {
     setTimeout(() => {
-      const img = generatedTask.value.generatedImages[imgIndex]
-      downloadImage(img.url, `${generatedTask.value.productName}_${img.name}`)
-    }, index * 200)
-  })
+      const img = currentTask.value.generatedImages[imgIndex];
+      downloadImage(img.url, `${currentTask.value.productName}_${img.name}`);
+    }, index * 200);
+  });
 
-  showDownloadDialog.value = false
-  selectedImages.value = []
-}
+  showDownloadDialog.value = false;
+  selectedImageIndexes.value = [];
+};
 
-const cancelDownload = () => {
-  showDownloadDialog.value = false
-  selectedImages.value = []
-}
-
-
+const closeDownloadDialog = () => {
+  showDownloadDialog.value = false;
+  selectedImageIndexes.value = [];
+};
 
 // 复制文案内容
-const copyCopyText = async () => {
-  if (!generatedTask.value?.generatedCopies?.[activeCopyIndex.value]) return
+const copySelectedCopyText = async () => {
+  if (!currentTask.value?.generatedCopies?.[selectedCopyIndex.value]) return;
 
-  const copy = generatedTask.value.generatedCopies[activeCopyIndex.value]
-  const text = `${copy.title}\n\n${copy.content}\n\n${copy.tags}`
+  const copy = currentTask.value.generatedCopies[selectedCopyIndex.value];
+  const text = `${copy.title}\n\n${copy.content}\n\n${copy.tags}`;
 
   try {
-    await navigator.clipboard.writeText(text)
-    toast.success('复制成功！')
+    await navigator.clipboard.writeText(text);
+    toast.success("复制成功！");
   } catch (error) {
-    console.error('复制失败:', error)
-    toast.error('复制失败，请稍后重试')
+    console.error("复制失败:", error);
+    toast.error("复制失败，请稍后重试");
   }
-}
+};
 
 // ============ AI模型调用方法 ============
 
 // AI分析产品卖点
 const analyzeProductSellingPoints = async () => {
-  if (uploadedImages.value.length === 0) return
+  if (uploadedImages.value.length === 0) return;
 
-  if (!formData.value.productName) {
-    toast.error('请先填写产品名称')
-    return
+  if (!formState.value.productName) {
+    toast.error("请先填写产品名称");
+    return;
   }
 
-  const unuploadedImages = uploadedImages.value.filter(img => !img.uploaded)
+  const unuploadedImages = uploadedImages.value.filter((img) => !img.uploaded);
   if (unuploadedImages.length > 0) {
-    toast.error('请等待所有图片上传完成')
-    return
+    toast.error("请等待所有图片上传完成");
+    return;
   }
 
-  isGeneratingAI.value = true
+  isAnalyzingSellingPoints.value = true;
   try {
     // 获取主图URL
-    const mainImage = uploadedImages.value[mainImageIndex.value]
-    const imageUrl = mainImage?.fileInfo?.file_url || ''
+    const mainImage = uploadedImages.value[mainImageIndex.value];
+    const imageUrl = mainImage?.fileInfo?.fileUrl || "";
 
     // 获取默认的分析卖点引擎
-    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: 'analysis' })
-    const defaultEngine = enginesResp.data?.list?.find(e => e.is_default) || enginesResp.data?.list?.[0]
+    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: "analysis" });
+    const defaultEngine =
+      enginesResp.data?.list?.find((e) => e.is_default) || enginesResp.data?.list?.[0];
 
     if (!defaultEngine) {
-      throw new Error('未找到可用的AI引擎')
+      throw new Error("未找到可用的AI引擎");
     }
 
     // 调用 Chat API 分析卖点
     const response = await GenerateAPI.chatCompletion({
       engine_id: defaultEngine.id,
       variables: {
-        product_name: formData.value.productName,
-        image_url: imageUrl
-      }
-    })
+        product_name: formState.value.productName,
+        image_url: imageUrl,
+        response_format: "text",
+      },
+    });
 
     if (response.data?.choices && response.data.choices.length > 0) {
-      formData.value.sellingPoints = response.data.choices[0].message.content
-      toast.success('AI分析完成')
+      formState.value.sellingPoints = response.data.choices[0].message.content;
+      toast.success("AI分析完成");
     } else {
-      throw new Error('AI分析返回结果为空')
+      throw new Error("AI分析返回结果为空");
     }
-
   } catch (error: any) {
-    console.error('生成失败:', error)
-    toast.error('生成失败: ' + (error.message || '请稍后重试'))
+    console.error("生成失败:", error);
+    toast.error("生成失败: " + (error.message || "请稍后重试"));
   } finally {
-    isGeneratingAI.value = false
+    isAnalyzingSellingPoints.value = false;
   }
-}
+};
 
 // 生成文案
 const generateProductCopy = async () => {
-  if (isGenerating.value) return
+  if (isGeneratingCopy.value) return;
 
-  const unuploadedImages = uploadedImages.value.filter(img => !img.uploaded)
+  const unuploadedImages = uploadedImages.value.filter((img) => !img.uploaded);
   if (unuploadedImages.length > 0) {
-    toast.error('请等待所有图片上传完成')
-    return
+    toast.error("请等待所有图片上传完成");
+    return;
   }
 
-  isGenerating.value = true
+  isGeneratingCopy.value = true;
 
   try {
-    const mainImage = uploadedImages.value[mainImageIndex.value]
+    const mainImage = uploadedImages.value[mainImageIndex.value];
     if (!mainImage) {
-      throw new Error('未找到主图')
+      throw new Error("未找到主图");
     }
 
     // 使用上传后的URL
-    const imageUrl = mainImage.fileInfo?.file_url
+    const imageUrl = mainImage.fileInfo?.fileUrl;
     if (!imageUrl) {
-      throw new Error('图片尚未上传完成')
+      throw new Error("图片尚未上传完成");
     }
 
     // 获取默认的文案生成引擎
-    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: 'copy' })
-    const defaultEngine = enginesResp.data?.list?.find(e => e.is_default) || enginesResp.data?.list?.[0]
+    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: "copy" });
+    const defaultEngine =
+      enginesResp.data?.list?.find((e) => e.is_default) || enginesResp.data?.list?.[0];
 
     if (!defaultEngine) {
-      throw new Error('未找到可用的AI引擎')
+      throw new Error("未找到可用的AI引擎");
     }
 
     // 调用 Chat API 生成文案
     const response = await GenerateAPI.chatCompletion({
       engine_id: defaultEngine.id,
       variables: {
-        product_name: formData.value.productName,
-        selling_points: formData.value.sellingPoints,
-        platform: formData.value.platform,
+        product_name: formState.value.productName,
+        selling_points: formState.value.sellingPoints,
+        platform: formState.value.platform,
         image_url: imageUrl,
-        quantity: parseInt(formData.value.quantity)
-      }
-    })
+        quantity: parseInt(formState.value.quantity),
+        response_format: "json",
+      },
+    });
 
     if (!response.data?.choices || response.data.choices.length === 0) {
-      throw new Error('AI生成返回结果为空')
+      throw new Error("AI生成返回结果为空");
     }
 
-    // 解析生成的文案
-    const generatedCopies: CopyItem[] = []
+    // 解析生成的文案 - API返回格式: [{title, content, tags}, ...]
+    const generatedCopies: GeneratedCopy[] = [];
 
     // 尝试从每个choice中解析文案
     for (const choice of response.data.choices) {
       try {
-        const content = choice.message.content
+        let content = choice.message.content;
+        // 去除markdown代码块标签
+        content = content.replace(/^```(?:json)?\n?/g, '').replace(/\n?```$/g, '').trim();
         // 尝试解析JSON
-        const parsed = JSON.parse(content)
+        const parsed = JSON.parse(content);
         if (Array.isArray(parsed)) {
-          generatedCopies.push(...parsed)
+          generatedCopies.push(...parsed);
         } else if (parsed.title && parsed.content) {
-          generatedCopies.push(parsed)
+          generatedCopies.push(parsed);
         }
       } catch (e) {
         // 如果不是JSON格式，直接使用文本内容
         generatedCopies.push({
-          title: formData.value.productName,
+          title: formState.value.productName,
           content: choice.message.content,
-          tags: ''
-        })
+          tags: "",
+        });
       }
     }
 
     if (generatedCopies.length === 0) {
-      throw new Error('未能解析出有效的文案')
+      throw new Error("未能解析出有效的文案");
     }
 
     // 创建任务数据
-    const task: TaskData = {
+    const task: GenerationTask = {
       id: Date.now(),
       timestamp: new Date().toLocaleString(),
-      platform: formData.value.platform,
-      productName: formData.value.productName,
-      images: uploadedImages.value.map(img => ({ preview: img.preview })),
-      style: '极简留白',
-      resolution: '2K ✨ 2',
-      ratio: '1:1',
+      platform: formState.value.platform,
+      productName: formState.value.productName,
+      images: uploadedImages.value.map((img) => ({ preview: img.preview })),
+      style: "极简留白",
+      resolution: "2K ✨ 2",
+      ratio: "1:1",
       generatedCopies: generatedCopies,
       imageTypes: [],
-      isGenerating: false,
+      isGeneratingImages: false,
       generatedImages: [], // 文案生成阶段还没有图片
-    }
+    };
 
-    activeCopyIndex.value = 0
-    generatedTask.value = task
-    toast.success('文案生成成功！请选择文案后点击"生成套图"')
-    isGenerating.value = false
-
+    selectedCopyIndex.value = 0;
+    currentTask.value = task;
+    toast.success('文案生成成功！请选择文案后点击"生成套图"');
+    isGeneratingCopy.value = false;
   } catch (error: any) {
-    console.error('生成文案失败:', error)
-    toast.error('生成文案失败: ' + (error.message || '请稍后重试'))
-    isGenerating.value = false
+    console.error("生成文案失败:", error);
+    toast.error("生成文案失败: " + (error.message || "请稍后重试"));
+    isGeneratingCopy.value = false;
   }
-}
+};
 
 // 生成套图
-const generateProductImageSet = async (task: any) => {
+const generateImageSet = async (task: GenerationTask) => {
   // 如果已经有生成的图片，提示用户
   if (task.generatedImages && task.generatedImages.length > 0) {
-    toast.info('图片已生成，如需重新生成请创建新任务')
-    return
+    toast.info("图片已生成，如需重新生成请创建新任务");
+    return;
   }
 
   // 检查是否选择了文案
   if (!task.generatedCopies || task.generatedCopies.length === 0) {
-    toast.error('请先生成文案')
-    return
+    toast.error("请先生成文案");
+    return;
   }
 
   // 获取选中的文案
-  const selectedCopy = task.generatedCopies[activeCopyIndex.value]
+  const selectedCopy = task.generatedCopies[selectedCopyIndex.value];
   if (!selectedCopy) {
-    toast.error('请选择一条文案')
-    return
+    toast.error("请选择一条文案");
+    return;
   }
 
-  task.isGenerating = true
+  task.isGeneratingImages = true;
 
   try {
     // 获取主图URL
-    const mainImage = uploadedImages.value[mainImageIndex.value]
-    const imageUrl = mainImage?.fileInfo?.file_url || ''
+    const mainImage = uploadedImages.value[mainImageIndex.value];
+    const imageUrl = mainImage?.fileInfo?.fileUrl || "";
 
     // 获取默认的图片生成引擎
-    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: 'image_set' })
-    const defaultEngine = enginesResp.data?.list?.find(e => e.is_default) || enginesResp.data?.list?.[0]
+    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: "image_set" });
+    const defaultEngine =
+      enginesResp.data?.list?.find((e) => e.is_default) || enginesResp.data?.list?.[0];
 
     if (!defaultEngine) {
-      throw new Error('未找到可用的图片生成引擎')
+      throw new Error("未找到可用的图片生成引擎");
     }
 
     // 调用 Images API 生成套图
@@ -1289,97 +1259,152 @@ const generateProductImageSet = async (task: any) => {
         image_url: imageUrl,
         style: task.style,
         resolution: task.resolution,
-        ratio: task.ratio
-      }
-    })
+        ratio: task.ratio,
+        response_format: "json",
+      },
+    });
 
     if (!response.data?.data || response.data.data.length === 0) {
-      throw new Error('图片生成返回结果为空')
+      throw new Error("图片生成返回结果为空");
     }
 
     // 将生成的图片添加到任务中
     task.generatedImages = response.data.data.map((img, idx) => ({
       name: `图片${idx + 1}`,
       url: img.url || img.b64_json,
-      is_regenerating: false
-    }))
+      isRegenerating: false,
+    }));
 
-    toast.success('套图生成成功！')
+    toast.success("套图生成成功！");
   } catch (error: any) {
-    console.error('生成图片失败:', error)
-    toast.error('生成图片失败: ' + (error.message || '请稍后重试'))
+    console.error("生成图片失败:", error);
+    toast.error("生成图片失败: " + (error.message || "请稍后重试"));
   } finally {
-    task.isGenerating = false
+    task.isGeneratingImages = false;
   }
-}
+};
 
 // 重新生成单张图片
 const regenerateSingleImage = async () => {
-  if (!regeneratingTask.value || regeneratingImageIndex.value === null) return
+  if (!regenerationTask.value || regenerationImageIndex.value === null) return;
 
-  const task = regeneratingTask.value
-  const index = regeneratingImageIndex.value
-  if (!task.generatedImages) return
-  const currentImage = task.generatedImages[index]
+  const task = regenerationTask.value;
+  const index = regenerationImageIndex.value;
+  if (!task.generatedImages) return;
+  const currentImage = task.generatedImages[index];
 
-  currentImage.is_regenerating = true
-  showRegenerateDialog.value = false
+  currentImage.isRegenerating = true;
+  showRegenerateDialog.value = false;
 
   try {
     // 获取默认的图片生成引擎
-    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: 'image' })
-    const defaultEngine = enginesResp.data?.list?.find(e => e.is_default) || enginesResp.data?.list?.[0]
+    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: "image" });
+    const defaultEngine =
+      enginesResp.data?.list?.find((e) => e.is_default) || enginesResp.data?.list?.[0];
 
     if (!defaultEngine) {
-      throw new Error('未找到可用的图片生成引擎')
+      throw new Error("未找到可用的图片生成引擎");
     }
 
     // 获取选中的文案
-    const selectedCopy = task.generatedCopies?.[activeCopyIndex.value]
+    const selectedCopy = task.generatedCopies?.[selectedCopyIndex.value];
 
     // 获取主图URL
-    const mainImage = uploadedImages.value[mainImageIndex.value]
-    const imageUrl = mainImage?.fileInfo?.file_url || ''
+    const mainImage = uploadedImages.value[mainImageIndex.value];
+    const imageUrl = mainImage?.fileInfo?.fileUrl || "";
 
     // 调用 Images API 重新生成单张图片
     const response = await GenerateAPI.imageGeneration({
       engine_id: defaultEngine.id,
       variables: {
         product_name: task.productName,
-        copy_title: selectedCopy?.title || '',
-        copy_content: selectedCopy?.content || '',
+        copy_title: selectedCopy?.title || "",
+        copy_content: selectedCopy?.content || "",
         image_url: imageUrl,
         style: task.style,
         resolution: task.resolution,
         ratio: task.ratio,
-        custom_prompt: regeneratePrompt.value
-      }
-    })
+        custom_prompt: regenerationPrompt.value,
+        response_format: "json",
+      },
+    });
 
     if (!response.data?.data || response.data.data.length === 0) {
-      throw new Error('图片生成返回结果为空')
+      throw new Error("图片生成返回结果为空");
     }
 
     // 替换原图片
-    const newImageData = response.data.data[0]
-    currentImage.url = newImageData.url || newImageData.b64_json
+    const newImageData = response.data.data[0];
+    currentImage.url = newImageData.url || newImageData.b64_json;
 
-    toast.success('图片重新生成成功！')
-
+    toast.success("图片重新生成成功！");
   } catch (error: any) {
-    console.error('重新生成失败:', error)
-    toast.error('重新生成失败: ' + (error.message || '请稍后重试'))
+    console.error("重新生成失败:", error);
+    toast.error("重新生成失败: " + (error.message || "请稍后重试"));
   } finally {
-    currentImage.is_regenerating = false
-    regeneratingTask.value = null
-    regeneratingImageIndex.value = null
+    currentImage.isRegenerating = false;
+    regenerationTask.value = null;
+    regenerationImageIndex.value = null;
   }
-}
+};
 
 // 组件卸载时清理 URL
 onUnmounted(() => {
   uploadedImages.value.forEach((img) => {
-    URL.revokeObjectURL(img.preview)
-  })
-})
+    URL.revokeObjectURL(img.preview);
+  });
+});
 </script>
+
+<style scoped>
+.product-root {
+  --accent-1: #ff6a3d;
+  --accent-2: #ffb07a;
+  --accent-3: #2dd4bf;
+  background: radial-gradient(circle at top left, #fff5ec 0%, #ffffff 45%, #fef6e8 100%);
+  border-radius: 24px;
+}
+
+.tabs-list {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  padding: 2px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.product-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 22px 45px rgba(15, 23, 42, 0.12);
+}
+
+.left-panel {
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.right-panel {
+  background: rgba(255, 244, 236, 0.4);
+}
+
+.upload-zone {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.generate-cta {
+  border: none;
+  background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  color: #fff;
+  box-shadow: 0 18px 40px rgba(255, 106, 61, 0.3);
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+.generate-cta:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+</style>

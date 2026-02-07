@@ -1,44 +1,43 @@
-import { Image, Heart } from 'lucide-vue-next'
-import type { Component } from 'vue'
-import type { RouteRecordRaw } from 'vue-router'
+import { Image, Heart } from "lucide-vue-next";
+import type { Component } from "vue";
+import type { RouteRecordRaw } from "vue-router";
 
 // Extend Vue Router's meta type to include our custom properties
-declare module 'vue-router' {
+declare module "vue-router" {
   interface RouteMeta {
-    title?: string
-    icon?: Component
-    badge?: string
-    showInMenu?: boolean
-    showInBreadcrumb?: boolean
-    isGroup?: boolean
-    isCollapsible?: boolean
+    title?: string;
+    icon?: Component;
+    badge?: string;
+    showInMenu?: boolean;
+    showInBreadcrumb?: boolean;
+    isGroup?: boolean;
+    isCollapsible?: boolean;
   }
 }
 
 // App route components (lazy loaded)
-const ProductImagesGenerationPage = () => import('@/views/app/product-images-generation/index.vue')
-const FavoritesPage = () => import('@/views/app/favorites/index.vue')
-const UserCenterPage = () => import('@/views/app/user-center/index.vue')
-const CustomerServicePage = () => import('@/views/app/customer-service/index.vue')
-
+const ProductImagesGenerationPage = () => import("@/views/app/product-images-generation/index.vue");
+const FavoritesPage = () => import("@/views/app/favorites/index.vue");
+const UserCenterPage = () => import("@/views/app/user-center/index.vue");
+const CustomerServicePage = () => import("@/views/app/customer-service/index.vue");
 
 // Menu configuration using RouteRecordRaw with children for grouping
 export const menuConfig: RouteRecordRaw[] = [
   {
-    path: 'dashboard',
-    name: 'dashboard',
+    path: "dashboard",
+    name: "dashboard",
     component: ProductImagesGenerationPage,
     meta: {
-      title: '图片生成',
+      title: "图片生成",
       icon: Image,
     },
   },
   {
-    path: 'favorites',
-    name: 'favorites',
+    path: "favorites",
+    name: "favorites",
     component: FavoritesPage,
     meta: {
-      title: '我的收藏',
+      title: "我的收藏",
       icon: Heart,
       showInMenu: false,
     },
@@ -72,69 +71,69 @@ export const menuConfig: RouteRecordRaw[] = [
   //   },
   //   children: [],
   // },
-]
+];
 
 const flattenRoutes = (routes: RouteRecordRaw[]): RouteRecordRaw[] => {
   return routes.flatMap((route) => {
-    const result: RouteRecordRaw[] = [route]
+    const result: RouteRecordRaw[] = [route];
     if (route.children) {
-      result.push(...flattenRoutes(route.children))
+      result.push(...flattenRoutes(route.children));
     }
-    return result
-  })
-}
+    return result;
+  });
+};
 
-export const appRoutes: RouteRecordRaw[] = flattenRoutes(menuConfig)
+export const appRoutes: RouteRecordRaw[] = flattenRoutes(menuConfig);
 
 appRoutes.push({
-  path: 'user-center',
-  name: 'user-center',
+  path: "user-center",
+  name: "user-center",
   component: UserCenterPage,
   meta: {
-    title: '个人中心',
+    title: "个人中心",
     showInMenu: false,
   },
-})
+});
 
 appRoutes.push({
-  path: 'customer-service',
-  name: 'customer-service',
+  path: "customer-service",
+  name: "customer-service",
   component: CustomerServicePage,
   meta: {
-    title: '客服中心',
+    title: "客服中心",
     showInMenu: false,
   },
-})
+});
 
 /**
  * Build a flat map of routes for breadcrumb generation
  */
 const buildRouteMap = (
   routes: RouteRecordRaw[],
-  parentPath = '',
-  parent?: RouteRecordRaw,
+  parentPath = "",
+  parent?: RouteRecordRaw
 ): Map<string, { route: RouteRecordRaw; parent?: RouteRecordRaw }> => {
-  const map = new Map<string, { route: RouteRecordRaw; parent?: RouteRecordRaw }>()
+  const map = new Map<string, { route: RouteRecordRaw; parent?: RouteRecordRaw }>();
 
   routes.forEach((route) => {
-    const fullPath = parentPath + '/' + route.path
-    const normalizedPath = fullPath.replace(/\/+/g, '/')
+    const fullPath = parentPath + "/" + route.path;
+    const normalizedPath = fullPath.replace(/\/+/g, "/");
 
-    map.set(normalizedPath, { route, parent })
+    map.set(normalizedPath, { route, parent });
 
     if (route.children) {
       buildRouteMap(route.children, normalizedPath, route).forEach((value, key) =>
-        map.set(key, value),
-      )
+        map.set(key, value)
+      );
     }
-  })
+  });
 
-  return map
-}
+  return map;
+};
 
 // Build route map for all routes
-const routeMap = new Map(buildRouteMap(appRoutes, '/app'))
+const routeMap = new Map(buildRouteMap(appRoutes, "/app"));
 
 export const getRouteByPath = (path: string) => {
-  return routeMap.get(path)
-}
+  return routeMap.get(path);
+};

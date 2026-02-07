@@ -24,7 +24,7 @@ pnpm type-check   # Run TypeScript compiler check
 
 ### Code Quality
 ```bash
-pnpm lint         # Run all linters (oxlint + eslint)
+pnpm lint         # Run oxlint
 pnpm format       # Format code with Prettier
 ```
 

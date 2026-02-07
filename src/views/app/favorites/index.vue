@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { ref, computed } from "vue";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card'
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,168 +19,168 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Heart, Download, Trash2, Image as ImageIcon, Video as VideoIcon } from 'lucide-vue-next'
+} from "@/components/ui/alert-dialog";
+import { Heart, Download, Trash2, Image as ImageIcon, Video as VideoIcon } from "lucide-vue-next";
 type FavoriteItem = {
-  id: string
-  type: 'image' | 'video'
-  title: string
-  thumbnail: string
-  prompt?: string
-  style?: string
-  duration?: string
-  createdAt: string
-  favoritedAt: string
-  tags?: string[]
-}
-import { toast } from 'vue-sonner'
+  id: string;
+  type: "image" | "video";
+  title: string;
+  thumbnail: string;
+  prompt?: string;
+  style?: string;
+  duration?: string;
+  createdAt: string;
+  favoritedAt: string;
+  tags?: string[];
+};
+import { toast } from "vue-sonner";
 
 // 筛选类型
-const filterType = ref<string>('all')
+const filterType = ref<string>("all");
 
 // 模拟收藏数据
 const favorites = ref<FavoriteItem[]>([
   {
-    id: '1',
-    type: 'image',
-    title: '电商产品图 - 手机壳',
-    thumbnail: 'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400',
-    prompt: '简约风格手机壳,白色背景,产品摄影',
-    style: '产品摄影',
-    createdAt: '2026-01-26 14:30:00',
-    favoritedAt: '2026-01-26 15:00:00',
-    tags: ['产品', '手机配件', '简约']
+    id: "1",
+    type: "image",
+    title: "电商产品图 - 手机壳",
+    thumbnail: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=400",
+    prompt: "简约风格手机壳,白色背景,产品摄影",
+    style: "产品摄影",
+    createdAt: "2026-01-26 14:30:00",
+    favoritedAt: "2026-01-26 15:00:00",
+    tags: ["产品", "手机配件", "简约"],
   },
   {
-    id: '2',
-    type: 'image',
-    title: '电商产品图 - 咖啡杯',
-    thumbnail: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400',
-    prompt: '精致咖啡杯,温暖光线,生活方式摄影',
-    style: '生活方式',
-    createdAt: '2026-01-25 10:15:00',
-    favoritedAt: '2026-01-25 11:30:00',
-    tags: ['生活', '咖啡', '温馨']
+    id: "2",
+    type: "image",
+    title: "电商产品图 - 咖啡杯",
+    thumbnail: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400",
+    prompt: "精致咖啡杯,温暖光线,生活方式摄影",
+    style: "生活方式",
+    createdAt: "2026-01-25 10:15:00",
+    favoritedAt: "2026-01-25 11:30:00",
+    tags: ["生活", "咖啡", "温馨"],
   },
   {
-    id: '3',
-    type: 'video',
-    title: '产品展示视频 - 智能手表',
-    thumbnail: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
-    duration: '00:15',
-    createdAt: '2026-01-24 16:45:00',
-    favoritedAt: '2026-01-24 17:00:00',
-    tags: ['科技', '智能设备', '展示']
+    id: "3",
+    type: "video",
+    title: "产品展示视频 - 智能手表",
+    thumbnail: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
+    duration: "00:15",
+    createdAt: "2026-01-24 16:45:00",
+    favoritedAt: "2026-01-24 17:00:00",
+    tags: ["科技", "智能设备", "展示"],
   },
   {
-    id: '4',
-    type: 'image',
-    title: '电商产品图 - 运动鞋',
-    thumbnail: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
-    prompt: '运动鞋特写,动感光影,产品摄影',
-    style: '产品摄影',
-    createdAt: '2026-01-23 09:20:00',
-    favoritedAt: '2026-01-23 10:00:00',
-    tags: ['运动', '鞋类', '时尚']
+    id: "4",
+    type: "image",
+    title: "电商产品图 - 运动鞋",
+    thumbnail: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400",
+    prompt: "运动鞋特写,动感光影,产品摄影",
+    style: "产品摄影",
+    createdAt: "2026-01-23 09:20:00",
+    favoritedAt: "2026-01-23 10:00:00",
+    tags: ["运动", "鞋类", "时尚"],
   },
   {
-    id: '5',
-    type: 'image',
-    title: '电商产品图 - 护肤品',
-    thumbnail: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400',
-    prompt: '高端护肤品,柔和光线,奢华感',
-    style: '奢华风格',
-    createdAt: '2026-01-22 18:30:00',
-    favoritedAt: '2026-01-22 19:00:00',
-    tags: ['美妆', '护肤', '奢华']
+    id: "5",
+    type: "image",
+    title: "电商产品图 - 护肤品",
+    thumbnail: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400",
+    prompt: "高端护肤品,柔和光线,奢华感",
+    style: "奢华风格",
+    createdAt: "2026-01-22 18:30:00",
+    favoritedAt: "2026-01-22 19:00:00",
+    tags: ["美妆", "护肤", "奢华"],
   },
   {
-    id: '6',
-    type: 'video',
-    title: '产品展示视频 - 耳机',
-    thumbnail: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
-    duration: '00:20',
-    createdAt: '2026-01-21 08:00:00',
-    favoritedAt: '2026-01-21 09:00:00',
-    tags: ['音频', '科技', '产品']
-  }
-])
+    id: "6",
+    type: "video",
+    title: "产品展示视频 - 耳机",
+    thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+    duration: "00:20",
+    createdAt: "2026-01-21 08:00:00",
+    favoritedAt: "2026-01-21 09:00:00",
+    tags: ["音频", "科技", "产品"],
+  },
+]);
 
 // 筛选后的收藏
 const filteredFavorites = computed(() => {
-  if (filterType.value === 'all') {
-    return favorites.value
+  if (filterType.value === "all") {
+    return favorites.value;
   }
-  return favorites.value.filter(item => item.type === filterType.value)
-})
+  return favorites.value.filter((item) => item.type === filterType.value);
+});
 
 // 统计数据
 const stats = computed(() => {
   return {
     total: favorites.value.length,
-    images: favorites.value.filter(item => item.type === 'image').length,
-    videos: favorites.value.filter(item => item.type === 'video').length
-  }
-})
+    images: favorites.value.filter((item) => item.type === "image").length,
+    videos: favorites.value.filter((item) => item.type === "video").length,
+  };
+});
 
 // 删除收藏
-const itemToDelete = ref<FavoriteItem | null>(null)
-const showDeleteDialog = ref(false)
+const itemToDelete = ref<FavoriteItem | null>(null);
+const showDeleteDialog = ref(false);
 
 const confirmDelete = (item: FavoriteItem) => {
-  itemToDelete.value = item
-  showDeleteDialog.value = true
-}
+  itemToDelete.value = item;
+  showDeleteDialog.value = true;
+};
 
 const deleteItem = () => {
   if (itemToDelete.value) {
-    const index = favorites.value.findIndex(item => item.id === itemToDelete.value!.id)
+    const index = favorites.value.findIndex((item) => item.id === itemToDelete.value!.id);
     if (index > -1) {
-      favorites.value.splice(index, 1)
-      toast.success('已取消收藏')
+      favorites.value.splice(index, 1);
+      toast.success("已取消收藏");
     }
   }
-  showDeleteDialog.value = false
-  itemToDelete.value = null
-}
+  showDeleteDialog.value = false;
+  itemToDelete.value = null;
+};
 
 // 下载
 const downloadItem = (item: FavoriteItem) => {
   // TODO: 实现下载功能
-  toast.success(`正在下载: ${item.title}`)
-}
+  toast.success(`正在下载: ${item.title}`);
+};
 
 // 批量操作
-const selectedItems = ref<Set<string>>(new Set())
-const isSelectionMode = ref(false)
+const selectedItems = ref<Set<string>>(new Set());
+const isSelectionMode = ref(false);
 
 const toggleSelection = (id: string) => {
   if (selectedItems.value.has(id)) {
-    selectedItems.value.delete(id)
+    selectedItems.value.delete(id);
   } else {
-    selectedItems.value.add(id)
+    selectedItems.value.add(id);
   }
-}
+};
 
 const selectAll = () => {
   if (selectedItems.value.size === filteredFavorites.value.length) {
-    selectedItems.value.clear()
+    selectedItems.value.clear();
   } else {
-    filteredFavorites.value.forEach(item => selectedItems.value.add(item.id))
+    filteredFavorites.value.forEach((item) => selectedItems.value.add(item.id));
   }
-}
+};
 
 const deleteSelected = () => {
-  favorites.value = favorites.value.filter(item => !selectedItems.value.has(item.id))
-  selectedItems.value.clear()
-  isSelectionMode.value = false
-  toast.success(`已删除 ${selectedItems.value.size} 个收藏`)
-}
+  favorites.value = favorites.value.filter((item) => !selectedItems.value.has(item.id));
+  selectedItems.value.clear();
+  isSelectionMode.value = false;
+  toast.success(`已删除 ${selectedItems.value.size} 个收藏`);
+};
 
 const cancelSelection = () => {
-  selectedItems.value.clear()
-  isSelectionMode.value = false
-}
+  selectedItems.value.clear();
+  isSelectionMode.value = false;
+};
 </script>
 
 <template>
@@ -248,11 +245,9 @@ const cancelSelection = () => {
 
           <div v-if="isSelectionMode" class="flex items-center gap-2">
             <Button variant="outline" size="sm" @click="selectAll">
-              {{ selectedItems.size === filteredFavorites.length ? '取消全选' : '全选' }}
+              {{ selectedItems.size === filteredFavorites.length ? "取消全选" : "全选" }}
             </Button>
-            <span class="text-sm text-gray-600">
-              已选择 {{ selectedItems.size }} 项
-            </span>
+            <span class="text-sm text-gray-600">已选择 {{ selectedItems.size }} 项</span>
           </div>
         </div>
 
@@ -274,16 +269,17 @@ const cancelSelection = () => {
             >
               删除选中
             </Button>
-            <Button variant="outline" size="sm" @click="cancelSelection">
-              取消
-            </Button>
+            <Button variant="outline" size="sm" @click="cancelSelection">取消</Button>
           </template>
         </div>
       </div>
     </div>
 
     <!-- 收藏列表 -->
-    <div v-if="filteredFavorites.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      v-if="filteredFavorites.length > 0"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
       <Card
         v-for="item in filteredFavorites"
         :key="item.id"
@@ -303,7 +299,7 @@ const cancelSelection = () => {
             <!-- 类型标识 -->
             <div class="absolute top-3 left-3">
               <Badge :variant="item.type === 'image' ? 'default' : 'secondary'" class="text-xs">
-                {{ item.type === 'image' ? '图片' : '视频' }}
+                {{ item.type === "image" ? "图片" : "视频" }}
               </Badge>
             </div>
 
@@ -367,7 +363,7 @@ const cancelSelection = () => {
             </div>
 
             <div class="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
-              <span>收藏于 {{ item.favoritedAt.split(' ')[0] }}</span>
+              <span>收藏于 {{ item.favoritedAt.split(" ")[0] }}</span>
               <Heart class="w-4 h-4 fill-red-500 text-red-500" />
             </div>
           </div>
@@ -382,7 +378,11 @@ const cancelSelection = () => {
         <div>
           <p class="text-gray-600 mb-2">暂无收藏内容</p>
           <p class="text-sm text-gray-500">
-            {{ filterType === 'all' ? '开始收藏您喜欢的图片和视频吧' : `暂无收藏的${filterType === 'image' ? '图片' : '视频'}` }}
+            {{
+              filterType === "all"
+                ? "开始收藏您喜欢的图片和视频吧"
+                : `暂无收藏的${filterType === "image" ? "图片" : "视频"}`
+            }}
           </p>
         </div>
       </div>
@@ -398,13 +398,8 @@ const cancelSelection = () => {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel @click="showDeleteDialog = false">
-            取消
-          </AlertDialogCancel>
-          <AlertDialogAction
-            class="bg-red-600 hover:bg-red-700"
-            @click="deleteItem"
-          >
+          <AlertDialogCancel @click="showDeleteDialog = false">取消</AlertDialogCancel>
+          <AlertDialogAction class="bg-red-600 hover:bg-red-700" @click="deleteItem">
             确认删除
           </AlertDialogAction>
         </AlertDialogFooter>

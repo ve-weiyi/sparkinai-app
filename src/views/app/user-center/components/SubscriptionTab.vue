@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
-const router = useRouter()
+const router = useRouter();
 
 // 模拟订单数据
 const orders = ref([
   {
-    id: 'ORD20260126001',
-    plan: '专业版',
+    id: "ORD20260126001",
+    plan: "专业版",
     amount: 249,
-    status: 'active',
-    startDate: '2026-01-26',
-    endDate: '2026-02-26',
-    paymentMethod: '支付宝'
-  }
-])
+    status: "active",
+    startDate: "2026-01-26",
+    endDate: "2026-02-26",
+    paymentMethod: "支付宝",
+  },
+]);
 
 const goToPricing = () => {
-  router.push('/pricing')
-}
+  router.push("/pricing");
+};
 </script>
 
 <template>
@@ -31,9 +31,7 @@ const goToPricing = () => {
         <h2 class="text-lg font-semibold">我的订阅</h2>
         <p class="text-sm text-gray-600 mt-1">管理您的订阅和订单历史</p>
       </div>
-      <Button @click="goToPricing" class="bg-black hover:bg-black/90 text-white">
-        升级套餐
-      </Button>
+      <Button @click="goToPricing" class="bg-black hover:bg-black/90 text-white">升级套餐</Button>
     </div>
 
     <div v-if="orders.length > 0" class="p-6">
@@ -51,7 +49,7 @@ const goToPricing = () => {
                   :variant="order.status === 'active' ? 'default' : 'secondary'"
                   class="text-xs"
                 >
-                  {{ order.status === 'active' ? '使用中' : '已过期' }}
+                  {{ order.status === "active" ? "使用中" : "已过期" }}
                 </Badge>
               </div>
               <p class="text-sm text-gray-600">订单号: {{ order.id }}</p>
@@ -83,9 +81,7 @@ const goToPricing = () => {
           <p class="text-gray-600 mb-2">暂无订阅记录</p>
           <p class="text-sm text-gray-500">立即购买套餐,开启您的创作之旅</p>
         </div>
-        <Button @click="goToPricing" class="mt-4">
-          浏览套餐
-        </Button>
+        <Button @click="goToPricing" class="mt-4">浏览套餐</Button>
       </div>
     </div>
   </div>

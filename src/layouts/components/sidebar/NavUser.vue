@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import {
   ChevronRight,
   ChevronsUpDown,
@@ -16,9 +16,9 @@ import {
   Sparkles,
   Sun,
   User as UserIcon,
-} from 'lucide-vue-next'
+} from "lucide-vue-next";
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,52 +28,53 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar'
-import { Button } from '@/components/ui/button'
-import { useUserStore } from '@/store/modules/user'
-import type { GetUserProfileResp } from '@/api/types'
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { useUserStore } from "@/store/modules/user";
+import type { GetUserProfileResp } from "@/api/types";
+import { preferencesStorage, sessionStorageRepository } from "@/utils/preferencesStorage";
 
 const props = defineProps<{
-  user: GetUserProfileResp
-}>()
+  user: GetUserProfileResp;
+}>();
 
-const { isMobile } = useSidebar()
-const router = useRouter()
-const store = useUserStore()
+const { isMobile } = useSidebar();
+const router = useRouter();
+const store = useUserStore();
 
-const theme = ref<'light' | 'dark' | 'system'>('system')
+const theme = ref<"light" | "dark" | "system">("system");
 
 onMounted(() => {
-  theme.value = (localStorage.getItem('theme') as 'light' | 'dark' | 'system') || 'system'
-  applyTheme()
-})
+  theme.value = preferencesStorage.getTheme();
+  applyTheme();
+});
 
 const applyTheme = () => {
-  if (theme.value === 'system') {
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    document.documentElement.classList.toggle('dark', isDark)
+  if (theme.value === "system") {
+    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.classList.toggle("dark", isDark);
   } else {
-    document.documentElement.classList.toggle('dark', theme.value === 'dark')
+    document.documentElement.classList.toggle("dark", theme.value === "dark");
   }
-}
+};
 
-const setTheme = (newTheme: 'light' | 'dark' | 'system') => {
-  theme.value = newTheme
-  localStorage.setItem('theme', newTheme)
-  applyTheme()
-}
+const setTheme = (newTheme: "light" | "dark" | "system") => {
+  theme.value = newTheme;
+  preferencesStorage.setTheme(newTheme);
+  applyTheme();
+};
 
 const handleLogout = () => {
-  store.logout()
-  sessionStorage.clear()
-  router.push('/')
-}
+  store.logout();
+  sessionStorageRepository.clearSession();
+  router.push("/");
+};
 </script>
 
 <template>
@@ -87,8 +88,8 @@ const handleLogout = () => {
           >
             <Avatar class="h-8 w-8 rounded-lg">
               <AvatarImage :src="user.avatar" :alt="user.nickname" />
-              <AvatarFallback class="rounded-lg bg-green-600 text-white">
-                {{ user.nickname[0] || '' }}
+              <AvatarFallback class="avatar-fallback">
+                {{ user.nickname[0] || "" }}
               </AvatarFallback>
             </Avatar>
             <div
@@ -101,7 +102,7 @@ const handleLogout = () => {
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          class="w-[230px] rounded-lg p-3 overflow-hidden"
+          class="user-menu w-[230px] rounded-lg p-3 overflow-hidden"
           :side="isMobile ? 'bottom' : 'right'"
           align="end"
           :side-offset="4"
@@ -109,8 +110,8 @@ const handleLogout = () => {
           <div class="flex items-center gap-2 px-1 py-2 min-w-0">
             <Avatar class="h-9 w-9 rounded-lg flex-shrink-0">
               <AvatarImage :src="user.avatar" :alt="user.nickname" />
-              <AvatarFallback class="rounded-lg bg-green-600 text-white">
-                {{ user.nickname[0] || ''}}
+              <AvatarFallback class="avatar-fallback">
+                {{ user.nickname[0] || "" }}
               </AvatarFallback>
             </Avatar>
             <div class="min-w-0 flex-1">
@@ -135,7 +136,10 @@ const handleLogout = () => {
               </Button>
             </div>
 
-            <div class="flex items-center justify-between px-1 cursor-pointer" @click="router.push('/app/user-center?tab=credits')">
+            <div
+              class="flex items-center justify-between px-1 cursor-pointer"
+              @click="router.push('/app/user-center?tab=credits')"
+            >
               <span class="text-xs text-muted-foreground">积分</span>
               <div class="flex items-center gap-1.5">
                 <Sparkles class="w-3 h-3.5 text-green-600" />
@@ -152,12 +156,18 @@ const handleLogout = () => {
             <span class="text-sm">我的收藏</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/user-center?tab=invitation')">
+          <DropdownMenuItem
+            class="py-1 px-1"
+            @click="router.push('/app/user-center?tab=invitation')"
+          >
             <Gift class="w-4 h-4 mr-2" />
             <span class="text-sm">我的邀请</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem class="py-1 px-1" @click="router.push('/app/user-center?tab=subscription')">
+          <DropdownMenuItem
+            class="py-1 px-1"
+            @click="router.push('/app/user-center?tab=subscription')"
+          >
             <ShoppingCart class="w-4 h-4 mr-2" />
             <span class="text-sm">我的订单</span>
           </DropdownMenuItem>
@@ -225,3 +235,18 @@ const handleLogout = () => {
     </SidebarMenuItem>
   </SidebarMenu>
 </template>
+
+<style scoped>
+.avatar-fallback {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff6a3d, #ffb07a);
+  color: #fff;
+}
+
+:deep(.user-menu) {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(12px);
+}
+</style>

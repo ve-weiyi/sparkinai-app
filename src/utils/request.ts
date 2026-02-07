@@ -1,7 +1,8 @@
 import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 import qs from "qs";
 import MD5 from "crypto-js/md5";
-import { APP_NAME, AuthStorage, redirectToLogin } from "./auth";
+import { APP_NAME, AuthStorage } from "@/utils/preferencesStorage";
+import { redirectToLogin } from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
 
 const HeaderAppName = "App-Name";
@@ -15,7 +16,7 @@ const HeaderAuthorization = "Authorization";
 
 const axiosInstance = axios.create({
   baseURL: "",
-  timeout: 10000,
+  timeout: 120000,
   withCredentials: false, // 禁用 Cookie
   // 请求头
   headers: {

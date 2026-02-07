@@ -377,8 +377,9 @@ export interface OauthLoginReq {
 }
 
 export interface PageQuery {
-  page?: number;
-  page_size?: number;
+  page?: number; // 当前页码
+  page_size?: number; // 每页数量
+  sorts?: string[]; // 排序
 }
 
 export interface PageResp {

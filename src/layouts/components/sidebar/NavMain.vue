@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { RouteRecordRaw } from 'vue-router'
-import { RouterLink } from 'vue-router'
+import type { RouteRecordRaw } from "vue-router";
+import { RouterLink } from "vue-router";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -10,57 +10,59 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from '@/components/ui/sidebar'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { ChevronRight } from 'lucide-vue-next'
-import { computed } from 'vue'
+} from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronRight } from "lucide-vue-next";
+import { computed } from "vue";
 
 const props = defineProps<{
-  groups: RouteRecordRaw[]
-}>()
+  groups: RouteRecordRaw[];
+}>();
 
 const processedGroups = computed(() => {
-  const result: Array<{ title?: string; items: any[] }> = []
+  const result: Array<{ title?: string; items: any[] }> = [];
 
-  props.groups.forEach(route => {
+  props.groups.forEach((route) => {
     if (route.meta?.isGroup && route.children) {
       // 分组项
       result.push({
         title: route.meta.title,
         items: route.children
-          .filter(c => c.meta?.showInMenu !== false)
-          .map(child => ({
+          .filter((c) => c.meta?.showInMenu !== false)
+          .map((child) => ({
             title: child.meta?.title,
             url: `/app/${child.path}`,
             icon: child.meta?.icon,
             badge: child.meta?.badge,
-          }))
-      })
+          })),
+      });
     } else if (route.meta?.isCollapsible) {
       // 可折叠项
       result.push({
-        items: [{
-          title: route.meta.title,
-          icon: route.meta.icon,
-          isActive: true,
-          items: route.children || []
-        }]
-      })
+        items: [
+          {
+            title: route.meta.title,
+            icon: route.meta.icon,
+            isActive: true,
+            items: route.children || [],
+          },
+        ],
+      });
     } else if (route.meta?.showInMenu !== false) {
       // 普通项
       if (result.length === 0 || result[result.length - 1]?.title) {
-        result.push({ items: [] })
+        result.push({ items: [] });
       }
       result[result.length - 1]?.items.push({
         title: route.meta?.title,
         url: `/app/${route.path}`,
         icon: route.meta?.icon,
-      })
+      });
     }
-  })
+  });
 
-  return result
-})
+  return result;
+});
 </script>
 
 <template>

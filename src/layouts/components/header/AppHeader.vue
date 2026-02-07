@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { storeToRefs } from 'pinia'
-import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
+import { computed, onMounted } from "vue";
+import { storeToRefs } from "pinia";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -10,43 +10,43 @@ import {
   BreadcrumbPage,
   BreadcrumbLink,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { RouterLink, useRoute } from 'vue-router'
-import { HelpCircle, MessageSquare, Crown, Zap } from 'lucide-vue-next'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+} from "@/components/ui/breadcrumb";
+import { RouterLink, useRoute } from "vue-router";
+import { HelpCircle, MessageSquare, Crown, Zap } from "lucide-vue-next";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { useUserStore } from '@/store/modules/user'
-import { getRouteByPath } from '@/router/routes'
-import UserPlanBadge from '@/components/UserPlanBadge.vue'
+} from "@/components/ui/dropdown-menu";
+import { useUserStore } from "@/store/modules/user";
+import { getRouteByPath } from "@/router/routes";
+import UserPlanBadge from "@/components/UserPlanBadge.vue";
 
-const route = useRoute()
-const store = useUserStore()
-const { currentUser, creditOptions } = storeToRefs(store)
+const route = useRoute();
+const store = useUserStore();
+const { currentUser, creditOptions } = storeToRefs(store);
 
 onMounted(() => {
-  store.fetchCurrentUser()
-  store.fetchCreditOptions()
-})
+  store.fetchCurrentUser();
+  store.fetchCreditOptions();
+});
 
 const breadcrumbs = computed(() => {
-  const result = getRouteByPath(route.path)
-  if (!result) return []
+  const result = getRouteByPath(route.path);
+  if (!result) return [];
 
-  const items: Array<{ title: string; path: string; isCurrent?: boolean }> = []
+  const items: Array<{ title: string; path: string; isCurrent?: boolean }> = [];
 
-  items.push({ title: result.route.meta?.title || '', path: route.path, isCurrent: true })
+  items.push({ title: result.route.meta?.title || "", path: route.path, isCurrent: true });
 
-  return items
-})
+  return items;
+});
 </script>
 
 <template>
   <header
-    class="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)"
+    class="app-header flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)"
   >
     <div class="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
       <SidebarTrigger class="-ml-1" />
@@ -176,3 +176,34 @@ const breadcrumbs = computed(() => {
     </div>
   </header>
 </template>
+
+<style scoped>
+.app-header {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+:deep(.app-header [data-slot="sidebar-trigger"]) {
+  border-radius: 999px;
+  background: rgba(255, 106, 61, 0.12);
+  color: #c2410c;
+}
+
+:deep(.app-header [data-slot="sidebar-trigger"]:hover) {
+  background: rgba(255, 106, 61, 0.2);
+}
+
+:deep(.app-header [data-slot="breadcrumb-link"]) {
+  color: #64748b;
+}
+
+:deep(.app-header [data-slot="breadcrumb-link"]:hover) {
+  color: #c2410c;
+}
+
+:deep(.app-header [data-slot="breadcrumb-page"]) {
+  color: #c2410c;
+  font-weight: 600;
+}
+</style>

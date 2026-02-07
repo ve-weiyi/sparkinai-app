@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Headset, MessageCircle, Clock } from 'lucide-vue-next'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Headset, MessageCircle, Clock } from "lucide-vue-next";
 </script>
 
 <template>
@@ -21,7 +21,9 @@ import { Headset, MessageCircle, Clock } from 'lucide-vue-next'
           <CardDescription>扫码添加客服微信，获取一对一专属服务</CardDescription>
         </CardHeader>
         <CardContent class="flex flex-col items-center space-y-4">
-          <div class="w-64 h-64 bg-muted rounded-lg flex items-center justify-center border-2 border-dashed">
+          <div
+            class="w-64 h-64 bg-muted rounded-lg flex items-center justify-center border-2 border-dashed"
+          >
             <!-- 这里放置企业微信二维码图片 -->
             <div class="text-center space-y-2">
               <Headset class="w-12 h-12 mx-auto text-muted-foreground" />
@@ -48,7 +50,9 @@ import { Headset, MessageCircle, Clock } from 'lucide-vue-next'
         <CardContent class="space-y-6">
           <div class="space-y-4">
             <div class="flex items-start gap-3">
-              <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
+              <div
+                class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0"
+              >
                 <Headset class="w-5 h-5 text-green-600" />
               </div>
               <div class="flex-1">
@@ -58,7 +62,9 @@ import { Headset, MessageCircle, Clock } from 'lucide-vue-next'
             </div>
 
             <div class="flex items-start gap-3">
-              <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
+              <div
+                class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0"
+              >
                 <MessageCircle class="w-5 h-5 text-blue-600" />
               </div>
               <div class="flex-1">
@@ -68,7 +74,9 @@ import { Headset, MessageCircle, Clock } from 'lucide-vue-next'
             </div>
 
             <div class="flex items-start gap-3">
-              <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0">
+              <div
+                class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0"
+              >
                 <Clock class="w-5 h-5 text-orange-600" />
               </div>
               <div class="flex-1">

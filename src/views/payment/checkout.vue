@@ -1,48 +1,48 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, CreditCard } from 'lucide-vue-next'
+import { ref, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, CreditCard } from "lucide-vue-next";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
 // 从路由参数获取套餐信息
-const planName = ref(route.query.plan as string || '专业版')
-const planPrice = ref(Number(route.query.price) || 249)
+const planName = ref((route.query.plan as string) || "专业版");
+const planPrice = ref(Number(route.query.price) || 249);
 
 // 支付方式
-const paymentMethod = ref<'alipay' | 'wechat' | 'stripe'>('alipay')
-const loading = ref(false)
-const error = ref('')
+const paymentMethod = ref<"alipay" | "wechat" | "stripe">("alipay");
+const loading = ref(false);
+const error = ref("");
 
 const paymentMethods = [
-  { value: 'alipay', label: '支付宝', icon: '💳' },
-  { value: 'wechat', label: '微信支付', icon: '💚' },
-  { value: 'stripe', label: 'Stripe (信用卡)', icon: '💳' }
-]
+  { value: "alipay", label: "支付宝", icon: "💳" },
+  { value: "wechat", label: "微信支付", icon: "💚" },
+  { value: "stripe", label: "Stripe (信用卡)", icon: "💳" },
+];
 
 // 处理支付
 const handlePayment = async () => {
-  loading.value = true
-  error.value = ''
+  loading.value = true;
+  error.value = "";
   try {
     // 跳转到支付处理页面
     router.push({
-      path: '/payment/process',
+      path: "/payment/process",
       query: {
         plan: planName.value,
         price: planPrice.value,
-        method: paymentMethod.value
-      }
-    })
+        method: paymentMethod.value,
+      },
+    });
   } catch (err) {
-    console.error('Payment failed:', err)
-    error.value = '支付失败，请重试'
-    loading.value = false
+    console.error("Payment failed:", err);
+    error.value = "支付失败，请重试";
+    loading.value = false;
   }
-}
+};
 </script>
 
 <template>
@@ -94,7 +94,7 @@ const handlePayment = async () => {
                     'flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all',
                     paymentMethod === method.value
                       ? 'border-primary bg-primary/5'
-                      : 'border-gray-200 hover:border-gray-300'
+                      : 'border-gray-200 hover:border-gray-300',
                   ]"
                 >
                   <div class="text-2xl">{{ method.icon }}</div>
@@ -104,9 +104,7 @@ const handlePayment = async () => {
                   <div
                     :class="[
                       'w-5 h-5 rounded-full border-2 flex items-center justify-center',
-                      paymentMethod === method.value
-                        ? 'border-primary'
-                        : 'border-gray-300'
+                      paymentMethod === method.value ? 'border-primary' : 'border-gray-300',
                     ]"
                   >
                     <div

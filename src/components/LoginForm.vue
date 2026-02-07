@@ -148,9 +148,9 @@ const handleSubmit = async (e: Event) => {
               </Button>
               <FieldDescription class="text-center">
                 Don't have an account?
-                <a href="/register">
+                <RouterLink to="/register">
                   Sign up
-                </a>
+                </RouterLink>
               </FieldDescription>
             </Field>
           </FieldGroup>

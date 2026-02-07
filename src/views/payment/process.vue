@@ -1,100 +1,100 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2 } from 'lucide-vue-next'
-import { PaymentAPI } from '@/api/payment'
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-vue-next";
+import { PaymentAPI } from "@/api/payment";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const loading = ref(true)
-const processing = ref(false)
-const qrCode = ref('')
-const paymentMethod = ref(route.query.method as string || 'alipay')
-const planName = ref(route.query.plan as string || '专业版')
-const amount = ref(Number(route.query.price) || 249)
-const orderId = ref('')
+const loading = ref(true);
+const processing = ref(false);
+const qrCode = ref("");
+const paymentMethod = ref((route.query.method as string) || "alipay");
+const planName = ref((route.query.plan as string) || "专业版");
+const amount = ref(Number(route.query.price) || 249);
+const orderId = ref("");
 
 // 初始化支付
 onMounted(async () => {
   try {
-    const packageId = Number(route.query.packageId) || 1
+    const packageId = Number(route.query.packageId) || 1;
     const response = await PaymentAPI.createPaymentOrder({
       package_id: packageId,
       channel_code: paymentMethod.value,
-    })
-    orderId.value = response.data.order_no
+    });
+    orderId.value = response.data.order_no;
 
-    if (paymentMethod.value === 'alipay' || paymentMethod.value === 'stripe') {
-      simulatePayment()
-    } else if (paymentMethod.value === 'wechat') {
-      qrCode.value = 'mock-qr-code'
-      loading.value = false
-      pollPaymentStatus()
+    if (paymentMethod.value === "alipay" || paymentMethod.value === "stripe") {
+      simulatePayment();
+    } else if (paymentMethod.value === "wechat") {
+      qrCode.value = "mock-qr-code";
+      loading.value = false;
+      pollPaymentStatus();
     }
   } catch (error) {
-    console.error('支付初始化失败:', error)
+    console.error("支付初始化失败:", error);
     router.push({
-      path: '/payment/result',
+      path: "/payment/result",
       query: {
-        status: 'failed',
+        status: "failed",
         orderId: orderId.value,
         plan: planName.value,
-        amount: amount.value
-      }
-    })
+        amount: amount.value,
+      },
+    });
   }
-})
+});
 
 const simulatePayment = () => {
-  processing.value = true
+  processing.value = true;
   setTimeout(() => {
     router.push({
-      path: '/payment/result',
+      path: "/payment/result",
       query: {
-        status: 'success',
+        status: "success",
         orderId: orderId.value,
         plan: planName.value,
-        amount: amount.value
-      }
-    })
-  }, 2000)
-}
+        amount: amount.value,
+      },
+    });
+  }, 2000);
+};
 
 const pollPaymentStatus = () => {
   const interval = setInterval(async () => {
     try {
-      const status = await PaymentAPI.getPaymentOrder({ orderNo: orderId.value })
+      const status = await PaymentAPI.getPaymentOrder({ orderNo: orderId.value });
       if (status.data.status === 2) {
-        clearInterval(interval)
+        clearInterval(interval);
         router.push({
-          path: '/payment/result',
+          path: "/payment/result",
           query: {
-            status: 'success',
+            status: "success",
             orderId: orderId.value,
             plan: planName.value,
-            amount: amount.value
-          }
-        })
+            amount: amount.value,
+          },
+        });
       } else if (status.data.status === 3) {
-        clearInterval(interval)
+        clearInterval(interval);
         router.push({
-          path: '/payment/result',
+          path: "/payment/result",
           query: {
-            status: 'failed',
+            status: "failed",
             orderId: orderId.value,
             plan: planName.value,
-            amount: amount.value
-          }
-        })
+            amount: amount.value,
+          },
+        });
       }
     } catch (error) {
-      clearInterval(interval)
+      clearInterval(interval);
     }
-  }, 3000)
-}
+  }, 3000);
+};
 </script>
 
 <template>
@@ -109,13 +109,15 @@ const pollPaymentStatus = () => {
           <!-- 加载中 -->
           <div v-if="loading || processing" class="text-center py-12">
             <Loader2 class="w-12 h-12 animate-spin mx-auto text-primary mb-4" />
-            <p class="text-gray-600">{{ processing ? '正在处理支付...' : '正在初始化支付...' }}</p>
+            <p class="text-gray-600">{{ processing ? "正在处理支付..." : "正在初始化支付..." }}</p>
           </div>
 
           <!-- 微信支付二维码 -->
           <div v-else-if="paymentMethod === 'wechat' && qrCode" class="text-center py-8">
             <div class="mb-6">
-              <div class="w-64 h-64 mx-auto bg-gray-100 rounded-lg flex items-center justify-center">
+              <div
+                class="w-64 h-64 mx-auto bg-gray-100 rounded-lg flex items-center justify-center"
+              >
                 <!-- 这里应该显示实际的二维码 -->
                 <div class="text-6xl">📱</div>
               </div>

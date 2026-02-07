@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
-import { ref } from 'vue'
+import type { Component } from "vue";
+import { ref } from "vue";
 
-import { ChevronsUpDown, Plus } from 'lucide-vue-next'
+import { ChevronsUpDown, Plus } from "lucide-vue-next";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,25 +11,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu";
 
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar'
+} from "@/components/ui/sidebar";
 
 const props = defineProps<{
   teams: {
-    name: string
-    logo: Component
-    plan: string
-  }[]
-}>()
+    name: string;
+    logo: Component;
+    plan: string;
+  }[];
+}>();
 
-const { isMobile } = useSidebar()
-const activeTeam = ref(props.teams[0] || { name: '', logo: Plus, plan: '' })
+const { isMobile } = useSidebar();
+const activeTeam = ref(props.teams[0] || { name: "", logo: Plus, plan: "" });
 </script>
 
 <template>
@@ -41,9 +41,7 @@ const activeTeam = ref(props.teams[0] || { name: '', logo: Plus, plan: '' })
             size="lg"
             class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
-            <div
-              class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
-            >
+            <div class="team-mark">
               <component :is="activeTeam.logo" class="size-4" />
             </div>
             <div class="grid flex-1 text-left text-sm leading-tight">
@@ -56,12 +54,12 @@ const activeTeam = ref(props.teams[0] || { name: '', logo: Plus, plan: '' })
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          class="w-[--reka-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+          class="sidebar-popover w-[--reka-dropdown-menu-trigger-width] min-w-56 rounded-lg"
           align="start"
           :side="isMobile ? 'bottom' : 'right'"
           :side-offset="4"
         >
-          <DropdownMenuLabel class="text-xs text-muted-foreground"> Teams </DropdownMenuLabel>
+          <DropdownMenuLabel class="text-xs text-muted-foreground">Teams</DropdownMenuLabel>
           <DropdownMenuItem
             v-for="(team, index) in teams"
             :key="team.name"
@@ -86,3 +84,24 @@ const activeTeam = ref(props.teams[0] || { name: '', logo: Plus, plan: '' })
     </SidebarMenuItem>
   </SidebarMenu>
 </template>
+
+<style scoped>
+.team-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff6a3d, #ffb07a);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(255, 106, 61, 0.25);
+}
+
+:deep(.sidebar-popover) {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(12px);
+}
+</style>
