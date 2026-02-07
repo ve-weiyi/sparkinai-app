@@ -34,6 +34,15 @@ export const GenerateAPI = {
     });
   },
 
+  /** 图片生成接口（对应 OpenAI Images API） */
+  imageGeneration(data?: ImageGenerationReq): Promise<IApiResponse<ImageGenerationResp>> {
+    return request({
+      url: `/api/v1/images/generations`,
+      method: "POST",
+      data: data,
+    });
+  },
+
   /** 获取生成记录列表 */
   getGenerations(params?: GetGenerationsReq): Promise<IApiResponse<GetGenerationsResp>> {
     return request({
@@ -57,15 +66,6 @@ export const GenerateAPI = {
     return request({
       url: `/api/v1/generations/${data.id}`,
       method: "DELETE",
-      data: data,
-    });
-  },
-
-  /** 图片生成接口（对应 OpenAI Images API） */
-  imageGeneration(data?: ImageGenerationReq): Promise<IApiResponse<ImageGenerationResp>> {
-    return request({
-      url: `/api/v1/images/generations`,
-      method: "POST",
       data: data,
     });
   },

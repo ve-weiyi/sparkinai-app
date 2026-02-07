@@ -266,6 +266,7 @@ export interface GetRechargePackagesResp {
 // 获取上传凭证请求
 export interface GetUploadTokenReq {
   file_name: string; // 文件名称
+  file_path?: string; // 文件路径
   expire_seconds?: number; // 凭证有效期（秒），默认1小时
 }
 

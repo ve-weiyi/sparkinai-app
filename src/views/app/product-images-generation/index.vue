@@ -164,7 +164,7 @@
                           size="sm"
                           class="gap-1 text-xs text-primary hover:text-primary"
                           :disabled="uploadedImages.length === 0 || !formData.productName || isGeneratingAI || uploadedImages.some(img => !img.uploaded)"
-                          @click="handleAIGenerate"
+                          @click="analyzeProductSellingPoints"
                         >
                           <Sparkles class="h-3 w-3" :class="{ 'animate-spin': isGeneratingAI }" />
                           {{ isGeneratingAI ? 'AI分析中...' : 'AI生成' }}
@@ -208,7 +208,7 @@
                     isGenerating ||
                     uploadedImages.some(img => !img.uploaded)
                   "
-                  @click="handleGenerate"
+                  @click="generateProductCopy"
                 >
                   <Loader2 v-if="isGenerating" class="mr-2 h-4 w-4 animate-spin" />
                   <Sparkles v-else class="mr-2 h-4 w-4" />
@@ -396,7 +396,7 @@
                             </Select>
                           </div>
                           <!-- Generate Button -->
-                          <Button size="lg" @click="handleGenerateImages(generatedTask)">
+                          <Button size="lg" @click="generateProductImageSet(generatedTask)">
                             <Box class="mr-2 h-5 w-5" />
                             一键生成图片
                             <span class="ml-2">✨ 14</span>
@@ -663,7 +663,7 @@
         </div>
         <DialogFooter>
           <Button variant="outline" @click="cancelRegenerate">取消</Button>
-          <Button @click="confirmRegenerate">确认生成</Button>
+          <Button @click="regenerateSingleImage">确认生成</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -904,6 +904,7 @@ const addFiles = async (files: FileList | File[]) => {
       try {
         // Get upload token
         const tokenResponse = await UploadAPI.getUploadToken({
+          file_path: "product",
           file_name: file.name
         })
 
@@ -1086,7 +1087,7 @@ const copyCopyText = async () => {
 // ============ AI模型调用方法 ============
 
 // AI分析产品卖点
-const handleAIGenerate = async () => {
+const analyzeProductSellingPoints = async () => {
   if (uploadedImages.value.length === 0) return
 
   if (!formData.value.productName) {
@@ -1139,7 +1140,7 @@ const handleAIGenerate = async () => {
 }
 
 // 生成文案
-const handleGenerate = async () => {
+const generateProductCopy = async () => {
   if (isGenerating.value) return
 
   const unuploadedImages = uploadedImages.value.filter(img => !img.uploaded)
@@ -1243,7 +1244,7 @@ const handleGenerate = async () => {
 }
 
 // 生成套图
-const handleGenerateImages = async (task: any) => {
+const generateProductImageSet = async (task: any) => {
   // 如果已经有生成的图片，提示用户
   if (task.generatedImages && task.generatedImages.length > 0) {
     toast.info('图片已生成，如需重新生成请创建新任务')
@@ -1313,7 +1314,7 @@ const handleGenerateImages = async (task: any) => {
 }
 
 // 重新生成单张图片
-const confirmRegenerate = async () => {
+const regenerateSingleImage = async () => {
   if (!regeneratingTask.value || regeneratingImageIndex.value === null) return
 
   const task = regeneratingTask.value

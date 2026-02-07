@@ -1,74 +1,77 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import AppLayout from '@/layouts/AppLayout.vue'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { appRoutes } from '@/router/routes'
+import { App } from 'vue'
 
-const router = createRouter({
+export const AppLayout = () => import('@/layouts/AppLayout.vue')
+
+// 静态路由
+export const constantRoutes: RouteRecordRaw[] = [
+  // Standalone routes (landing, login, register, pricing, payment)
+  {
+    path: '/',
+    name: 'landing',
+    component: () => import('@/views/landing/index.vue'),
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/login/index.vue'),
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: () => import('@/views/register/index.vue'),
+  },
+  {
+    path: '/pricing',
+    name: 'pricing',
+    component: () => import('@/views/pricing/index.vue'),
+  },
+  {
+    path: '/payment/checkout',
+    name: 'payment-checkout',
+    component: () => import('@/views/payment/checkout.vue'),
+  },
+  {
+    path: '/payment/process',
+    name: 'payment-process',
+    component: () => import('@/views/payment/process.vue'),
+  },
+  {
+    path: '/payment/result',
+    name: 'payment-result',
+    component: () => import('@/views/payment/result.vue'),
+  },
+
+  // App routes (with layout)
+  {
+    path: '/app',
+    component: AppLayout,
+    children: appRoutes,
+    meta: { requiresAuth: true },
+  },
+]
+
+export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    // Standalone routes (landing, login, register, pricing, payment)
-    {
-      path: '/',
-      name: 'landing',
-      component: () => import('@/views/landing/index.vue'),
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/login/index.vue'),
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: () => import('@/views/register/index.vue'),
-    },
-    {
-      path: '/pricing',
-      name: 'pricing',
-      component: () => import('@/views/pricing/index.vue'),
-    },
-    {
-      path: '/payment/checkout',
-      name: 'payment-checkout',
-      component: () => import('@/views/payment/checkout.vue'),
-    },
-    {
-      path: '/payment/process',
-      name: 'payment-process',
-      component: () => import('@/views/payment/process.vue'),
-    },
-    {
-      path: '/payment/result',
-      name: 'payment-result',
-      component: () => import('@/views/payment/result.vue'),
-    },
-
-    // App routes (with layout)
-    {
-      path: '/app',
-      component: AppLayout,
-      children: appRoutes,
-      meta: { requiresAuth: true },
-    },
-  ],
+  routes: constantRoutes,
+  //滚动行为
+  scrollBehavior(to, from, savedPosition) {
+    // to：即将进入的路由对象
+    // from：当前导航正要离开的路由对象
+    // savedPosition：上次记录的滚动位置
+    // 默认行为，如果有记录的滚动位置，则恢复到该位置
+    if (savedPosition) {
+      return savedPosition
+    }
+    // 没有记录的滚动位置，则滚动到页面顶部
+    return { top: 0 }
+  },
 })
 
-// 路由守卫 - 检查认证状态
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+// 全局注册 router
+export function setupRouter(app: App<Element>) {
+  app.use(router);
+}
 
-  if (requiresAuth && !token) {
-    // 需要认证但没有token，重定向到登录页
-    next({
-      path: '/login',
-      query: { redirect: to.fullPath }
-    })
-  } else if ((to.path === '/login' || to.path === '/register') && token) {
-    // 已登录用户访问登录/注册页，重定向到dashboard
-    next('/app/dashboard')
-  } else {
-    next()
-  }
-})
-
-export default router
+export default router;
