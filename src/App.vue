@@ -5,5 +5,5 @@ import { Toaster } from "@/components/ui/sonner";
 
 <template>
   <RouterView />
-  <Toaster :duration="2000" />
+  <Toaster :duration="3000" position="bottom-center" />
 </template>

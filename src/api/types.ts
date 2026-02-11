@@ -102,20 +102,6 @@ export interface DeactivateAccountResp {
   can_reactivate_until: number; // 可恢复截止时间（时间戳，毫秒）
 }
 
-// 扣除用户额度请求
-export interface DeductUserQuotaReq {
-  generation_id: string; // 生成记录ID
-  cost_tokens: number; // 消耗的token数量
-}
-
-// 扣除用户额度响应
-export interface DeductUserQuotaResp {
-  success: boolean; // 是否扣除成功
-  free_usage: number; // 剩余免费次数
-  token_balance: number; // 剩余Token余额
-  credits: number; // 积分
-}
-
 // 删除生成记录请求
 export interface DeleteGenerationReq {
   id: string; // 生成记录ID
@@ -382,7 +368,7 @@ export interface PageQuery {
   sorts?: string[]; // 排序
 }
 
-export interface PageResp {
+export interface PageResult {
   page: number;
   page_size: number;
   total: number;
@@ -500,6 +486,7 @@ export interface UploadFilesReq {
 // 用户账户信息
 export interface UserAccountInfo {
   balance: number; // 账户余额（元）
+  credit_limit: number; // 信用额度（允许负余额）
   total_recharge: number; // 累计充值（元）
   total_consume: number; // 累计消费（元）
 }

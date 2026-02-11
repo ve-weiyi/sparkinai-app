@@ -2,8 +2,6 @@ import request from "@/utils/request";
 import type {
   DeactivateAccountReq,
   DeactivateAccountResp,
-  DeductUserQuotaReq,
-  DeductUserQuotaResp,
   GetUserBalanceLogsReq,
   GetUserBalanceLogsResp,
   GetUserCreditsResp,
@@ -17,15 +15,6 @@ import type {
 
 /** 个人中心 */
 export const MeAPI = {
-  /** 扣除用户额度 */
-  deductUserQuota(data?: DeductUserQuotaReq): Promise<IApiResponse<DeductUserQuotaResp>> {
-    return request({
-      url: `/api/v1/user/deduct`,
-      method: "POST",
-      data: data,
-    });
-  },
-
   /** 获取当前用户信息 */
   getUserProfile(params?: GetUserProfileReq): Promise<IApiResponse<GetUserProfileResp>> {
     return request({

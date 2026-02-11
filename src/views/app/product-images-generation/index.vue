@@ -420,7 +420,11 @@
                             </Select>
                           </div>
                           <!-- Generate Button -->
-                          <Button size="lg" @click="generateImageSet(currentTask)">
+                          <Button
+                            size="lg"
+                            :disabled="currentTask.isGeneratingImages"
+                            @click="generateImageSet(currentTask)"
+                          >
                             <Box class="mr-2 h-5 w-5" />
                             一键生成图片
                             <span class="ml-2">✨ 14</span>
@@ -1163,7 +1167,10 @@ const generateProductCopy = async () => {
       try {
         let content = choice.message.content;
         // 去除markdown代码块标签
-        content = content.replace(/^```(?:json)?\n?/g, '').replace(/\n?```$/g, '').trim();
+        content = content
+          .replace(/^```(?:json)?\n?/g, "")
+          .replace(/\n?```$/g, "")
+          .trim();
         // 尝试解析JSON
         const parsed = JSON.parse(content);
         if (Array.isArray(parsed)) {
@@ -1214,9 +1221,9 @@ const generateProductCopy = async () => {
 
 // 生成套图
 const generateImageSet = async (task: GenerationTask) => {
-  // 如果已经有生成的图片，提示用户
-  if (task.generatedImages && task.generatedImages.length > 0) {
-    toast.info("图片已生成，如需重新生成请创建新任务");
+  // 检查是否正在生成中
+  if (task.isGeneratingImages) {
+    toast.info("图片正在生成...");
     return;
   }
 
