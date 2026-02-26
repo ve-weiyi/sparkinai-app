@@ -25,11 +25,13 @@ import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import { AuthAPI } from '@/api/auth'
 import { toast } from 'vue-sonner'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   class?: HTMLAttributes["class"]
 }>()
 
+const { t } = useI18n()
 const router = useRouter()
 const name = ref('')
 const email = ref('')
@@ -87,50 +89,49 @@ const handleVerify = async (e: Event) => {
     <Card v-if="!codeSent">
       <CardHeader class="text-center">
         <CardTitle class="text-xl">
-          Create your account
+          {{ t('auth.register.title') }}
         </CardTitle>
         <CardDescription>
-          Enter your email below to create your account
+          {{ t('auth.register.subtitle') }}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form @submit="handleSendCode">
           <FieldGroup>
-            <!-- 错误提示 -->
             <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
               {{ error }}
             </div>
 
             <Field>
               <FieldLabel for="name">
-                Full Name
+                {{ t('auth.register.fullName') }}
               </FieldLabel>
-              <Input id="name" v-model="name" type="text" placeholder="John Doe" required />
+              <Input id="name" v-model="name" type="text" :placeholder="t('auth.register.namePlaceholder')" required />
             </Field>
             <Field>
               <FieldLabel for="email">
-                Email
+                {{ t('auth.register.email') }}
               </FieldLabel>
               <Input
                 id="email"
                 v-model="email"
                 type="email"
-                placeholder="m@example.com"
+                :placeholder="t('auth.register.emailPlaceholder')"
                 required
               />
             </Field>
             <Field>
               <FieldLabel for="password">
-                Password
+                {{ t('auth.register.password') }}
               </FieldLabel>
               <Input id="password" v-model="password" type="password" required />
             </Field>
             <Field>
               <Button type="submit" :disabled="loading">
-                {{ loading ? '发送中...' : 'Create Account' }}
+                {{ loading ? t('auth.register.sending') : t('auth.register.createButton') }}
               </Button>
               <FieldDescription class="text-center">
-                Already have an account? <RouterLink to="/login">Sign in</RouterLink>
+                {{ t('auth.register.hasAccount') }} <RouterLink to="/login">{{ t('auth.register.signIn') }}</RouterLink>
               </FieldDescription>
             </Field>
           </FieldGroup>
@@ -140,21 +141,20 @@ const handleVerify = async (e: Event) => {
     <Card v-else>
       <CardHeader class="text-center">
         <CardTitle class="text-xl">
-          Enter verification code
+          {{ t('auth.register.verifyTitle') }}
         </CardTitle>
-        <CardDescription>We sent a 6-digit code to your email.</CardDescription>
+        <CardDescription>{{ t('auth.register.verifySubtitle') }}</CardDescription>
       </CardHeader>
       <CardContent>
         <form @submit="handleVerify">
           <FieldGroup>
-            <!-- 错误提示 -->
             <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
               {{ error }}
             </div>
 
             <Field>
               <FieldLabel for="otp" class="sr-only">
-                Verification code
+                {{ t('auth.register.verifyCode') }}
               </FieldLabel>
               <div class="flex justify-center">
                 <InputOTP id="otp" v-model="code" :maxlength="6" required>
@@ -169,22 +169,22 @@ const handleVerify = async (e: Event) => {
                 </InputOTP>
               </div>
               <FieldDescription class="text-center">
-                Enter the 6-digit code sent to your email.
+                {{ t('auth.register.verifyDescription') }}
               </FieldDescription>
             </Field>
             <Button type="submit" :disabled="loading">
-              {{ loading ? '验证中...' : 'Verify' }}
+              {{ loading ? t('auth.register.verifying') : t('auth.register.verifyButton') }}
             </Button>
             <FieldDescription class="text-center">
-              Didn't receive the code? <a href="#" @click.prevent="codeSent = false">Change email</a>
+              {{ t('auth.register.noCode') }} <a href="#" @click.prevent="codeSent = false">{{ t('auth.register.changeEmail') }}</a>
             </FieldDescription>
           </FieldGroup>
         </form>
       </CardContent>
     </Card>
     <FieldDescription class="px-6 text-center">
-      By clicking continue, you agree to our <a href="#">Terms of Service</a>
-      and <a href="#">Privacy Policy</a>.
+      {{ t('auth.terms') }} <a href="#">{{ t('auth.termsOfService') }}</a>
+      {{ t('auth.and') }} <a href="#">{{ t('auth.privacyPolicy') }}</a>.
     </FieldDescription>
   </div>
 </template>

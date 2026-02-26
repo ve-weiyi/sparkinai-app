@@ -4,7 +4,6 @@ import type {
   DeactivateAccountResp,
   GetUserBalanceLogsReq,
   GetUserBalanceLogsResp,
-  GetUserCreditsResp,
   GetUserProfileReq,
   GetUserProfileResp,
   ReactivateAccountReq,
@@ -37,15 +36,6 @@ export const MeAPI = {
   getUserBalanceLogs(params?: GetUserBalanceLogsReq): Promise<IApiResponse<GetUserBalanceLogsResp>> {
     return request({
       url: `/api/v1/user/me/balance-logs`,
-      method: "GET",
-      params: params,
-    });
-  },
-
-  /** 获取当前用户积分规则 */
-  getUserCredits(params?: GetUserProfileReq): Promise<IApiResponse<GetUserCreditsResp>> {
-    return request({
-      url: `/api/v1/user/me/credits`,
       method: "GET",
       params: params,
     });

@@ -19,8 +19,15 @@ import {
   Zap,
 } from "lucide-vue-next";
 import { useRouter } from "vue-router";
+import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
+const { locale } = useI18n();
+
+const toggleLocale = () => {
+  locale.value = locale.value === 'zh' ? 'en' : 'zh'
+  localStorage.setItem('locale', locale.value)
+}
 
 const handleGetStarted = () => {
   router.push("/login");
@@ -276,6 +283,9 @@ const faqs = [
           </div>
         </div>
         <nav class="hidden md:flex items-center gap-6 text-sm">
+          <Button variant="ghost" size="sm" @click="toggleLocale">
+            {{ locale === 'zh' ? 'EN' : '中文' }}
+          </Button>
           <button class="nav-link" @click="router.push('/pricing')">定价</button>
           <button class="nav-link" @click="router.push('/login')">登录</button>
           <Button class="cta-primary" @click="handleGetStarted">立即开始</Button>

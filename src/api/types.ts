@@ -84,13 +84,6 @@ export interface CreatePaymentOrderResp {
   pay_data: Record<string, any>; // 支付数据
 }
 
-// 积分规则项
-export interface CreditRuleItem {
-  name: string;
-  credits: number;
-  label?: string;
-}
-
 // 停用账号请求（进入冷静期）
 export interface DeactivateAccountReq {
   password: string; // 确认密码
@@ -288,11 +281,6 @@ export interface GetUserBalanceLogsResp {
   list: BalanceLogItem[]; // 记录列表
 }
 
-// 获取积分规则响应
-export interface GetUserCreditsResp {
-  list: CreditRuleItem[];
-}
-
 // 获取当前用户信息请求
 export interface GetUserProfileReq {
 }
@@ -307,10 +295,8 @@ export interface GetUserProfileResp {
   phone: string; // 手机号
   status: number; // 账号状态
   plan: string; // 会员计划
-  free_usage: number; // 免费使用次数
-  token_balance: number; // Token余额
-  credits: number; // 积分
-  total_generations: number; // 累计生成次数
+  balance: number; // 余额
+  coin: number; // 账户积分
   created_at: number; // 注册时间
 }
 

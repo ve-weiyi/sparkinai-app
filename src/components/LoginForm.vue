@@ -21,11 +21,13 @@ import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import { AuthAPI } from '@/api/auth'
 import { useUserStore } from '@/store/modules/user'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   class?: HTMLAttributes["class"]
 }>()
 
+const { t } = useI18n()
 const router = useRouter()
 const email = ref('')
 const password = ref('')
@@ -79,16 +81,15 @@ const handleSubmit = async (e: Event) => {
     <Card>
       <CardHeader class="text-center">
         <CardTitle class="text-xl">
-          Welcome back
+          {{ t('auth.login.title') }}
         </CardTitle>
         <CardDescription>
-          Login with your Apple or Google account
+          {{ t('auth.login.subtitle') }}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form @submit="handleSubmit">
           <FieldGroup>
-            <!-- 错误提示 -->
             <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
               {{ error }}
             </div>
@@ -101,7 +102,7 @@ const handleSubmit = async (e: Event) => {
                     fill="currentColor"
                   />
                 </svg>
-                Login with Apple
+                {{ t('auth.login.loginWithApple') }}
               </Button>
               <Button variant="outline" type="button" :disabled="loading" @click="handleOAuthLogin('google')">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -110,46 +111,46 @@ const handleSubmit = async (e: Event) => {
                     fill="currentColor"
                   />
                 </svg>
-                Login with Google
+                {{ t('auth.login.loginWithGoogle') }}
               </Button>
             </Field>
             <FieldSeparator class="*:data-[slot=field-separator-content]:bg-card">
-              Or continue with
+              {{ t('auth.login.orContinueWith') }}
             </FieldSeparator>
             <Field>
               <FieldLabel for="email">
-                Email
+                {{ t('auth.login.email') }}
               </FieldLabel>
               <Input
                 id="email"
                 v-model="email"
                 type="email"
-                placeholder="m@example.com"
+                :placeholder="t('auth.login.emailPlaceholder')"
                 required
               />
             </Field>
             <Field>
               <div class="flex items-center">
                 <FieldLabel for="password">
-                  Password
+                  {{ t('auth.login.password') }}
                 </FieldLabel>
                 <a
                   href="#"
                   class="ml-auto text-sm underline-offset-4 hover:underline"
                 >
-                  Forgot your password?
+                  {{ t('auth.login.forgotPassword') }}
                 </a>
               </div>
               <Input id="password" v-model="password" type="password" required />
             </Field>
             <Field>
               <Button type="submit" :disabled="loading">
-                {{ loading ? '登录中...' : 'Login' }}
+                {{ loading ? t('auth.login.loggingIn') : t('auth.login.loginButton') }}
               </Button>
               <FieldDescription class="text-center">
-                Don't have an account?
+                {{ t('auth.login.noAccount') }}
                 <RouterLink to="/register">
-                  Sign up
+                  {{ t('auth.login.signUp') }}
                 </RouterLink>
               </FieldDescription>
             </Field>
@@ -158,8 +159,8 @@ const handleSubmit = async (e: Event) => {
       </CardContent>
     </Card>
     <FieldDescription class="px-6 text-center">
-      By clicking continue, you agree to our <a href="#">Terms of Service</a>
-      and <a href="#">Privacy Policy</a>.
+      {{ t('auth.terms') }} <a href="#">{{ t('auth.termsOfService') }}</a>
+      {{ t('auth.and') }} <a href="#">{{ t('auth.privacyPolicy') }}</a>.
     </FieldDescription>
   </div>
 </template>
