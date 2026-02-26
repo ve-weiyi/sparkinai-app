@@ -1,25 +1,36 @@
 import request from "@/utils/request";
 import type {
-  EmailLoginReq,
+  EmailCodeLoginReq,
   EmptyReq,
   EmptyResp,
+  GetCaptchaCodeReq,
+  GetCaptchaCodeResp,
   GetClientInfoReq,
   GetClientInfoResp,
   GetOauthAuthorizeUrlReq,
   GetOauthAuthorizeUrlResp,
-  LoginReq,
   LoginResp,
   OauthLoginReq,
-  PhoneLoginReq,
+  PasswordLoginReq,
+  PhoneCodeLoginReq,
   RefreshTokenReq,
   RegisterReq,
   ResetPasswordReq,
-  SendEmailVerifyCodeReq,
-  SendPhoneVerifyCodeReq
+  SendEmailCodeReq,
+  SendPhoneCodeReq,
 } from "./types";
 
 /** 登录认证 */
 export const AuthAPI = {
+  /** 获取验证码 */
+  getCaptchaCode(params?: GetCaptchaCodeReq): Promise<IApiResponse<GetCaptchaCodeResp>> {
+    return request({
+      url: `/api/v1/auth/captcha-code`,
+      method: "GET",
+      params: params,
+    });
+  },
+
   /** 获取客户端信息 */
   getClientInfo(params?: GetClientInfoReq): Promise<IApiResponse<GetClientInfoResp>> {
     return request({
@@ -29,52 +40,54 @@ export const AuthAPI = {
     });
   },
 
-  /** 邮箱登录 */
-  emailLogin(data?: EmailLoginReq): Promise<IApiResponse<LoginResp>> {
+  /** 邮箱验证码登录（仅登录） */
+  emailCodeLogin(data?: EmailCodeLoginReq): Promise<IApiResponse<LoginResp>> {
     return request({
-      url: `/api/v1/auth/email/login`,
+      url: `/api/v1/auth/email/login/code`,
       method: "POST",
       data: data,
     });
   },
 
-  /** 发送邮件验证码 */
-  sendEmailVerifyCode(data?: SendEmailVerifyCodeReq): Promise<IApiResponse<EmptyResp>> {
+  /** 发送邮箱验证码 */
+  sendEmailCode(data?: SendEmailCodeReq): Promise<IApiResponse<EmptyResp>> {
     return request({
-      url: `/api/v1/auth/email/verify-code`,
+      url: `/api/v1/auth/email/send-code`,
       method: "POST",
       data: data,
     });
   },
 
-  /** 登录 */
-  login(data?: LoginReq): Promise<IApiResponse<LoginResp>> {
+  /** 密码登录（账号/手机号/邮箱） */
+  passwordLogin(data?: PasswordLoginReq): Promise<IApiResponse<LoginResp>> {
     return request({
-      url: `/api/v1/auth/login`,
+      url: `/api/v1/auth/login/password`,
       method: "POST",
       data: data,
     });
   },
 
-  /** 第三方登录授权地址 */
-  getOauthAuthorizeUrl(params?: GetOauthAuthorizeUrlReq): Promise<IApiResponse<GetOauthAuthorizeUrlResp>> {
+  /** 获取第三方授权URL */
+  getOauthAuthorizeUrl(
+    params?: GetOauthAuthorizeUrlReq
+  ): Promise<IApiResponse<GetOauthAuthorizeUrlResp>> {
     return request({
-      url: `/api/v1/auth/oauth/authorize-url`,
+      url: `/api/v1/auth/oauth/${params.platform}/authorize`,
       method: "GET",
       params: params,
     });
   },
 
-  /** 第三方登录 */
+  /** 第三方登录（自动注册） */
   oauthLogin(data?: OauthLoginReq): Promise<IApiResponse<LoginResp>> {
     return request({
-      url: `/api/v1/auth/oauth/login`,
+      url: `/api/v1/auth/oauth/${data.platform}/login`,
       method: "POST",
       data: data,
     });
   },
 
-  /** 重置密码接口 */
+  /** 重置密码 */
   resetPassword(data?: ResetPasswordReq): Promise<IApiResponse<EmptyResp>> {
     return request({
       url: `/api/v1/auth/password/reset`,
@@ -83,19 +96,19 @@ export const AuthAPI = {
     });
   },
 
-  /** 手机登录 */
-  phoneLogin(data?: PhoneLoginReq): Promise<IApiResponse<LoginResp>> {
+  /** 手机验证码登录（自动注册） */
+  phoneCodeLogin(data?: PhoneCodeLoginReq): Promise<IApiResponse<LoginResp>> {
     return request({
-      url: `/api/v1/auth/phone/login`,
+      url: `/api/v1/auth/phone/login/code`,
       method: "POST",
       data: data,
     });
   },
 
   /** 发送手机验证码 */
-  sendPhoneVerifyCode(data?: SendPhoneVerifyCodeReq): Promise<IApiResponse<EmptyResp>> {
+  sendPhoneCode(data?: SendPhoneCodeReq): Promise<IApiResponse<EmptyResp>> {
     return request({
-      url: `/api/v1/auth/phone/verify-code`,
+      url: `/api/v1/auth/phone/send-code`,
       method: "POST",
       data: data,
     });
@@ -110,7 +123,7 @@ export const AuthAPI = {
     });
   },
 
-  /** 注册 */
+  /** 邮箱注册 */
   register(data?: RegisterReq): Promise<IApiResponse<EmptyResp>> {
     return request({
       url: `/api/v1/auth/register`,
@@ -119,7 +132,7 @@ export const AuthAPI = {
     });
   },
 
-  /** 退出登录接口（需登录） */
+  /** 退出登录（需登录） */
   logout(data?: EmptyReq): Promise<IApiResponse<EmptyResp>> {
     return request({
       url: `/api/v1/auth/logout`,
@@ -127,5 +140,4 @@ export const AuthAPI = {
       data: data,
     });
   },
-
 };

@@ -9,7 +9,7 @@ import type {
   ReactivateAccountReq,
   ReactivateAccountResp,
   UpdateUserProfileReq,
-  UpdateUserProfileResp
+  UpdateUserProfileResp,
 } from "./types";
 
 /** 个人中心 */
@@ -33,7 +33,9 @@ export const MeAPI = {
   },
 
   /** 获取当前用户余额变动记录 */
-  getUserBalanceLogs(params?: GetUserBalanceLogsReq): Promise<IApiResponse<GetUserBalanceLogsResp>> {
+  getUserBalanceLogs(
+    params?: GetUserBalanceLogsReq
+  ): Promise<IApiResponse<GetUserBalanceLogsResp>> {
     return request({
       url: `/api/v1/user/me/balance-logs`,
       method: "GET",
@@ -58,5 +60,4 @@ export const MeAPI = {
       data: data,
     });
   },
-
 };

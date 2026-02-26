@@ -19,15 +19,15 @@ import {
   Zap,
 } from "lucide-vue-next";
 import { useRouter } from "vue-router";
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 
 const router = useRouter();
 const { locale } = useI18n();
 
 const toggleLocale = () => {
-  locale.value = locale.value === 'zh' ? 'en' : 'zh'
-  localStorage.setItem('locale', locale.value)
-}
+  locale.value = locale.value === "zh" ? "en" : "zh";
+  localStorage.setItem("locale", locale.value);
+};
 
 const handleGetStarted = () => {
   router.push("/login");
@@ -251,8 +251,7 @@ const comparisonRows = [
 const faqs = [
   {
     question: "需要准备哪些素材？",
-    answer:
-      "准备白底图或场景图即可，系统会自动识别主图，并生成完整的图片与文案包。",
+    answer: "准备白底图或场景图即可，系统会自动识别主图，并生成完整的图片与文案包。",
   },
   {
     question: "生成的图片能直接商用吗？",
@@ -284,7 +283,7 @@ const faqs = [
         </div>
         <nav class="hidden md:flex items-center gap-6 text-sm">
           <Button variant="ghost" size="sm" @click="toggleLocale">
-            {{ locale === 'zh' ? 'EN' : '中文' }}
+            {{ locale === "zh" ? "EN" : "中文" }}
           </Button>
           <button class="nav-link" @click="router.push('/pricing')">定价</button>
           <button class="nav-link" @click="router.push('/login')">登录</button>
@@ -296,7 +295,9 @@ const faqs = [
 
     <main>
       <section class="hero-section">
-        <div class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 py-16 lg:grid-cols-[1.1fr_0.9fr]">
+        <div
+          class="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 py-16 lg:grid-cols-[1.1fr_0.9fr]"
+        >
           <div class="space-y-8 hero-content">
             <div class="hero-pill">
               <Sparkles class="w-4 h-4" />
@@ -438,11 +439,7 @@ const faqs = [
             <p class="text-muted-foreground">每一步都可控，让内容稳定、高质量输出。</p>
           </div>
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card
-              v-for="item in capabilities"
-              :key="item.title"
-              class="capability-card"
-            >
+            <Card v-for="item in capabilities" :key="item.title" class="capability-card">
               <CardContent class="p-6 space-y-4">
                 <div class="icon-badge bg-gradient-to-br" :class="item.accent">
                   <component :is="item.icon" class="w-5 h-5" />
@@ -832,7 +829,8 @@ const faqs = [
 .preview-image {
   height: 160px;
   border-radius: 12px;
-  background: repeating-linear-gradient(
+  background:
+    repeating-linear-gradient(
       45deg,
       rgba(255, 184, 128, 0.15),
       rgba(255, 184, 128, 0.15) 12px,
@@ -889,7 +887,9 @@ const faqs = [
   padding: 12px;
   background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
-  transition: border 0.2s ease, background 0.2s ease;
+  transition:
+    border 0.2s ease,
+    background 0.2s ease;
 }
 
 .upload-box:hover {
@@ -1010,7 +1010,9 @@ const faqs = [
 .capability-card {
   border: 1px solid rgba(148, 163, 184, 0.2);
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.05);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .capability-card:hover {

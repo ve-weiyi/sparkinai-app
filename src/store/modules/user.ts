@@ -16,11 +16,41 @@ export const useUserStore = defineStore("user", {
     currentUser: (state) => state.user,
   },
   actions: {
-    async login(credentials: { email: string; password: string }) {
-      const res = await AuthAPI.emailLogin({
-        email: credentials.email,
+    async passwordLogin(credentials: { account: string; password: string }) {
+      const res = await AuthAPI.passwordLogin({
+        account: credentials.account,
         password: credentials.password,
-      } as any);
+      });
+      const token = res.data.token;
+      const uid = res.data.user_id;
+      if (token?.access_token) {
+        AuthStorage.setTokens(uid, token.access_token, token.refresh_token || "");
+      }
+      const profile = await MeAPI.getUserProfile({});
+      userStorage.setUser(profile.data);
+      this.user = profile.data;
+      return { success: true };
+    },
+    async phoneCodeLogin(credentials: { phone: string; verify_code: string }) {
+      const res = await AuthAPI.phoneCodeLogin({
+        phone: credentials.phone,
+        verify_code: credentials.verify_code,
+      });
+      const token = res.data.token;
+      const uid = res.data.user_id;
+      if (token?.access_token) {
+        AuthStorage.setTokens(uid, token.access_token, token.refresh_token || "");
+      }
+      const profile = await MeAPI.getUserProfile({});
+      userStorage.setUser(profile.data);
+      this.user = profile.data;
+      return { success: true };
+    },
+    async emailCodeLogin(credentials: { email: string; verify_code: string }) {
+      const res = await AuthAPI.emailCodeLogin({
+        email: credentials.email,
+        verify_code: credentials.verify_code,
+      });
       const token = res.data.token;
       const uid = res.data.user_id;
       if (token?.access_token) {

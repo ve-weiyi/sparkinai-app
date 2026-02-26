@@ -106,18 +106,15 @@ export interface DeleteGenerationResp {
   message: string; // 提示信息
 }
 
-export interface EmailLoginReq {
+// 邮箱验证码登录（仅登录，未注册报错）
+export interface EmailCodeLoginReq {
   email: string; // 邮箱
-  password: string; // 密码
-  captcha_key?: string; // 验证码key
-  captcha_code?: string; // 验证码
+  verify_code: string; // 验证码
 }
 
-export interface EmptyReq {
-}
+export interface EmptyReq {}
 
-export interface EmptyResp {
-}
+export interface EmptyResp {}
 
 export interface FileInfoVO {
   file_path: string; // 文件路径
@@ -167,8 +164,18 @@ export interface GetAvailableEnginesResp {
   list: AvailableEngineItem[]; // 引擎列表
 }
 
-export interface GetClientInfoReq {
+export interface GetCaptchaCodeReq {
+  width?: number; // 宽度
+  height?: number; // 高度
 }
+
+export interface GetCaptchaCodeResp {
+  captcha_key: string; // 验证码key
+  captcha_base64: string; // 验证码base64
+  captcha_code: string; // 验证码
+}
+
+export interface GetClientInfoReq {}
 
 export interface GetClientInfoResp {
   id: number; // 访客唯一ID
@@ -185,8 +192,7 @@ export interface GetGenerationReq {
 }
 
 // 获取生成记录详情响应
-export interface GetGenerationResp extends GenerationItem {
-}
+export interface GetGenerationResp extends GenerationItem {}
 
 // ==================== 生成记录相关 ====================
 export interface GetGenerationsReq extends PageQuery {
@@ -201,6 +207,7 @@ export interface GetGenerationsResp {
   list: GenerationItem[]; // 记录列表
 }
 
+// 第三方登录授权URL
 export interface GetOauthAuthorizeUrlReq {
   platform: string; // 平台
   state?: string; // 状态
@@ -230,12 +237,10 @@ export interface GetPaymentOrderReq {
 }
 
 // 查询支付订单响应
-export interface GetPaymentOrderResp extends PaymentOrderDetail {
-}
+export interface GetPaymentOrderResp extends PaymentOrderDetail {}
 
 // 获取充值套餐列表请求
-export interface GetRechargePackagesReq {
-}
+export interface GetRechargePackagesReq {}
 
 // 获取充值套餐列表响应
 export interface GetRechargePackagesResp {
@@ -262,16 +267,13 @@ export interface GetUploadTokenResp {
 }
 
 // 获取用户账户信息请求
-export interface GetUserAccountReq {
-}
+export interface GetUserAccountReq {}
 
 // 获取用户账户信息响应
-export interface GetUserAccountResp extends UserAccountInfo {
-}
+export interface GetUserAccountResp extends UserAccountInfo {}
 
 // 获取用户余额变动记录请求
-export interface GetUserBalanceLogsReq extends PageQuery {
-}
+export interface GetUserBalanceLogsReq extends PageQuery {}
 
 // 获取用户余额变动记录响应
 export interface GetUserBalanceLogsResp {
@@ -282,8 +284,7 @@ export interface GetUserBalanceLogsResp {
 }
 
 // 获取当前用户信息请求
-export interface GetUserProfileReq {
-}
+export interface GetUserProfileReq {}
 
 // 获取当前用户信息响应
 export interface GetUserProfileResp {
@@ -327,25 +328,19 @@ export interface ImageGenerationResp {
   data: ImageData[]; // 生成的图片列表
 }
 
-// 用户登录请求（账号-密码/验证码登录）
-export interface LoginReq {
-  username: string;
-  password: string;
-  captcha_key?: string; // 验证码key
-  captcha_code?: string; // 验证码
-}
-
-// 用户登录响应
+// 登录响应
 export interface LoginResp {
   user_id: string; // 用户id
-  user_type: string; // 用户类型：user-普通用户 admin-管理员
+  user_type: string; // 用户类型：user-普通用户 app-管理员
   scope: string; // 作用域
   token: Token;
 }
 
+// 第三方登录（前端携带code）
 export interface OauthLoginReq {
   platform: string; // 平台
-  code?: string; // 授权码
+  code: string; // 授权码
+  state?: string; // 状态
 }
 
 export interface PageQuery {
@@ -361,6 +356,14 @@ export interface PageResult {
   list: any;
 }
 
+// 密码登录（账号/手机号/邮箱 + 密码）
+export interface PasswordLoginReq {
+  account: string; // 账号/手机号/邮箱
+  password: string; // 密码
+  captcha_key?: string; // 图形验证码key
+  captcha_code?: string; // 图形验证码
+}
+
 // 支付订单详情
 export interface PaymentOrderDetail {
   order_no: string;
@@ -374,13 +377,13 @@ export interface PaymentOrderDetail {
   created_at: number;
 }
 
-export interface PhoneLoginReq {
+// 手机验证码登录（自动注册）
+export interface PhoneCodeLoginReq {
   phone: string; // 手机号
   verify_code: string; // 验证码
 }
 
-export interface PingReq {
-}
+export interface PingReq {}
 
 export interface PingResp {
   env: string;
@@ -417,7 +420,7 @@ export interface RefreshTokenReq {
   refresh_token: string; // 刷新令牌
 }
 
-// 用户注册请求
+// 邮箱注册（必须设密码）
 export interface RegisterReq {
   email: string; // 邮箱
   password: string; // 密码
@@ -431,18 +434,20 @@ export interface RegisterReq {
 export interface ResetPasswordReq {
   email: string; // 邮箱
   password: string; // 新密码
-  confirm_password?: string; // 新密码
+  confirm_password?: string; // 确认密码
   verify_code: string; // 验证码
 }
 
-export interface SendEmailVerifyCodeReq {
+// 发送邮箱验证码
+export interface SendEmailCodeReq {
   email: string; // 邮箱
-  type: string; // 类型 register,reset_password,bind_email,bind_phone
+  type: string; // login / register / reset_password / bind_email
 }
 
-export interface SendPhoneVerifyCodeReq {
+// 发送手机验证码
+export interface SendPhoneCodeReq {
   phone: string; // 手机号
-  type: string; // 类型 register,reset_password,bind_email,bind_phone
+  type: string; // login / reset_password / bind_phone
 }
 
 export interface Token {
@@ -461,8 +466,7 @@ export interface UpdateUserProfileReq {
 }
 
 // 更新用户信息响应
-export interface UpdateUserProfileResp {
-}
+export interface UpdateUserProfileResp {}
 
 export interface UploadFilesReq {
   files?: any[]; // 文件列表
@@ -476,4 +480,3 @@ export interface UserAccountInfo {
   total_recharge: number; // 累计充值（元）
   total_consume: number; // 累计消费（元）
 }
-

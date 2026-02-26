@@ -23,33 +23,72 @@ import { AuthAPI } from '@/api/auth'
 import { useUserStore } from '@/store/modules/user'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
-  class?: HTMLAttributes["class"]
-}>()
+const props = defineProps<{ class?: HTMLAttributes["class"] }>()
 
 const { t } = useI18n()
 const router = useRouter()
-const email = ref('')
-const password = ref('')
-const loading = ref(false)
-const error = ref('')
 const store = useUserStore()
+
+// 'password' | 'phone' | 'email'
+const loginType = ref<'password' | 'phone' | 'email'>('password')
+const account = ref('')
+const email = ref('')
+const phone = ref('')
+const password = ref('')
+const phoneCode = ref('')
+const emailCode = ref('')
+const loading = ref(false)
+const sendingCode = ref(false)
+const countdown = ref(0)
+const error = ref('')
+
+const startCountdown = () => {
+  countdown.value = 60
+  const timer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) clearInterval(timer)
+  }, 1000)
+}
+
+const handleSendPhoneCode = async () => {
+  if (sendingCode.value || countdown.value > 0 || !phone.value) return
+  sendingCode.value = true
+  error.value = ''
+  try {
+    await AuthAPI.sendPhoneCode({ phone: phone.value, type: 'login' })
+    startCountdown()
+  } catch {
+    error.value = '发送验证码失败'
+  } finally {
+    sendingCode.value = false
+  }
+}
+
+const handleSendEmailCode = async () => {
+  if (sendingCode.value || countdown.value > 0 || !email.value) return
+  sendingCode.value = true
+  error.value = ''
+  try {
+    await AuthAPI.sendEmailCode({ email: email.value, type: 'login' })
+    startCountdown()
+  } catch {
+    error.value = '发送验证码失败'
+  } finally {
+    sendingCode.value = false
+  }
+}
 
 const handleOAuthLogin = async (provider: 'apple' | 'google') => {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await AuthAPI.getOauthAuthorizeUrl({
-      platform: provider,
-      state: 'login',
-    })
+    const { data } = await AuthAPI.getOauthAuthorizeUrl({ platform: provider, state: 'login' })
     if (data.authorize_url) {
       window.location.href = data.authorize_url
       return
     }
     error.value = 'OAuth登录失败，请重试'
-  } catch (err) {
-    console.error('OAuth login failed:', err)
+  } catch {
     error.value = 'OAuth登录失败，请重试'
   } finally {
     loading.value = false
@@ -61,15 +100,21 @@ const handleSubmit = async (e: Event) => {
   loading.value = true
   error.value = ''
   try {
-    const response = await store.login({ email: email.value, password: password.value })
+    let response
+    if (loginType.value === 'password') {
+      response = await store.passwordLogin({ account: account.value, password: password.value })
+    } else if (loginType.value === 'phone') {
+      response = await store.phoneCodeLogin({ phone: phone.value, verify_code: phoneCode.value })
+    } else {
+      response = await store.emailCodeLogin({ email: email.value, verify_code: emailCode.value })
+    }
     if (response.success) {
       router.push('/app/dashboard')
     } else {
-      error.value = '登录失败，请检查邮箱和密码'
+      error.value = '登录失败，请检查信息'
     }
-  } catch (err) {
-    console.error('Login failed:', err)
-    error.value = '登录失败，请检查邮箱和密码'
+  } catch {
+    error.value = '登录失败，请检查信息'
   } finally {
     loading.value = false
   }
@@ -80,12 +125,8 @@ const handleSubmit = async (e: Event) => {
   <div :class="cn('flex flex-col gap-6', props.class)">
     <Card>
       <CardHeader class="text-center">
-        <CardTitle class="text-xl">
-          {{ t('auth.login.title') }}
-        </CardTitle>
-        <CardDescription>
-          {{ t('auth.login.subtitle') }}
-        </CardDescription>
+        <CardTitle class="text-xl">{{ t('auth.login.title') }}</CardTitle>
+        <CardDescription>{{ t('auth.login.subtitle') }}</CardDescription>
       </CardHeader>
       <CardContent>
         <form @submit="handleSubmit">
@@ -97,61 +138,96 @@ const handleSubmit = async (e: Event) => {
             <Field>
               <Button variant="outline" type="button" :disabled="loading" @click="handleOAuthLogin('apple')">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path
-                    d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
-                    fill="currentColor"
-                  />
+                  <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" fill="currentColor" />
                 </svg>
                 {{ t('auth.login.loginWithApple') }}
               </Button>
               <Button variant="outline" type="button" :disabled="loading" @click="handleOAuthLogin('google')">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path
-                    d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                    fill="currentColor"
-                  />
+                  <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" fill="currentColor" />
                 </svg>
                 {{ t('auth.login.loginWithGoogle') }}
               </Button>
             </Field>
+
             <FieldSeparator class="*:data-[slot=field-separator-content]:bg-card">
               {{ t('auth.login.orContinueWith') }}
             </FieldSeparator>
-            <Field>
-              <FieldLabel for="email">
-                {{ t('auth.login.email') }}
-              </FieldLabel>
-              <Input
-                id="email"
-                v-model="email"
-                type="email"
-                :placeholder="t('auth.login.emailPlaceholder')"
-                required
-              />
-            </Field>
-            <Field>
-              <div class="flex items-center">
-                <FieldLabel for="password">
-                  {{ t('auth.login.password') }}
-                </FieldLabel>
-                <a
-                  href="#"
-                  class="ml-auto text-sm underline-offset-4 hover:underline"
-                >
-                  {{ t('auth.login.forgotPassword') }}
-                </a>
-              </div>
-              <Input id="password" v-model="password" type="password" required />
-            </Field>
+
+            <!-- 登录方式切换 -->
+            <div class="flex gap-2 mb-2">
+              <Button type="button" variant="outline" size="sm" class="flex-1"
+                :class="{ 'bg-accent': loginType === 'password' }" @click="loginType = 'password'">
+                密码登录
+              </Button>
+              <Button type="button" variant="outline" size="sm" class="flex-1"
+                :class="{ 'bg-accent': loginType === 'phone' }" @click="loginType = 'phone'">
+                {{ t('auth.login.phoneLogin') }}
+              </Button>
+              <Button type="button" variant="outline" size="sm" class="flex-1"
+                :class="{ 'bg-accent': loginType === 'email' }" @click="loginType = 'email'">
+                {{ t('auth.login.emailLogin') }}
+              </Button>
+            </div>
+
+            <!-- 密码登录 -->
+            <template v-if="loginType === 'password'">
+              <Field>
+                <FieldLabel for="account">账号 / 手机号 / 邮箱</FieldLabel>
+                <Input id="account" v-model="account" type="text" placeholder="请输入账号、手机号或邮箱" required />
+              </Field>
+              <Field>
+                <div class="flex items-center">
+                  <FieldLabel for="password">{{ t('auth.login.password') }}</FieldLabel>
+                  <a href="#" class="ml-auto text-sm underline-offset-4 hover:underline">
+                    {{ t('auth.login.forgotPassword') }}
+                  </a>
+                </div>
+                <Input id="password" v-model="password" type="password" required />
+              </Field>
+            </template>
+
+            <!-- 手机验证码登录（自动注册） -->
+            <template v-else-if="loginType === 'phone'">
+              <Field>
+                <FieldLabel for="phone">{{ t('auth.login.phone') }}</FieldLabel>
+                <Input id="phone" v-model="phone" type="tel" :placeholder="t('auth.login.phonePlaceholder')" required />
+              </Field>
+              <Field>
+                <FieldLabel for="phoneCode">{{ t('auth.login.verifyCode') }}</FieldLabel>
+                <div class="flex gap-2">
+                  <Input id="phoneCode" v-model="phoneCode" type="text" :placeholder="t('auth.login.codePlaceholder')" required class="flex-1" />
+                  <Button type="button" variant="outline" :disabled="sendingCode || countdown > 0 || !phone" @click="handleSendPhoneCode">
+                    {{ countdown > 0 ? `${countdown}s` : (sendingCode ? t('auth.login.resend') : t('auth.login.sendCode')) }}
+                  </Button>
+                </div>
+              </Field>
+            </template>
+
+            <!-- 邮箱验证码登录（仅登录，未注册报错） -->
+            <template v-else>
+              <Field>
+                <FieldLabel for="email">{{ t('auth.login.email') }}</FieldLabel>
+                <Input id="email" v-model="email" type="email" :placeholder="t('auth.login.emailPlaceholder')" required />
+              </Field>
+              <Field>
+                <FieldLabel for="emailCode">{{ t('auth.login.verifyCode') }}</FieldLabel>
+                <div class="flex gap-2">
+                  <Input id="emailCode" v-model="emailCode" type="text" :placeholder="t('auth.login.codePlaceholder')" required class="flex-1" />
+                  <Button type="button" variant="outline" :disabled="sendingCode || countdown > 0 || !email" @click="handleSendEmailCode">
+                    {{ countdown > 0 ? `${countdown}s` : (sendingCode ? t('auth.login.resend') : t('auth.login.sendCode')) }}
+                  </Button>
+                </div>
+              </Field>
+            </template>
+
             <Field>
               <Button type="submit" :disabled="loading">
                 {{ loading ? t('auth.login.loggingIn') : t('auth.login.loginButton') }}
               </Button>
               <FieldDescription class="text-center">
                 {{ t('auth.login.noAccount') }}
-                <RouterLink to="/register">
-                  {{ t('auth.login.signUp') }}
-                </RouterLink>
+                <RouterLink to="/register">{{ t('auth.login.signUp') }}</RouterLink>
               </FieldDescription>
             </Field>
           </FieldGroup>

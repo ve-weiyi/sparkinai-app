@@ -176,10 +176,7 @@ const plans = computed(() => {
         <article
           v-for="plan in plans"
           :key="plan.name"
-          :class="[
-            'plan-card',
-            selectedPlan === plan.name ? 'is-selected' : '',
-          ]"
+          :class="['plan-card', selectedPlan === plan.name ? 'is-selected' : '']"
           @click="selectedPlan = plan.name"
         >
           <div v-if="plan.badge" class="plan-badge">{{ plan.badge }}</div>
@@ -319,7 +316,9 @@ const plans = computed(() => {
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 18px 40px rgba(255, 106, 61, 0.3);
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
 }
 
 .back-button:hover {
@@ -459,7 +458,10 @@ const plans = computed(() => {
   border: 1px solid rgba(148, 163, 184, 0.2);
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border 0.2s ease;
   cursor: pointer;
 }
 
@@ -558,7 +560,9 @@ const plans = computed(() => {
   background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   color: #fff;
   box-shadow: 0 18px 40px rgba(255, 106, 61, 0.3);
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
 }
 
 .plan-cta-primary:hover {

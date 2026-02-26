@@ -11,7 +11,7 @@ import type {
   GetRechargePackagesReq,
   GetRechargePackagesResp,
   GetUserAccountReq,
-  GetUserAccountResp
+  GetUserAccountResp,
 } from "./types";
 
 /** 支付管理 */
@@ -26,7 +26,9 @@ export const PaymentAPI = {
   },
 
   /** 获取账户流水列表 */
-  getAccountTransactionList(params?: GetAccountTransactionListReq): Promise<IApiResponse<GetAccountTransactionListResp>> {
+  getAccountTransactionList(
+    params?: GetAccountTransactionListReq
+  ): Promise<IApiResponse<GetAccountTransactionListResp>> {
     return request({
       url: `/api/v1/payment/account/transactions`,
       method: "GET",
@@ -44,7 +46,9 @@ export const PaymentAPI = {
   },
 
   /** 获取支付订单列表 */
-  getPaymentOrderList(params?: GetPaymentOrderListReq): Promise<IApiResponse<GetPaymentOrderListResp>> {
+  getPaymentOrderList(
+    params?: GetPaymentOrderListReq
+  ): Promise<IApiResponse<GetPaymentOrderListResp>> {
     return request({
       url: `/api/v1/payment/orders`,
       method: "GET",
@@ -62,7 +66,9 @@ export const PaymentAPI = {
   },
 
   /** 获取充值套餐列表 */
-  getRechargePackages(params?: GetRechargePackagesReq): Promise<IApiResponse<GetRechargePackagesResp>> {
+  getRechargePackages(
+    params?: GetRechargePackagesReq
+  ): Promise<IApiResponse<GetRechargePackagesResp>> {
     return request({
       url: `/api/v1/payment/packages`,
       method: "GET",
@@ -85,5 +91,4 @@ export const PaymentAPI = {
       method: "POST",
     });
   },
-
 };

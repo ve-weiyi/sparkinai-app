@@ -24,9 +24,7 @@ const route = useRoute();
             </div>
           </RouterLink>
           <h1 class="auth-title">让内容生产变成流水线</h1>
-          <p class="auth-subtitle">
-            主图、详情页、短视频脚本与多平台文案，在一个控制台完成。
-          </p>
+          <p class="auth-subtitle">主图、详情页、短视频脚本与多平台文案，在一个控制台完成。</p>
           <div class="auth-highlights">
             <div class="highlight-card">
               <p class="highlight-title">多平台适配</p>
@@ -125,7 +123,9 @@ const route = useRoute();
   font-weight: 600;
   text-decoration: none;
   box-shadow: 0 18px 40px rgba(255, 106, 61, 0.3);
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
 }
 
 .auth-root .back-home-button:hover {
@@ -329,7 +329,9 @@ const route = useRoute();
   background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   color: #fff;
   box-shadow: 0 18px 40px rgba(255, 106, 61, 0.3);
-  transition: transform 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
 }
 
 .auth-root .auth-form [data-slot="button"].bg-primary:hover {
@@ -348,7 +350,9 @@ const route = useRoute();
 
 .auth-panel-fade-enter-active,
 .auth-panel-fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .auth-panel-fade-enter-from {
