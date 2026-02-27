@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import type { GetUserProfileResp, CreditRuleItem } from "@/api/types";
+import type { GetUserProfileResp } from "@/api/types";
 import { AuthAPI } from "@/api/auth";
 import { MeAPI } from "@/api/me";
 import { AuthStorage, userStorage } from "@/utils/preferencesStorage";
@@ -7,7 +7,7 @@ import { AuthStorage, userStorage } from "@/utils/preferencesStorage";
 export const useUserStore = defineStore("user", {
   state: () => ({
     user: null as GetUserProfileResp | null,
-    creditOptions: [] as CreditRuleItem[],
+    creditOptions: [] as any[],
     loading: false,
     error: null as Error | null,
   }),
@@ -81,14 +81,7 @@ export const useUserStore = defineStore("user", {
         this.loading = false;
       }
     },
-    async fetchCreditOptions() {
-      try {
-        const res = await MeAPI.getUserCredits({});
-        this.creditOptions = res.data.list || [];
-      } catch (e) {
-        this.error = e as Error;
-      }
-    },
+
     async refreshToken(_payload: { user_id: string; grant_type: string; refresh_token: string }) {
       throw new Error("Not implemented");
     },

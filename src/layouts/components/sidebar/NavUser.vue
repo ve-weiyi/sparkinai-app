@@ -143,7 +143,7 @@ const handleLogout = () => {
               <span class="text-xs text-muted-foreground">积分</span>
               <div class="flex items-center gap-1.5">
                 <Sparkles class="w-3 h-3.5 text-green-600" />
-                <span class="text-sm font-medium">{{ user.credits }}</span>
+                <span class="text-sm font-medium">{{ user.coin }}</span>
                 <ChevronRight class="w-3.5 h-3.5 text-muted-foreground" />
               </div>
             </div>

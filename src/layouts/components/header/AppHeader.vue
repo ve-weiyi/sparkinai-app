@@ -29,7 +29,6 @@ const { currentUser, creditOptions } = storeToRefs(store);
 
 onMounted(() => {
   store.fetchCurrentUser();
-  store.fetchCreditOptions();
 });
 
 const breadcrumbs = computed(() => {

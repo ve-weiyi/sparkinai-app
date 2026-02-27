@@ -143,7 +143,7 @@ const stats = computed(() => {
   return {
     totalEarned,
     totalSpent,
-    current: currentUser.value?.credits || 0,
+    current: currentUser.value?.coin || 0,
   };
 });
 </script>
