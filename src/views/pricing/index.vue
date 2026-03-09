@@ -16,6 +16,7 @@ const handlePurchase = (plan: any) => {
     router.push({
       path: "/payment/checkout",
       query: {
+        packageId: plan.packageId,
         plan: plan.name,
         price: currency.value === "CNY" ? plan.priceCNY : plan.priceUSD,
       },
@@ -25,6 +26,7 @@ const handlePurchase = (plan: any) => {
 
 const basePlans = [
   {
+    packageId: 1,
     name: "免费版",
     priceCNY: 0,
     priceUSD: 0,
@@ -43,6 +45,7 @@ const basePlans = [
     buttonVariant: "outline" as const,
   },
   {
+    packageId: 2,
     name: "专业版",
     priceCNY: 249,
     priceUSD: 35,
@@ -67,6 +70,7 @@ const basePlans = [
     buttonVariant: "outline" as const,
   },
   {
+    packageId: 3,
     name: "基础版",
     priceCNY: 49,
     priceUSD: 7,
