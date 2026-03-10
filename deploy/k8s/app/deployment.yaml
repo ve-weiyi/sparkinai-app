@@ -10,29 +10,29 @@ data:
   .dockerconfigjson: eyJhdXRocyI6eyJnaGNyLmlvIjp7InVzZXJuYW1lIjoidmUtd2VpeWkiLCJwYXNzd29yZCI6ImdocF9ZbWI5Z0dnQTNUUDlHenVXRUhsOGhjbkJRMWgwNloxS1kzUlgiLCJlbWFpbCI6InZlLXdlaXlpQGV4YW1wbGUuY29tIiwiYXV0aCI6ImRtVXRkMlZwZVdrNloyaHdYMWx0WWpsblIyZEJNMVJRT1VkNmRWZEZTR3c0YUdOdVFsRXhhREEyV2pGTFdUTlNXQT09In19fQ==
 ---
 # ============================================================
-# sparkinai-app
+# sparkinai-app-web Deployment
 # ============================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sparkinai-app
+  name: sparkinai-app-web
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: sparkinai-app
+      app: sparkinai-app-web
   template:
     metadata:
       labels:
-        app: sparkinai-app
+        app: sparkinai-app-web
     spec:
       imagePullSecrets:
         - name: ghcr-secret
       containers:
-        - name: sparkinai-app
-          image: ghcr.io/ve-weiyi/sparkinai-app:latest
+        - name: sparkinai-app-web
+          image: ghcr.io/ve-weiyi/sparkinai-app-web:latest
           ports:
             - containerPort: 80
               hostPort: 19520
@@ -43,10 +43,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: sparkinai-app
+  name: sparkinai-app-web
 spec:
   selector:
-    app: sparkinai-app
+    app: sparkinai-app-web
   ports:
     - port: 80
       targetPort: 80

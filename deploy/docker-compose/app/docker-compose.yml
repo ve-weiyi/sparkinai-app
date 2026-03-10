@@ -1,12 +1,12 @@
 version: "3.8"
 
 services:
-  sparkinai-app:
+  sparkinai-app-web:
     build:
       context: ../../..
       dockerfile: deploy/docker/Dockerfile
-    image: sparkinai-app:latest
-    container_name: sparkinai-app
+    image: sparkinai-app-web:latest
+    container_name: sparkinai-app-web
     restart: unless-stopped
     ports:
       - "19520:80"

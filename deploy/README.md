@@ -56,7 +56,7 @@ docker run -d -p 19520:80 --name sparkinai-app sparkinai-app:latest
 
 ## 镜像信息
 
-- **镜像名称**: `ghcr.io/ve-weiyi/sparkinai-app`
+- **镜像名称**: `ghcr.io/ve-weiyi/sparkinai-app-web`
 - **端口**: 80 (容器内部) / 19520 (宿主机)
 - **基础镜像**: nginx:stable-alpine
 - **构建工具**: Node.js 22 + pnpm

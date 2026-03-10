@@ -30,7 +30,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: sparkinai-app
+  IMAGE_NAME: sparkinai-app-web
   DOCKERFILE: deploy/docker/Dockerfile
 
 jobs:
