@@ -11,15 +11,13 @@ import type {
   GetGenerationsReq,
   GetGenerationsResp,
   ImageGenerationReq,
-  ImageGenerationResp,
+  ImageGenerationResp
 } from "./types";
 
 /** 引擎配置 */
 export const GenerateAPI = {
   /** 获取可用引擎列表 */
-  getAvailableEngines(
-    params?: GetAvailableEnginesReq
-  ): Promise<IApiResponse<GetAvailableEnginesResp>> {
+  getAvailableEngines(params?: GetAvailableEnginesReq): Promise<IApiResponse<GetAvailableEnginesResp>> {
     return request({
       url: `/api/v1/engines/available`,
       method: "GET",
@@ -71,4 +69,5 @@ export const GenerateAPI = {
       data: data,
     });
   },
+
 };

@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Sparkles } from "lucide-vue-next";
+import { PaymentAPI } from "@/api/payment";
 
 const router = useRouter();
 
 const currency = ref<"CNY" | "USD">("CNY");
 const selectedPlan = ref<string | null>("专业版");
+const basePlans = ref<any[]>([]);
+const loading = ref(true);
+
+// USD to CNY conversion rate (approximate)
+const USD_TO_CNY_RATE = 7.2;
 
 const handlePurchase = (plan: any) => {
   if (plan.priceCNY === 0) {
@@ -24,79 +30,56 @@ const handlePurchase = (plan: any) => {
   }
 };
 
-const basePlans = [
-  {
-    packageId: 1,
-    name: "免费版",
-    priceCNY: 0,
-    priceUSD: 0,
-    description: "适合试用 SparkInAI",
-    features: [
-      "6 个积分",
-      "最多生成/复刻 3 个视频",
-      "标准质量渲染",
-      "无法创建角色",
-      "免费试用视频分析 3 次/天",
-      "视频公开可见",
-      "视频可在几天内查看和下载",
-      "邮件客服支持",
-    ],
-    buttonText: "免费开始",
-    buttonVariant: "outline" as const,
-  },
-  {
-    packageId: 2,
-    name: "专业版",
-    priceCNY: 249,
-    priceUSD: 35,
-    originalPriceCNY: 599,
-    originalPriceUSD: 85,
-    badge: "最受欢迎",
-    highlight: false,
-    description: "适合专业团队和工作室",
-    features: [
-      "每月 1000 个积分",
-      "最多生成/复刻 500 个视频",
-      "25 秒/高质量渲染",
-      "不限制创建角色，锁定人物一致性",
-      "生成无水印视频",
-      "无限量分析视频，限时免费",
-      "视频仅自己可见",
-      "视频可在三个月内查看和下载",
-      "优先混染队列",
-      "优先客服支持",
-    ],
-    buttonText: "立即开始",
-    buttonVariant: "outline" as const,
-  },
-  {
-    packageId: 3,
-    name: "基础版",
-    priceCNY: 49,
-    priceUSD: 7,
-    originalPriceCNY: 99,
-    originalPriceUSD: 14,
-    badge: "早鸟优惠",
-    description: "适合个人创作者",
-    features: [
-      "每月 110 个积分",
-      "最多生成/复刻 55 个视频",
-      "25 秒/高质量渲染",
-      "最多创建 3 个角色，锁定人物一致性",
-      "生成无水印视频",
-      "无限量分析视频，限时免费",
-      "视频仅自己可见",
-      "视频可在一个月内查看和下载",
-      "优先混染队列",
-      "社群客服支持",
-    ],
-    buttonText: "立即开始",
-    buttonVariant: "outline" as const,
-  },
-];
+// Fetch recharge packages from API
+const fetchRechargePackages = async () => {
+  try {
+    loading.value = true;
+    const response = await PaymentAPI.getRechargePackages();
+
+    // Map API response to frontend structure
+    basePlans.value = response.data.list.map((pkg: any) => {
+      // Determine badge text based on is_hot and package name
+      let badge = undefined;
+      if (pkg.is_hot) {
+        badge = "最受欢迎";
+      } else if (pkg.package_name === "基础版") {
+        badge = "早鸟优惠";
+      }
+
+      // Determine button text and variant
+      const buttonText = pkg.amount === 0 ? "免费开始" : "立即开始";
+      const buttonVariant = "outline" as const;
+
+      return {
+        packageId: pkg.id,
+        name: pkg.package_name,
+        priceCNY: pkg.amount,
+        priceUSD: Math.round(pkg.amount / USD_TO_CNY_RATE),
+        originalPriceCNY: pkg.original_amount,
+        originalPriceUSD: Math.round(pkg.original_amount / USD_TO_CNY_RATE),
+        badge,
+        highlight: pkg.is_hot,
+        description: pkg.description,
+        features: pkg.features || [],
+        buttonText,
+        buttonVariant,
+      };
+    });
+  } catch (error) {
+    console.error("Failed to fetch recharge packages:", error);
+    // Fallback to empty array or show error message
+    basePlans.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchRechargePackages();
+});
 
 const plans = computed(() => {
-  return basePlans.map((plan) => {
+  return basePlans.value.map((plan) => {
     const price = currency.value === "CNY" ? plan.priceCNY : plan.priceUSD;
     const originalPrice = currency.value === "CNY" ? plan.originalPriceCNY : plan.originalPriceUSD;
     const symbol = currency.value === "CNY" ? "¥" : "$";

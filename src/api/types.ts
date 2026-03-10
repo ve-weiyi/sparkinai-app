@@ -112,9 +112,11 @@ export interface EmailCodeLoginReq {
   verify_code: string; // 验证码
 }
 
-export interface EmptyReq {}
+export interface EmptyReq {
+}
 
-export interface EmptyResp {}
+export interface EmptyResp {
+}
 
 export interface FileInfoVO {
   file_path: string; // 文件路径
@@ -175,7 +177,8 @@ export interface GetCaptchaCodeResp {
   captcha_code: string; // 验证码
 }
 
-export interface GetClientInfoReq {}
+export interface GetClientInfoReq {
+}
 
 export interface GetClientInfoResp {
   id: number; // 访客唯一ID
@@ -192,7 +195,8 @@ export interface GetGenerationReq {
 }
 
 // 获取生成记录详情响应
-export interface GetGenerationResp extends GenerationItem {}
+export interface GetGenerationResp extends GenerationItem {
+}
 
 // ==================== 生成记录相关 ====================
 export interface GetGenerationsReq extends PageQuery {
@@ -237,10 +241,12 @@ export interface GetPaymentOrderReq {
 }
 
 // 查询支付订单响应
-export interface GetPaymentOrderResp extends PaymentOrderDetail {}
+export interface GetPaymentOrderResp extends PaymentOrderDetail {
+}
 
 // 获取充值套餐列表请求
-export interface GetRechargePackagesReq {}
+export interface GetRechargePackagesReq {
+}
 
 // 获取充值套餐列表响应
 export interface GetRechargePackagesResp {
@@ -267,13 +273,16 @@ export interface GetUploadTokenResp {
 }
 
 // 获取用户账户信息请求
-export interface GetUserAccountReq {}
+export interface GetUserAccountReq {
+}
 
 // 获取用户账户信息响应
-export interface GetUserAccountResp extends UserAccountInfo {}
+export interface GetUserAccountResp extends UserAccountInfo {
+}
 
 // 获取用户余额变动记录请求
-export interface GetUserBalanceLogsReq extends PageQuery {}
+export interface GetUserBalanceLogsReq extends PageQuery {
+}
 
 // 获取用户余额变动记录响应
 export interface GetUserBalanceLogsResp {
@@ -284,7 +293,8 @@ export interface GetUserBalanceLogsResp {
 }
 
 // 获取当前用户信息请求
-export interface GetUserProfileReq {}
+export interface GetUserProfileReq {
+}
 
 // 获取当前用户信息响应
 export interface GetUserProfileResp {
@@ -364,17 +374,27 @@ export interface PasswordLoginReq {
   captcha_code?: string; // 图形验证码
 }
 
+// 统一支付回调请求
+export interface PaymentNotifyReq {
+  platform: string; // 支付平台：alipay wechat
+}
+
 // 支付订单详情
 export interface PaymentOrderDetail {
   order_no: string;
+  user_id: string;
+  package_id: number;
+  package_name: string;
+  package_credits: number;
   channel_code: string;
-  amount: number;
-  status: number; // 0-待支付 1-支付中 2-成功 3-失败 4-关闭
+  pay_amount: number; // 支付金额（分）
+  status: number; // 1-待支付 2-已支付 3-已取消 4-已退款
   status_text: string;
   channel_order_no: string;
-  pay_success_time: number;
+  pay_time: number;
   expire_time: number;
   created_at: number;
+  updated_at: number;
 }
 
 // 手机验证码登录（自动注册）
@@ -383,7 +403,8 @@ export interface PhoneCodeLoginReq {
   verify_code: string; // 验证码
 }
 
-export interface PingReq {}
+export interface PingReq {
+}
 
 export interface PingResp {
   env: string;
@@ -408,9 +429,11 @@ export interface ReactivateAccountResp {
 export interface RechargePackageItem {
   id: number;
   package_name: string;
+  credits: number; // 套餐积分
   amount: number; // 套餐金额（元）
   original_amount: number; // 原价（元）
   description: string;
+  features: string[]; // 套餐特性列表
   is_hot: boolean;
 }
 
@@ -466,7 +489,8 @@ export interface UpdateUserProfileReq {
 }
 
 // 更新用户信息响应
-export interface UpdateUserProfileResp {}
+export interface UpdateUserProfileResp {
+}
 
 export interface UploadFilesReq {
   files?: any[]; // 文件列表
@@ -480,3 +504,4 @@ export interface UserAccountInfo {
   total_recharge: number; // 累计充值（元）
   total_consume: number; // 累计消费（元）
 }
+

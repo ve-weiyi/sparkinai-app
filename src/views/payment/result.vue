@@ -3,16 +3,42 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, XCircle, Home, FileText } from "lucide-vue-next";
+import { CheckCircle2, XCircle, Home, FileText, Loader2 } from "lucide-vue-next";
+import { PaymentAPI } from "@/api/payment";
 
 const route = useRoute();
 const router = useRouter();
 
 // 支付状态
+const loading = ref(true);
 const status = ref<"success" | "failed">((route.query.status as any) || "success");
-const orderId = ref((route.query.orderId as string) || "ORD" + Date.now());
-const planName = ref((route.query.plan as string) || "专业版");
-const amount = ref((route.query.amount as string) || "249");
+const orderId = ref((route.query.orderId as string) || "");
+const planName = ref((route.query.plan as string) || "");
+const amount = ref((route.query.amount as string) || "0");
+const payTime = ref("");
+
+// 查询订单状态
+const fetchOrderStatus = async () => {
+  if (!orderId.value) {
+    loading.value = false;
+    return;
+  }
+
+  try {
+    const response = await PaymentAPI.getPaymentOrder({ orderNo: orderId.value });
+    if (response.data) {
+      // status: 1-待支付, 2-已支付, 3-已取消, 4-已退款
+      status.value = response.data.status === 2 ? "success" : "failed";
+      planName.value = response.data.package_name || planName.value;
+      amount.value = (response.data.pay_amount / 100).toFixed(2);
+      payTime.value = response.data.pay_time ? new Date(response.data.pay_time).toLocaleString("zh-CN") : "";
+    }
+  } catch (error) {
+    console.error("查询订单状态失败:", error);
+  } finally {
+    loading.value = false;
+  }
+};
 
 const goToHome = () => {
   router.push("/app/dashboard");
@@ -21,6 +47,10 @@ const goToHome = () => {
 const goToOrders = () => {
   router.push("/app/user-center?tab=subscription");
 };
+
+onMounted(() => {
+  fetchOrderStatus();
+});
 </script>
 
 <template>
@@ -42,7 +72,26 @@ const goToOrders = () => {
       <div class="animate-in fade-in zoom-in duration-700">
         <Card class="border-0 shadow-2xl bg-white/90 backdrop-blur-sm overflow-hidden">
           <CardContent class="pt-16 pb-12">
-            <div class="text-center space-y-8">
+            <!-- 加载状态 -->
+            <div v-if="loading" class="text-center space-y-8">
+              <div class="flex justify-center">
+                <div class="relative">
+                  <div class="absolute inset-0 bg-gradient-to-r from-orange-200 to-teal-200 rounded-full blur-2xl opacity-50 animate-pulse"></div>
+                  <div class="relative w-28 h-28 rounded-full bg-gradient-to-br from-orange-400 to-teal-500 flex items-center justify-center shadow-2xl">
+                    <Loader2 class="w-16 h-16 text-white animate-spin" />
+                  </div>
+                </div>
+              </div>
+              <div class="space-y-3">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-orange-600 to-teal-600 bg-clip-text text-transparent">
+                  查询订单状态中...
+                </h1>
+                <p class="text-lg text-gray-600">请稍候</p>
+              </div>
+            </div>
+
+            <!-- 支付结果 -->
+            <div v-else class="text-center space-y-8">
               <!-- Success icon -->
               <div v-if="status === 'success'" class="flex justify-center animate-in zoom-in duration-500" style="animation-delay: 200ms">
                 <div class="relative">
@@ -87,13 +136,13 @@ const goToOrders = () => {
                       : 'bg-gradient-to-br from-red-50 to-orange-50'
                   ]"
                 >
-                  <div class="flex justify-between items-center py-2">
+                  <div v-if="orderId" class="flex justify-between items-center py-2">
                     <span class="text-gray-600">订单号</span>
                     <span class="font-mono text-sm font-semibold bg-white px-3 py-1 rounded-lg shadow-sm">
                       {{ orderId }}
                     </span>
                   </div>
-                  <div class="flex justify-between items-center py-2">
+                  <div v-if="planName" class="flex justify-between items-center py-2">
                     <span class="text-gray-600">套餐</span>
                     <span class="font-semibold text-lg">{{ planName }}</span>
                   </div>
@@ -110,9 +159,9 @@ const goToOrders = () => {
                       ¥{{ amount }}
                     </span>
                   </div>
-                  <div v-if="status === 'success'" class="flex justify-between items-center py-2 border-t border-gray-200 pt-4">
+                  <div v-if="status === 'success' && payTime" class="flex justify-between items-center py-2 border-t border-gray-200 pt-4">
                     <span class="text-gray-600">支付时间</span>
-                    <span class="text-sm font-medium">{{ new Date().toLocaleString("zh-CN") }}</span>
+                    <span class="text-sm font-medium">{{ payTime }}</span>
                   </div>
                 </div>
               </div>

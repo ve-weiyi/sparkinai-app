@@ -17,7 +17,7 @@ import type {
   RegisterReq,
   ResetPasswordReq,
   SendEmailCodeReq,
-  SendPhoneCodeReq,
+  SendPhoneCodeReq
 } from "./types";
 
 /** 登录认证 */
@@ -68,9 +68,7 @@ export const AuthAPI = {
   },
 
   /** 获取第三方授权URL */
-  getOauthAuthorizeUrl(
-    params?: GetOauthAuthorizeUrlReq
-  ): Promise<IApiResponse<GetOauthAuthorizeUrlResp>> {
+  getOauthAuthorizeUrl(params?: GetOauthAuthorizeUrlReq): Promise<IApiResponse<GetOauthAuthorizeUrlResp>> {
     return request({
       url: `/api/v1/auth/oauth/${params.platform}/authorize`,
       method: "GET",
@@ -140,4 +138,5 @@ export const AuthAPI = {
       data: data,
     });
   },
+
 };
