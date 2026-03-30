@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import type { GetUserProfileResp } from "@/api/types";
 import { AuthAPI } from "@/api/auth";
 import { MeAPI } from "@/api/me";
-import { AuthStorage, userStorage } from "@/utils/preferencesStorage";
+import { AuthStorage, authStorage, userStorage } from "@/utils/preferencesStorage";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
@@ -91,6 +91,7 @@ export const useUserStore = defineStore("user", {
       this.loading = false;
       this.error = null;
       userStorage.clearUser();
+      authStorage.clearAuth();
     },
   },
 });
