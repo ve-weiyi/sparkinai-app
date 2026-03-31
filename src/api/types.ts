@@ -1,16 +1,3 @@
-// 账户流水项
-export interface AccountTransactionItem {
-  transaction_no: string;
-  transaction_type: string; // recharge, consume
-  type_text: string;
-  amount: number;
-  balance_before: number;
-  balance_after: number;
-  order_no: string;
-  description: string;
-  created_at: number;
-}
-
 // 可用引擎项
 export interface AvailableEngineItem {
   id: number; // 引擎ID
@@ -25,10 +12,12 @@ export interface AvailableEngineItem {
 // 余额变动记录项
 export interface BalanceLogItem {
   id: number; // 记录ID
+  transaction_no: string; // 流水号
   change_type: string; // 变动类型
   change_amount: number; // 变动金额
   balance_before: number; // 变动前余额
   balance_after: number; // 变动后余额
+  order_no: string; // 关联订单号
   description: string; // 变动描述
   created_at: number; // 创建时间
 }
@@ -129,31 +118,20 @@ export interface FileInfoVO {
 
 // 生成记录项
 export interface GenerationItem {
-  id: string; // 生成记录ID
-  product_name: string; // 产品名称
-  description: string; // 产品描述
-  image_url: string; // 上传的产品图片URL
-  copy_result: string; // 生成的文案结果（JSON）
-  image_urls: string[]; // 生成的图片URL列表
+  id: number; // 自增主键
+  generation_id: string; // 生成记录UUID
+  generation_name: string; // 生成任务名称
   generation_type: string; // 生成类型
+  variables: string; // 输入参数
+  result: string; // 生成结果
   status: number; // 生成状态
   error_message: string; // 错误信息
-  cost_tokens: number; // 消耗的token数量
-  generation_time: number; // 生成耗时（秒）
+  input_tokens: number; // 输入token数量
+  output_tokens: number; // 输出token数量
+  cost_tokens: number; // 消耗的token总数
+  cost_charge: number; // AI调用费用
+  cost_time: number; // 生成耗时（秒）
   created_at: number; // 创建时间
-}
-
-// 获取账户流水列表请求
-export interface GetAccountTransactionListReq extends PageQuery {
-  transaction_type?: string; // 交易类型筛选
-}
-
-// 获取账户流水列表响应
-export interface GetAccountTransactionListResp {
-  page: number;
-  page_size: number;
-  total: number;
-  list: AccountTransactionItem[];
 }
 
 // ==================== 引擎配置相关 ====================
@@ -282,6 +260,7 @@ export interface GetUserAccountResp extends UserAccountInfo {
 
 // 获取用户余额变动记录请求
 export interface GetUserBalanceLogsReq extends PageQuery {
+  change_type?: string; // 变动类型筛选
 }
 
 // 获取用户余额变动记录响应

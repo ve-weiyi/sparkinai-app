@@ -9,7 +9,7 @@ import type {
   ReactivateAccountReq,
   ReactivateAccountResp,
   UpdateUserProfileReq,
-  UpdateUserProfileResp
+  UpdateUserProfileResp,
 } from "./types";
 
 /** 个人中心 */

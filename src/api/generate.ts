@@ -11,7 +11,7 @@ import type {
   GetGenerationsReq,
   GetGenerationsResp,
   ImageGenerationReq,
-  ImageGenerationResp
+  ImageGenerationResp,
 } from "./types";
 
 /** 引擎配置 */

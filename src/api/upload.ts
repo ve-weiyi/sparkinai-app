@@ -3,7 +3,7 @@ import type {
   FileInfoVO,
   GetUploadTokenReq,
   GetUploadTokenResp,
-  UploadFilesReq
+  UploadFilesReq,
 } from "./types";
 
 /** 文件上传 */

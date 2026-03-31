@@ -2,8 +2,6 @@ import request from "@/utils/request";
 import type {
   CreatePaymentOrderReq,
   CreatePaymentOrderResp,
-  GetAccountTransactionListReq,
-  GetAccountTransactionListResp,
   GetPaymentOrderListReq,
   GetPaymentOrderListResp,
   GetPaymentOrderReq,
@@ -12,7 +10,7 @@ import type {
   GetRechargePackagesResp,
   GetUserAccountReq,
   GetUserAccountResp,
-  PaymentNotifyReq
+  PaymentNotifyReq,
 } from "./types";
 
 /** 支付管理 */
@@ -21,15 +19,6 @@ export const PaymentAPI = {
   getUserAccount(params?: GetUserAccountReq): Promise<IApiResponse<GetUserAccountResp>> {
     return request({
       url: `/api/v1/payment/account`,
-      method: "GET",
-      params: params,
-    });
-  },
-
-  /** 获取账户流水列表 */
-  getAccountTransactionList(params?: GetAccountTransactionListReq): Promise<IApiResponse<GetAccountTransactionListResp>> {
-    return request({
-      url: `/api/v1/payment/account/transactions`,
       method: "GET",
       params: params,
     });

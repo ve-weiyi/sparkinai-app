@@ -54,39 +54,16 @@
           @click="viewDetail(item)"
         >
           <CardContent class="p-0">
-            <!-- Image Preview -->
-            <div class="relative aspect-square bg-muted">
-              <img
-                v-if="item.image_url"
-                :src="item.image_url"
-                :alt="item.product_name"
-                class="w-full h-full object-cover"
-              />
-              <div v-else class="w-full h-full flex items-center justify-center">
-                <ImageIcon class="h-12 w-12 text-muted-foreground" />
-              </div>
-
-              <!-- Status Badge -->
-              <div class="absolute top-3 right-3">
-                <Badge :variant="getStatusVariant(item.status)" class="shadow-sm">
-                  {{ getStatusText(item.status) }}
-                </Badge>
-              </div>
-
-              <!-- Generation Type Badge -->
-              <div class="absolute top-3 left-3">
-                <Badge variant="secondary" class="shadow-sm">
-                  {{ getTypeText(item.generation_type) }}
-                </Badge>
-              </div>
-            </div>
-
             <!-- Content -->
             <div class="p-4 space-y-3">
+              <div class="flex items-center gap-2">
+                <Badge variant="secondary">{{ getTypeText(item.generation_type) }}</Badge>
+                <Badge :variant="getStatusVariant(item.status)">{{ getStatusText(item.status) }}</Badge>
+              </div>
               <div>
-                <h3 class="font-medium line-clamp-1">{{ item.product_name }}</h3>
+                <h3 class="font-medium line-clamp-1">{{ item.generation_name }}</h3>
                 <p class="text-sm text-muted-foreground line-clamp-2 mt-1">
-                  {{ item.description }}
+                  {{ item.result || '暂无结果' }}
                 </p>
               </div>
 
@@ -94,7 +71,7 @@
                 <span>{{ formatDate(item.created_at) }}</span>
                 <div class="flex items-center gap-3">
                   <span v-if="item.cost_tokens > 0">{{ item.cost_tokens }} tokens</span>
-                  <span v-if="item.generation_time > 0">{{ item.generation_time }}s</span>
+                  <span v-if="item.cost_time > 0">{{ item.cost_time }}s</span>
                 </div>
               </div>
 
@@ -133,56 +110,33 @@
     <Dialog :open="showDetailDialog" @update:open="showDetailDialog = $event">
       <DialogContent class="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{{ selectedItem?.product_name }}</DialogTitle>
+          <DialogTitle>{{ selectedItem?.generation_name }}</DialogTitle>
           <DialogDescription>
             生成时间: {{ selectedItem ? formatDate(selectedItem.created_at) : "" }}
           </DialogDescription>
         </DialogHeader>
 
         <div v-if="selectedItem" class="space-y-4">
-          <!-- Product Image -->
-          <div v-if="selectedItem.image_url" class="rounded-lg overflow-hidden border">
-            <img
-              :src="selectedItem.image_url"
-              :alt="selectedItem.product_name"
-              class="w-full h-auto"
-            />
-          </div>
-
-          <!-- Description -->
-          <div class="space-y-2">
-            <h4 class="font-medium">产品描述</h4>
-            <p class="text-sm text-muted-foreground whitespace-pre-wrap">
-              {{ selectedItem.description }}
-            </p>
-          </div>
-
-          <!-- Copy Result -->
-          <div v-if="selectedItem.copy_result" class="space-y-2">
-            <h4 class="font-medium">生成文案</h4>
+          <!-- 输入参数 -->
+          <div v-if="selectedItem.variables" class="space-y-2">
+            <h4 class="font-medium">输入参数</h4>
             <div class="bg-muted rounded-lg p-4">
-              <pre class="text-sm whitespace-pre-wrap">{{
-                formatCopyResult(selectedItem.copy_result)
-              }}</pre>
+              <pre class="text-sm whitespace-pre-wrap">{{ formatResult(selectedItem.variables) }}</pre>
             </div>
           </div>
 
-          <!-- Generated Images -->
-          <div
-            v-if="selectedItem.image_urls && selectedItem.image_urls.length > 0"
-            class="space-y-2"
-          >
-            <h4 class="font-medium">生成图片 ({{ selectedItem.image_urls.length }})</h4>
-            <div class="grid grid-cols-3 gap-3">
-              <div
-                v-for="(url, idx) in selectedItem.image_urls"
-                :key="idx"
-                class="aspect-square rounded-lg overflow-hidden border cursor-pointer hover:opacity-80 transition"
-                @click="previewImage(url)"
-              >
-                <img :src="url" :alt="`生成图片 ${idx + 1}`" class="w-full h-full object-cover" />
-              </div>
+          <!-- 生成结果 -->
+          <div v-if="selectedItem.result" class="space-y-2">
+            <h4 class="font-medium">生成结果</h4>
+            <div class="bg-muted rounded-lg p-4">
+              <pre class="text-sm whitespace-pre-wrap">{{ formatResult(selectedItem.result) }}</pre>
             </div>
+          </div>
+
+          <!-- 错误信息 -->
+          <div v-if="selectedItem.error_message" class="space-y-2">
+            <h4 class="font-medium text-destructive">错误信息</h4>
+            <p class="text-sm text-destructive">{{ selectedItem.error_message }}</p>
           </div>
 
           <!-- Stats -->
@@ -192,7 +146,7 @@
               <div class="text-xs text-muted-foreground">消耗 Tokens</div>
             </div>
             <div class="text-center">
-              <div class="text-2xl font-bold">{{ selectedItem.generation_time }}s</div>
+              <div class="text-2xl font-bold">{{ selectedItem.cost_time }}s</div>
               <div class="text-xs text-muted-foreground">生成耗时</div>
             </div>
             <div class="text-center">
@@ -208,22 +162,7 @@
       </DialogContent>
     </Dialog>
 
-    <!-- Image Preview Dialog -->
-    <div
-      v-if="previewImageUrl"
-      class="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
-      @click="closePreview"
-    >
-      <div class="relative max-w-[90vw] max-h-[90vh]" @click.stop>
-        <img :src="previewImageUrl" class="max-w-full max-h-[90vh] object-contain rounded-lg" />
-        <button
-          @click="closePreview"
-          class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-foreground flex items-center justify-center text-xl font-bold transition-colors"
-        >
-          ×
-        </button>
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -231,7 +170,7 @@
 import { ref, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { toast } from "vue-sonner";
-import { Loader2, FileText, Sparkles, Trash2, Image as ImageIcon } from "lucide-vue-next";
+import { Loader2, FileText, Sparkles, Trash2 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -262,7 +201,6 @@ const total = ref(0);
 const filterStatus = ref("all");
 const showDetailDialog = ref(false);
 const selectedItem = ref<GenerationItem | null>(null);
-const previewImageUrl = ref("");
 
 // Fetch generations
 const fetchGenerations = async () => {
@@ -295,11 +233,11 @@ const viewDetail = (item: GenerationItem) => {
 };
 
 // Delete generation
-const deleteGeneration = async (id: string) => {
+const deleteGeneration = async (id: number) => {
   if (!confirm("确定要删除这条记录吗？")) return;
 
   try {
-    await GenerateAPI.deleteGeneration({ id });
+    await GenerateAPI.deleteGeneration({ id: String(id) });
     toast.success("删除成功");
     fetchGenerations();
   } catch (error: any) {
@@ -308,30 +246,21 @@ const deleteGeneration = async (id: string) => {
   }
 };
 
-// Preview image
-const previewImage = (url: string) => {
-  previewImageUrl.value = url;
-};
-
-const closePreview = () => {
-  previewImageUrl.value = "";
-};
-
 // Format date
 const formatDate = (timestamp: number) => {
   return new Date(timestamp).toLocaleString("zh-CN");
 };
 
-// Format copy result
-const formatCopyResult = (copyResult: string) => {
+// Format result
+const formatResult = (value: string) => {
   try {
-    const parsed = JSON.parse(copyResult);
+    const parsed = JSON.parse(value);
     if (typeof parsed === "object") {
       return JSON.stringify(parsed, null, 2);
     }
-    return copyResult;
+    return value;
   } catch {
-    return copyResult;
+    return value;
   }
 };
 
