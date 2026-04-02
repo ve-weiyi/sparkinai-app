@@ -62,14 +62,11 @@ onMounted(async () => {
 
     // 根据支付方式处理
     if (paymentMethod.value === "alipay") {
-      // 支付宝：跳转到支付页面
       handleAlipayPayment(response.data.pay_data);
-    } else if (paymentMethod.value === "wechat") {
-      // 微信：显示二维码并轮询
-      handleWechatPayment(response.data.pay_data);
     } else if (paymentMethod.value === "stripe") {
-      // Stripe：跳转到支付页面
       handleStripePayment(response.data.pay_data);
+    } else if (paymentMethod.value === "wechat") {
+      handleQRCodePayment(response.data.pay_data);
     }
   } catch (err: any) {
     console.error("支付初始化失败:", err);
@@ -92,58 +89,33 @@ onMounted(async () => {
   }
 });
 
+// 处理 Stripe 支付（跳转到 Stripe Checkout 页面）
+const handleStripePayment = (payData: Record<string, any>) => {
+  const payUrl = payData.pay_url;
+  if (!payUrl) {
+    error.value = "获取Stripe支付链接失败";
+    loading.value = false;
+    return;
+  }
+  window.location.href = payUrl;
+};
+
 // 处理支付宝支付
 const handleAlipayPayment = (payData: Record<string, any>) => {
-  loading.value = false;
-  processing.value = true;
-
-  // 实际场景中，这里应该跳转到支付宝支付页面
-  // window.location.href = payData.payUrl;
-
-  // 模拟支付（开发环境）
-  setTimeout(() => {
-    router.push({
-      path: "/payment/result",
-      query: {
-        status: "success",
-        orderId: orderId.value,
-        plan: planName.value,
-        amount: amount.value,
-      },
-    });
-  }, 2000);
+  const payUrl = payData.pay_url;
+  if (!payUrl) {
+    error.value = "获取支付宝支付链接失败";
+    loading.value = false;
+    return;
+  }
+  window.location.href = payUrl;
 };
 
-// 处理微信支付
-const handleWechatPayment = (payData: Record<string, any>) => {
-  // 设置二维码数据
-  qrCode.value = payData.qrCode || "mock-qr-code";
+// 处理二维码支付（云购OS / 微信直连）
+const handleQRCodePayment = (payData: Record<string, any>) => {
+  qrCode.value = payData.qr_code || payData.qrCode || "";
   loading.value = false;
-
-  // 开始轮询支付状态
   startPolling();
-};
-
-// 处理 Stripe 支付
-const handleStripePayment = (payData: Record<string, any>) => {
-  loading.value = false;
-  processing.value = true;
-
-  // 实际场景中，这里应该跳转到 Stripe 支付页面
-  // window.location.href = payData.checkoutUrl;
-
-  // 模拟支付（开发环境）
-  setTimeout(() => {
-    router.push({
-      path: "/payment/result",
-      query: {
-        status: "success",
-        orderId: orderId.value,
-        plan: planName.value,
-        amount: amount.value,
-      },
-    });
-  }, 2000);
 };
 
 // 开始轮询支付状态
@@ -266,14 +238,17 @@ const cancelPayment = () => {
               <p class="text-gray-600">请稍候，不要关闭页面...</p>
             </div>
 
-            <!-- 微信支付二维码 -->
+            <!-- 二维码支付（云购OS / 微信直连）-->
             <div v-else-if="paymentMethod === 'wechat' && qrCode" class="text-center py-12 animate-in fade-in zoom-in duration-700">
               <div class="mb-8">
                 <div class="relative inline-block">
                   <div class="absolute inset-0 bg-gradient-to-r from-orange-200 to-teal-200 rounded-2xl blur-2xl opacity-30 animate-pulse"></div>
-                  <div class="relative w-72 h-72 mx-auto bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl p-6 flex items-center justify-center border-4 border-white">
-                    <!-- 这里应该显示实际的二维码 -->
-                    <div class="text-8xl animate-bounce" style="animation-duration: 2s">📱</div>
+                  <div class="relative w-72 h-72 mx-auto bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl p-4 flex items-center justify-center border-4 border-white">
+                    <img
+                      :src="`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrCode)}`"
+                      class="w-full h-full object-contain"
+                      alt="微信支付二维码"
+                    />
                   </div>
                 </div>
               </div>

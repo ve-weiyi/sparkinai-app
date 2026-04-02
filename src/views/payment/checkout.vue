@@ -19,9 +19,9 @@ const loading = ref(false);
 const error = ref("");
 
 const paymentMethods = [
-  { value: "alipay", label: "支付宝", icon: "💳" },
-  { value: "wechat", label: "微信支付", icon: "💚" },
-  { value: "stripe", label: "Stripe (信用卡)", icon: "💳" },
+  { value: "alipay", label: "支付宝" },
+  { value: "wechat", label: "微信支付" },
+  { value: "stripe", label: "Stripe" },
 ];
 
 // 处理支付
@@ -127,9 +127,26 @@ const handlePayment = async () => {
                         : 'border-gray-200 hover:border-gray-300 hover:shadow-md hover:scale-[1.01]',
                     ]"
                   >
-                    <div class="text-3xl transition-transform group-hover:scale-110 duration-300">
-                      {{ method.icon }}
-                    </div>
+                    <!-- 支付宝图标 -->
+                    <template v-if="method.value === 'alipay'">
+                      <div class="w-8 h-8 flex-shrink-0 rounded-md bg-[#1677FF] flex items-center justify-center">
+                        <span class="text-white font-bold text-base leading-none">支</span>
+                      </div>
+                    </template>
+                    <!-- 微信图标 -->
+                    <template v-else-if="method.value === 'wechat'">
+                      <svg viewBox="0 0 24 24" class="w-8 h-8 flex-shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="24" height="24" rx="4" fill="#07C160"/>
+                        <path d="M9.5 7C6.46 7 4 9.01 4 11.5c0 1.38.72 2.61 1.85 3.46L5.5 17l1.97-1.05c.63.18 1.3.28 2.03.28.18 0 .36-.01.54-.02A4.3 4.3 0 0 1 10 15.5c0-2.21 2.01-4 4.5-4 .17 0 .33.01.5.02C14.55 9.27 12.27 7 9.5 7zm-1.75 3a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5zm3.5 0a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5zM14.5 12c-2.21 0-4 1.57-4 3.5S12.29 19 14.5 19c.6 0 1.17-.12 1.68-.33L18 19.5l-.35-1.7A3.37 3.37 0 0 0 18.5 15.5c0-1.93-1.79-3.5-4-3.5zm-1.25 2.25a.625.625 0 1 1 0 1.25.625.625 0 0 1 0-1.25zm2.5 0a.625.625 0 1 1 0 1.25.625.625 0 0 1 0-1.25z" fill="white"/>
+                      </svg>
+                    </template>
+                    <!-- Stripe 图标 -->
+                    <template v-else-if="method.value === 'stripe'">
+                      <svg viewBox="0 0 24 24" class="w-8 h-8 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="24" height="24" rx="4" fill="#635BFF"/>
+                        <path d="M11.12 9.4c0-.67.55-1.04 1.44-1.04 1.28 0 2.6.39 3.6 1.08V6.3A9.6 9.6 0 0 0 12.56 5.5c-3.2 0-5.33 1.67-5.33 4.46 0 4.35 5.99 3.65 5.99 5.53 0 .79-.69 1.04-1.64 1.04-1.42 0-3.23-.58-4.66-1.38v3.2c1.59.69 3.2 1.05 4.66 1.05 3.27 0 5.52-1.62 5.52-4.44-.02-4.7-6.02-3.86-6.02-5.56h.04z" fill="white"/>
+                      </svg>
+                    </template>
                     <div class="flex-1">
                       <div class="font-semibold text-lg">{{ method.label }}</div>
                     </div>

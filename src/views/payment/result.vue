@@ -12,7 +12,7 @@ const router = useRouter();
 // 支付状态
 const loading = ref(true);
 const status = ref<"success" | "failed">((route.query.status as any) || "success");
-const orderId = ref((route.query.orderId as string) || "");
+const orderId = ref((route.query.orderId as string) || (route.query.out_trade_no as string) || "");
 const planName = ref((route.query.plan as string) || "");
 const amount = ref((route.query.amount as string) || "0");
 const payTime = ref("");
