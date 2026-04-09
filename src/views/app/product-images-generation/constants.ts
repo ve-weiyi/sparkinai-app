@@ -22,22 +22,27 @@ export const STYLE_OPTIONS = [
   { value: "真实评测", label: "真实评测" },
   { value: "美式波普", label: "美式波普" },
   { value: "沉浸体验", label: "沉浸体验" },
+  { value: "国潮复古", label: "国潮复古" },
+  { value: "清新自然", label: "清新自然" },
 ];
 
 // 分辨率选项
 export const RESOLUTION_OPTIONS = [
-  { value: "2K ✨ 2", label: "2K ✨ 2" },
-  { value: "4K", label: "4K" },
-  { value: "HD", label: "HD" },
+  { value: "HD", label: "HD (1280px)" },
+  { value: "2K", label: "2K (2048px)" },
+  { value: "4K", label: "4K (3840px)" },
 ];
 
 // 比例选项
 export const RATIO_OPTIONS = [
-  { value: "1:1", label: "1:1" },
-  { value: "3:4", label: "3:4" },
-  { value: "4:3", label: "4:3" },
-  { value: "9:16", label: "9:16" },
-  { value: "16:9", label: "16:9" },
+  { value: "1:1", label: "1:1 正方形" },
+  { value: "16:9", label: "16:9 横版" },
+  { value: "9:16", label: "9:16 竖版" },
+  { value: "4:3", label: "4:3 传统横版" },
+  { value: "3:4", label: "3:4 传统竖版" },
+  { value: "3:2", label: "3:2 摄影横版" },
+  { value: "2:3", label: "2:3 摄影竖版" },
+  { value: "21:9", label: "21:9 超宽屏" },
 ];
 
 // 数量选项

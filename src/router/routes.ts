@@ -1,4 +1,4 @@
-import { Image, Heart } from "lucide-vue-next";
+import { Image, Heart, Wand2 } from "lucide-vue-next";
 import type { Component } from "vue";
 import type { RouteRecordRaw } from "vue-router";
 
@@ -16,6 +16,7 @@ declare module "vue-router" {
 }
 
 // App route components (lazy loaded)
+const ImageGenerationChatPage = () => import("@/views/app/image-generation-chat/index.vue");
 const ProductImagesGenerationPage = () => import("@/views/app/product-images-generation/index.vue");
 const FavoritesPage = () => import("@/views/app/favorites/index.vue");
 const UserCenterPage = () => import("@/views/app/user-center/index.vue");
@@ -26,10 +27,19 @@ export const menuConfig: RouteRecordRaw[] = [
   {
     path: "dashboard",
     name: "dashboard",
+    component: ImageGenerationChatPage,
+    meta: {
+      title: "首页",
+      icon: Image,
+    },
+  },
+  {
+    path: "image-generation",
+    name: "image-generation",
     component: ProductImagesGenerationPage,
     meta: {
-      title: "图片生成",
-      icon: Image,
+      title: "商品套图",
+      icon: Wand2,
     },
   },
   {

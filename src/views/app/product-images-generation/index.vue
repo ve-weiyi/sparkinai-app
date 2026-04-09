@@ -2,19 +2,19 @@
   <div class="product-root flex flex-1 flex-col">
     <div class="product-shell relative flex w-full flex-col h-[calc(100vh-4rem)] overflow-hidden">
       <!-- Tabs Header -->
-      <div class="tabs-wrap w-full px-6">
+      <div class="tabs-wrap w-full px-4">
         <Tabs v-model="activeTab" class="w-auto mt-1">
           <TabsList class="tabs-list h-10">
-            <TabsTrigger value="image-product-set" class="gap-2 px-4">
-              <Package class="h-4 w-4" />
-              商品套图
-            </TabsTrigger>
+            <TabsTrigger value="general" class="gap-2 px-4">通用</TabsTrigger>
+            <TabsTrigger value="clothing" class="gap-2 px-4">服装穿戴</TabsTrigger>
+            <TabsTrigger value="phone-case" class="gap-2 px-4">手机壳</TabsTrigger>
+            <TabsTrigger value="jewelry" class="gap-2 px-4">珠宝饰品</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       <!-- Main Content -->
-      <div class="flex-1 px-6 py-4 overflow-hidden">
+      <div class="flex-1 px-4 py-2 overflow-hidden">
         <Card class="product-card relative w-full h-full overflow-hidden rounded-3xl py-0">
           <div class="flex flex-col lg:flex-row h-full overflow-hidden">
             <!-- Left Panel - Form -->
@@ -188,6 +188,127 @@
                         placeholder="核心卖点：&#10;适用人群：&#10;期望场景：&#10;尺寸参数："
                       />
                     </div>
+                    <!-- Model Customization - clothing tab only -->
+                    <div v-if="activeTab === 'clothing'" class="space-y-2">
+                      <Label class="text-sm">模特定制</Label>
+                      <Select v-model="formState.modelCustomization.enabled">
+                        <SelectTrigger class="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="false">我不需要模特定制</SelectItem>
+                          <SelectItem value="true">我需要模特定制</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div v-if="formState.modelCustomization.enabled === 'true'" class="grid grid-cols-2 gap-2 pt-1">
+                        <Select v-model="formState.modelCustomization.gender">
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="female">女</SelectItem>
+                            <SelectItem value="male">男</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select v-model="formState.modelCustomization.ethnicity">
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="caucasian">欧美白人</SelectItem>
+                            <SelectItem value="chinese">中国人</SelectItem>
+                            <SelectItem value="asian">亚洲人</SelectItem>
+                            <SelectItem value="southeast-asian">东南亚人</SelectItem>
+                            <SelectItem value="african">非裔</SelectItem>
+                            <SelectItem value="middle-eastern">中东人</SelectItem>
+                            <SelectItem value="latino">拉丁裔</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select v-model="formState.modelCustomization.bodyType">
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="slim">纤细</SelectItem>
+                            <SelectItem value="standard">标准</SelectItem>
+                            <SelectItem value="muscular">肌肉型</SelectItem>
+                            <SelectItem value="chubby">微胖</SelectItem>
+                            <SelectItem value="plus-size">大码</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select v-model="formState.modelCustomization.ageGroup">
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="infant">婴儿</SelectItem>
+                            <SelectItem value="child">儿童</SelectItem>
+                            <SelectItem value="teen">青少年</SelectItem>
+                            <SelectItem value="youth">青年</SelectItem>
+                            <SelectItem value="middle-aged">中年</SelectItem>
+                            <SelectItem value="elderly">老年</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <!-- Detail Customization - phone-case tab only -->
+                    <div v-if="activeTab === 'phone-case'" class="space-y-2">
+                      <Label class="text-sm">细节定制</Label>
+                      <Select v-model="formState.phoneCustomization.enabled">
+                        <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="false">我不需要细节定制</SelectItem>
+                          <SelectItem value="true">我需要细节定制</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div v-if="formState.phoneCustomization.enabled === 'true'" class="grid grid-cols-2 gap-2 pt-1">
+                        <Select v-model="formState.phoneCustomization.phoneModel">
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="iphone17">iPhone 17</SelectItem>
+                            <SelectItem value="nova14">Nova 14</SelectItem>
+                            <SelectItem value="pura70">Pura 70</SelectItem>
+                            <SelectItem value="galaxy-s25">Galaxy S25</SelectItem>
+                            <SelectItem value="redmi-k90">Redmi K90</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select v-model="formState.phoneCustomization.scene">
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cozy-bedroom">温馨卧室</SelectItem>
+                            <SelectItem value="cafe-desk">咖啡厅桌面</SelectItem>
+                            <SelectItem value="minimal">极简纯色</SelectItem>
+                            <SelectItem value="lifestyle">生活化场景</SelectItem>
+                            <SelectItem value="outdoor">户外</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <!-- Detail Customization - jewelry tab only -->
+                    <div v-if="activeTab === 'jewelry'" class="space-y-2">
+                      <Label class="text-sm">细节定制</Label>
+                      <Select v-model="formState.jewelryCustomization.enabled">
+                        <SelectTrigger class="w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="false">我不需要细节定制</SelectItem>
+                          <SelectItem value="true">我需要细节定制</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div v-if="formState.jewelryCustomization.enabled === 'true'" class="grid grid-cols-2 gap-2 pt-1">
+                        <Select v-model="formState.jewelryCustomization.lighting">
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="studio-soft">影棚柔光</SelectItem>
+                            <SelectItem value="sunlight">阳光直射</SelectItem>
+                            <SelectItem value="luxury-macro">奢华微距</SelectItem>
+                            <SelectItem value="moody">氛围暗调</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select v-model="formState.jewelryCustomization.skinTone">
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="fair">白皙肤色</SelectItem>
+                            <SelectItem value="wheat">小麦肤色</SelectItem>
+                            <SelectItem value="dark">纯黑肤色</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
                     <div class="space-y-2">
                       <Label class="text-sm">生成内容数量</Label>
                       <Select v-model="formState.quantity">
@@ -803,10 +924,10 @@ import {
   ERROR_MESSAGES,
 } from "./constants";
 import { UploadAPI } from "@/api/upload";
-import { GenerateAPI } from "@/api/generate";
 import type { GeneratedCopy, GenerationTask, UploadedImage } from "./types";
+import { AgentAPI } from "@/api";
 
-const activeTab = ref("image-product-set");
+const activeTab = ref("general");
 const uploadedImages = ref<UploadedImage[]>([]);
 const mainImageIndex = ref(0);
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -842,6 +963,23 @@ const formState = ref({
   language: "en",
   sellingPoints: "",
   quantity: "1",
+  modelCustomization: {
+    enabled: "false",
+    gender: "female",
+    ethnicity: "chinese",
+    bodyType: "standard",
+    ageGroup: "youth",
+  },
+  phoneCustomization: {
+    enabled: "false",
+    phoneModel: "iphone17",
+    scene: "cafe-desk",
+  },
+  jewelryCustomization: {
+    enabled: "false",
+    lighting: "studio-soft",
+    skinTone: "fair",
+  },
 });
 
 const triggerFileInput = () => {
@@ -1072,31 +1210,19 @@ const analyzeProductSellingPoints = async () => {
 
   isAnalyzingSellingPoints.value = true;
   try {
-    // 获取主图URL
     const mainImage = uploadedImages.value[mainImageIndex.value];
     const imageUrl = mainImage?.fileInfo?.fileUrl || "";
 
-    // 获取默认的分析卖点引擎
-    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: "analysis" });
-    const defaultEngine =
-      enginesResp.data?.list?.find((e) => e.is_default) || enginesResp.data?.list?.[0];
-
-    if (!defaultEngine) {
-      throw new Error("未找到可用的AI引擎");
-    }
-
-    // 调用 Chat API 分析卖点
-    const response = await GenerateAPI.chatCompletion({
-      engine_id: defaultEngine.id,
+    const response = await AgentAPI.agentRun({
+      agent_type: "analysis",
       variables: {
         product_name: formState.value.productName,
         image_url: imageUrl,
-        response_format: "text",
       },
     });
 
-    if (response.data?.choices && response.data.choices.length > 0) {
-      formState.value.sellingPoints = response.data.choices[0].message.content;
+    if (response.data?.content) {
+      formState.value.sellingPoints = response.data.content;
       toast.success("AI分析完成");
     } else {
       throw new Error("AI分析返回结果为空");
@@ -1123,69 +1249,55 @@ const generateProductCopy = async () => {
 
   try {
     const mainImage = uploadedImages.value[mainImageIndex.value];
-    if (!mainImage) {
-      throw new Error("未找到主图");
-    }
-
-    // 使用上传后的URL
+    if (!mainImage) throw new Error("未找到主图");
     const imageUrl = mainImage.fileInfo?.fileUrl;
-    if (!imageUrl) {
-      throw new Error("图片尚未上传完成");
-    }
+    if (!imageUrl) throw new Error("图片尚未上传完成");
 
-    // 获取默认的文案生成引擎
-    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: "copy" });
-    const defaultEngine =
-      enginesResp.data?.list?.find((e) => e.is_default) || enginesResp.data?.list?.[0];
-
-    if (!defaultEngine) {
-      throw new Error("未找到可用的AI引擎");
-    }
-
-    // 调用 Chat API 生成文案
-    const response = await GenerateAPI.chatCompletion({
-      engine_id: defaultEngine.id,
+    const response = await AgentAPI.agentRun({
+      agent_type: "copy",
       variables: {
         product_name: formState.value.productName,
-        selling_points: formState.value.sellingPoints,
+        description: formState.value.sellingPoints,
         platform: formState.value.platform,
         image_url: imageUrl,
         quantity: parseInt(formState.value.quantity),
-        response_format: "json",
+        ...(activeTab.value === 'clothing' && formState.value.modelCustomization.enabled === 'true' && {
+          model_gender: formState.value.modelCustomization.gender,
+          model_ethnicity: formState.value.modelCustomization.ethnicity,
+          model_body_type: formState.value.modelCustomization.bodyType,
+          model_age_group: formState.value.modelCustomization.ageGroup,
+        }),
+        ...(activeTab.value === 'phone-case' && formState.value.phoneCustomization.enabled === 'true' && {
+          phone_model: formState.value.phoneCustomization.phoneModel,
+          scene: formState.value.phoneCustomization.scene,
+        }),
+        ...(activeTab.value === 'jewelry' && formState.value.jewelryCustomization.enabled === 'true' && {
+          lighting: formState.value.jewelryCustomization.lighting,
+          skin_tone: formState.value.jewelryCustomization.skinTone,
+        }),
       },
     });
 
-    if (!response.data?.choices || response.data.choices.length === 0) {
-      throw new Error("AI生成返回结果为空");
-    }
+    if (!response.data?.content) throw new Error("AI生成返回结果为空");
 
-    // 解析生成的文案 - API返回格式: [{title, content, tags}, ...]
     const generatedCopies: GeneratedCopy[] = [];
-
-    // 尝试从每个choice中解析文案
-    for (const choice of response.data.choices) {
-      try {
-        let content = choice.message.content;
-        // 去除markdown代码块标签
-        content = content
-          .replace(/^```(?:json)?\n?/g, "")
-          .replace(/\n?```$/g, "")
-          .trim();
-        // 尝试解析JSON
-        const parsed = JSON.parse(content);
-        if (Array.isArray(parsed)) {
-          generatedCopies.push(...parsed);
-        } else if (parsed.title && parsed.content) {
-          generatedCopies.push(parsed);
-        }
-      } catch (e) {
-        // 如果不是JSON格式，直接使用文本内容
-        generatedCopies.push({
-          title: formState.value.productName,
-          content: choice.message.content,
-          tags: "",
-        });
+    try {
+      let content = response.data.content
+        .replace(/^```(?:json)?\n?/g, "")
+        .replace(/\n?```$/g, "")
+        .trim();
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        generatedCopies.push(...parsed);
+      } else if (parsed.title && parsed.content) {
+        generatedCopies.push(parsed);
       }
+    } catch {
+      generatedCopies.push({
+        title: formState.value.productName,
+        content: response.data.content,
+        tags: "",
+      });
     }
 
     if (generatedCopies.length === 0) {
@@ -1200,7 +1312,7 @@ const generateProductCopy = async () => {
       productName: formState.value.productName,
       images: uploadedImages.value.map((img) => ({ preview: img.preview })),
       style: "极简留白",
-      resolution: "2K ✨ 2",
+      resolution: "2K",
       ratio: "1:1",
       generatedCopies: generatedCopies,
       imageTypes: [],
@@ -1243,42 +1355,27 @@ const generateImageSet = async (task: GenerationTask) => {
   task.isGeneratingImages = true;
 
   try {
-    // 获取主图URL
     const mainImage = uploadedImages.value[mainImageIndex.value];
     const imageUrl = mainImage?.fileInfo?.fileUrl || "";
 
-    // 获取默认的图片生成引擎
-    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: "image_set" });
-    const defaultEngine =
-      enginesResp.data?.list?.find((e) => e.is_default) || enginesResp.data?.list?.[0];
-
-    if (!defaultEngine) {
-      throw new Error("未找到可用的图片生成引擎");
-    }
-
-    // 调用 Images API 生成套图
-    const response = await GenerateAPI.imageGeneration({
-      engine_id: defaultEngine.id,
+    const response = await AgentAPI.agentRun({
+      agent_type: "image_set",
       variables: {
         product_name: task.productName,
-        copy_title: selectedCopy.title,
-        copy_content: selectedCopy.content,
+        title: selectedCopy.title,
+        content: selectedCopy.content,
         image_url: imageUrl,
         style: task.style,
         resolution: task.resolution,
         ratio: task.ratio,
-        response_format: "json",
       },
     });
 
-    if (!response.data?.data || response.data.data.length === 0) {
-      throw new Error("图片生成返回结果为空");
-    }
+    if (!response.data?.images?.length) throw new Error("图片生成返回结果为空");
 
-    // 将生成的图片添加到任务中
-    task.generatedImages = response.data.data.map((img, idx) => ({
+    task.generatedImages = response.data.images.map((img, idx) => ({
       name: `图片${idx + 1}`,
-      url: img.url || img.b64_json,
+      url: img.url,
       isRegenerating: false,
     }));
 
@@ -1304,46 +1401,22 @@ const regenerateSingleImage = async () => {
   showRegenerateDialog.value = false;
 
   try {
-    // 获取默认的图片生成引擎
-    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: "image" });
-    const defaultEngine =
-      enginesResp.data?.list?.find((e) => e.is_default) || enginesResp.data?.list?.[0];
-
-    if (!defaultEngine) {
-      throw new Error("未找到可用的图片生成引擎");
-    }
-
-    // 获取选中的文案
-    const selectedCopy = task.generatedCopies?.[selectedCopyIndex.value];
-
-    // 获取主图URL
     const mainImage = uploadedImages.value[mainImageIndex.value];
-    const imageUrl = mainImage?.fileInfo?.fileUrl || "";
+    const imageUrl = currentImage.url || mainImage?.fileInfo?.fileUrl || "";
 
-    // 调用 Images API 重新生成单张图片
-    const response = await GenerateAPI.imageGeneration({
-      engine_id: defaultEngine.id,
+    const response = await AgentAPI.agentRun({
+      agent_type: "reimagine",
       variables: {
-        product_name: task.productName,
-        copy_title: selectedCopy?.title || "",
-        copy_content: selectedCopy?.content || "",
         image_url: imageUrl,
-        style: task.style,
-        resolution: task.resolution,
-        ratio: task.ratio,
         custom_prompt: regenerationPrompt.value,
-        response_format: "json",
+        style: task.style,
+        ratio: task.ratio,
       },
     });
 
-    if (!response.data?.data || response.data.data.length === 0) {
-      throw new Error("图片生成返回结果为空");
-    }
+    if (!response.data?.images?.length) throw new Error("图片重绘返回结果为空");
 
-    // 替换原图片
-    const newImageData = response.data.data[0];
-    currentImage.url = newImageData.url || newImageData.b64_json;
-
+    currentImage.url = response.data.images[0].url;
     toast.success("图片重新生成成功！");
   } catch (error: any) {
     console.error("重新生成失败:", error);
@@ -1375,9 +1448,21 @@ onUnmounted(() => {
 .tabs-list {
   background: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 999px;
+  border-radius: 12px;
   padding: 2px;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.tabs-list [data-slot="tabs-trigger"] {
+  border-radius: 10px;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.tabs-list [data-slot="tabs-trigger"][data-state="active"] {
+  background: linear-gradient(135deg, #ff8c42, #ffb07a);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(255, 140, 66, 0.35);
+  border-color: transparent;
 }
 
 .product-card {

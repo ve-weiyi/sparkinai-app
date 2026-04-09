@@ -16,6 +16,7 @@ import { useUserStore } from "@/store/modules/user";
 import { Sparkles } from "lucide-vue-next";
 import NavMain from "./NavMain.vue";
 import NavUser from "./NavUser.vue";
+import NavChatHistory from "./NavChatHistory.vue";
 import { menuConfig } from "@/router/routes";
 
 const props = withDefaults(defineProps<SidebarProps>(), {
@@ -50,6 +51,7 @@ const { currentUser } = storeToRefs(store);
     </SidebarHeader>
     <SidebarContent>
       <NavMain :groups="menuConfig" />
+      <NavChatHistory />
     </SidebarContent>
     <SidebarFooter>
       <NavUser v-if="currentUser" :user="currentUser" />

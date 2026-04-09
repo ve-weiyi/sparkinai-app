@@ -1,3 +1,22 @@
+// Agent 生成图片项
+export interface AgentImageItem {
+  url: string; // 图片URL
+}
+
+// Agent 执行请求
+export interface AgentRunReq {
+  agent_type: string; // analysis | copy | image_set
+  variables?: Record<string, any>; // 动态参数
+}
+
+// Agent 执行响应
+export interface AgentRunResp {
+  agent_type: string; // 回显 agent 类型
+  agent_name: string; // 展示名称
+  content: string; // analysis/copy 返回文本
+  images: AgentImageItem[]; // image_set 返回图片列表
+}
+
 // 可用引擎项
 export interface AvailableEngineItem {
   id: number; // 引擎ID
@@ -51,11 +70,23 @@ export interface ChatMessage {
   content: string; // 消息内容
 }
 
+// Chat 消息请求
+export interface ChatMessageReq {
+  messages: MultimodalMessage[]; // 对话消息列表
+}
+
 // Chat 使用统计
 export interface ChatUsage {
   prompt_tokens: number; // 提示词token数
   completion_tokens: number; // 完成token数
   total_tokens: number; // 总token数
+}
+
+// 多模态消息内容块
+export interface ContentPart {
+  type: string; // text | image_url
+  text: string; // 文字内容
+  url: string; // 图片URL
 }
 
 // 创建支付订单请求
@@ -325,6 +356,12 @@ export interface LoginResp {
   token: Token;
 }
 
+// 多模态消息
+export interface MultimodalMessage {
+  role: string; // user | assistant | system
+  content: ContentPart[]; // 消息内容块列表
+}
+
 // 第三方登录（前端携带code）
 export interface OauthLoginReq {
   platform: string; // 平台
@@ -450,6 +487,16 @@ export interface SendEmailCodeReq {
 export interface SendPhoneCodeReq {
   phone: string; // 手机号
   type: string; // login / reset_password / bind_phone
+}
+
+// SSE 流式响应块
+export interface StreamChunk {
+  type: string; // intent | text_delta | image | done | error
+  intent: string; // 意图识别结果
+  delta: string; // 文字流片段
+  url: string; // 图片URL
+  revised_prompt: string; // 修订后的提示词
+  message: string; // 错误信息
 }
 
 export interface Token {

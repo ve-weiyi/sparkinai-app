@@ -1,5 +1,6 @@
 export * from './types';
 
+export { AgentAPI } from './agent';
 export { AuthAPI } from './auth';
 export { DefaultAPI } from './default';
 export { GenerateAPI } from './generate';
