@@ -167,8 +167,7 @@
                           size="sm"
                           class="gap-1 text-xs text-primary hover:text-primary"
                           :disabled="
-                            uploadedImages.length === 0 ||
-                            !formState.productName ||
+                            (uploadedImages.length === 0 && !formState.productName) ||
                             isAnalyzingSellingPoints ||
                             uploadedImages.some((img) => !img.uploaded)
                           "
@@ -875,7 +874,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useRoute } from "vue-router";
 import { toast } from "vue-sonner";
 import {
   Package,
@@ -1195,12 +1195,7 @@ const copySelectedCopyText = async () => {
 
 // AI分析产品卖点
 const analyzeProductSellingPoints = async () => {
-  if (uploadedImages.value.length === 0) return;
-
-  if (!formState.value.productName) {
-    toast.error("请先填写产品名称");
-    return;
-  }
+  if (uploadedImages.value.length === 0 && !formState.value.productName) return;
 
   const unuploadedImages = uploadedImages.value.filter((img) => !img.uploaded);
   if (unuploadedImages.length > 0) {
@@ -1222,7 +1217,21 @@ const analyzeProductSellingPoints = async () => {
     });
 
     if (response.data?.content) {
-      formState.value.sellingPoints = response.data.content;
+      try {
+        const content = response.data.content
+          .replace(/^```(?:json)?\n?/g, "")
+          .replace(/\n?```$/g, "")
+          .trim();
+        const parsed = JSON.parse(content);
+        if (parsed.product_name && !formState.value.productName) {
+          formState.value.productName = parsed.product_name;
+        }
+        if (parsed.selling_points) {
+          formState.value.sellingPoints = parsed.selling_points;
+        }
+      } catch {
+        formState.value.sellingPoints = response.data.content;
+      }
       toast.success("AI分析完成");
     } else {
       throw new Error("AI分析返回结果为空");
@@ -1427,6 +1436,26 @@ const regenerateSingleImage = async () => {
     regenerationImageIndex.value = null;
   }
 };
+
+const route = useRoute();
+
+onMounted(() => {
+  const { imageUrls, productName } = route.query;
+  if (productName) formState.value.productName = productName as string;
+  if (imageUrls) {
+    const urls = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
+    urls.forEach((url) => {
+      uploadedImages.value.push({
+        file: new File([], ""),
+        preview: url as string,
+        uploaded: true,
+        fileInfo: { fileUrl: url as string, fileName: "", fileKey: "" },
+      });
+    });
+    mainImageIndex.value = 0;
+    analyzeProductSellingPoints();
+  }
+});
 
 // 组件卸载时清理 URL
 onUnmounted(() => {

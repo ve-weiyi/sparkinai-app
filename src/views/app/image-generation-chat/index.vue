@@ -276,8 +276,24 @@ const pendingImages = ref<{ file: File; preview: string; url?: string }[]>([]);
 const regenerateTarget = ref<{ messageId: string; imageIndex: number } | null>(null);
 const regeneratePrompt = ref("");
 
-onMounted(() => {
-  chatStore.ensureActiveSession();
+onMounted(async () => {
+  const pending = chatStore.pendingMessage;
+  if (pending) {
+    chatStore.pendingMessage = null;
+    inputText.value = pending.text;
+    if (pending.imageUrls.length) {
+      pendingImages.value = pending.imageUrls.map((url) => ({
+        file: new File([], ""),
+        preview: url,
+        url,
+      }));
+    }
+    await nextTick();
+    autoResize();
+    await send();
+  } else {
+    chatStore.ensureActiveSession();
+  }
 });
 
 watch(
@@ -447,7 +463,7 @@ const send = async () => {
     await streamChatMessage(
       history,
       (chunk) => {
-        if (chunk.type === "text_delta" && chunk.delta) {
+        if (chunk.type === "text" && chunk.delta) {
           accumulatedText += chunk.delta;
           chatStore.updateMessage(sessionId, asstMsgId, { isLoading: false, content: accumulatedText });
         } else if (chunk.type === "image" && chunk.url) {
@@ -498,7 +514,7 @@ const regenerateAll = async (messageId: string) => {
     await streamChatMessage(
       history,
       (chunk) => {
-        if (chunk.type === "text_delta" && chunk.delta) {
+        if (chunk.type === "text" && chunk.delta) {
           accumulatedText += chunk.delta;
           chatStore.updateMessage(session.id, messageId, { content: accumulatedText });
         } else if (chunk.type === "image" && chunk.url) {

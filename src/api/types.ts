@@ -491,7 +491,7 @@ export interface SendPhoneCodeReq {
 
 // SSE 流式响应块
 export interface StreamChunk {
-  type: string; // intent | text_delta | image | done | error
+  type: string; // intent | text | image | done | error
   intent: string; // 意图识别结果
   delta: string; // 文字流片段
   url: string; // 图片URL

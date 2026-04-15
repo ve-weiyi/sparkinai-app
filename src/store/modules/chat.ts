@@ -44,6 +44,7 @@ export const useChatStore = defineStore("chat", {
   state: () => ({
     sessions: load() as ChatSession[],
     activeSessionId: localStorage.getItem(ACTIVE_KEY) || "",
+    pendingMessage: null as { text: string; imageUrls: string[] } | null,
   }),
 
   getters: {
