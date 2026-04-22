@@ -46,9 +46,9 @@ const selectSession = (id: string) => {
       <Collapsible as-child :default-open="true" class="group/collapsible">
         <SidebarMenuItem>
           <CollapsibleTrigger as-child>
-            <SidebarMenuButton :is-active="isActive" :tooltip="'图文生成'">
+            <SidebarMenuButton :is-active="isActive" :tooltip="'图片生成'">
               <MessageSquarePlus class="h-4 w-4" />
-              <span>图文生成</span>
+              <span>图片生成</span>
               <ChevronRight class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
             </SidebarMenuButton>
           </CollapsibleTrigger>

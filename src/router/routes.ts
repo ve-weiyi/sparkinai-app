@@ -48,7 +48,7 @@ export const menuConfig: RouteRecordRaw[] = [
     name: "image-generation-chat",
     component: ImageGenerationChatPage,
     meta: {
-      title: "图文生成",
+      title: "图片生成",
       showInMenu: false,
     },
   },

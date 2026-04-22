@@ -252,6 +252,7 @@ import {
 } from "@/components/ui/dialog";
 import { useChatStore } from "@/store/modules/chat";
 import type { Message } from "@/store/modules/chat";
+import { AgentAPI } from "@/api/agent";
 import { GenerateAPI } from "@/api/generate";
 import { UploadAPI } from "@/api/upload";
 import { APP_NAME, AuthStorage } from "@/utils/preferencesStorage";
@@ -350,14 +351,14 @@ const buildHistory = (messages: Message[], excludeId?: string) =>
     .map((m) => ({
       role: m.role,
       content: [
-        ...(m.uploadedImages?.map((url) => ({ type: "image_url", text: "", url })) ?? []),
-        ...(m.content ? [{ type: "text", text: m.content, url: "" }] : []),
+        ...(m.uploadedImages?.map((url) => ({ type: "image_url", text: "", image_url: { url } })) ?? []),
+        ...(m.content ? [{ type: "text", text: m.content }] : []),
       ],
     }));
 
 const streamChatMessage = async (
   messages: ReturnType<typeof buildHistory>,
-  onChunk: (chunk: { type: string; delta?: string; url?: string; revised_prompt?: string; intent?: string }) => void,
+  onChunk: (type: string, text: string) => void,
   onDone: () => void,
   onError: (e: Error) => void
 ) => {
@@ -369,7 +370,7 @@ const streamChatMessage = async (
 
   let resp: Response;
   try {
-    resp = await fetch(`/api/v1/chat/message`, {
+    resp = await fetch(`/api/v1/agent/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
@@ -392,8 +393,6 @@ const streamChatMessage = async (
     return;
   }
 
-  console.log("[sse] content-type:", resp.headers.get("content-type"));
-
   const reader = resp.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
@@ -409,9 +408,16 @@ const streamChatMessage = async (
       const payload = line.slice(5).trim();
       try {
         const chunk = JSON.parse(payload);
-        if (chunk.type === "done") { onDone(); return; }
-        if (chunk.type === "error") { onError(new Error(chunk.message || "生成失败")); return; }
-        onChunk(chunk);
+        const choice = chunk.choices?.[0];
+        if (!choice) continue;
+        if (choice.finish_reason === "stop") { onDone(); return; }
+        if (choice.finish_reason === "error") {
+          const errText = choice.delta?.content?.[0]?.text || "生成失败";
+          onError(new Error(errText));
+          return;
+        }
+        const part = choice.delta?.content?.[0];
+        if (part?.type && part.text) onChunk(part.type, part.text);
       } catch { /* skip malformed lines */ }
     }
   }
@@ -462,12 +468,12 @@ const send = async () => {
 
     await streamChatMessage(
       history,
-      (chunk) => {
-        if (chunk.type === "text" && chunk.delta) {
-          accumulatedText += chunk.delta;
+      (type, text) => {
+        if (type === "text") {
+          accumulatedText += text;
           chatStore.updateMessage(sessionId, asstMsgId, { isLoading: false, content: accumulatedText });
-        } else if (chunk.type === "image" && chunk.url) {
-          collectedImages.push({ url: chunk.url, revised_prompt: chunk.revised_prompt });
+        } else if (type === "image") {
+          collectedImages.push({ url: text });
           chatStore.updateMessage(sessionId, asstMsgId, {
             isLoading: false,
             isImageGenerating: true,
@@ -513,12 +519,12 @@ const regenerateAll = async (messageId: string) => {
     const collectedImages: { url: string }[] = [];
     await streamChatMessage(
       history,
-      (chunk) => {
-        if (chunk.type === "text" && chunk.delta) {
-          accumulatedText += chunk.delta;
+      (type, text) => {
+        if (type === "text") {
+          accumulatedText += text;
           chatStore.updateMessage(session.id, messageId, { content: accumulatedText });
-        } else if (chunk.type === "image" && chunk.url) {
-          collectedImages.push({ url: chunk.url });
+        } else if (type === "image") {
+          collectedImages.push({ url: text });
           chatStore.updateMessage(session.id, messageId, {
             content: accumulatedText,
             generatedImages: collectedImages.map((i) => ({ url: i.url })),
@@ -573,10 +579,8 @@ const confirmRegenerate = async () => {
     const collectedImages: { url: string }[] = [];
     await streamChatMessage(
       history,
-      (chunk) => {
-        if (chunk.type === "image" && chunk.url) {
-          collectedImages.push({ url: chunk.url });
-        }
+      (type, text) => {
+        if (type === "image") collectedImages.push({ url: text });
       },
       () => {
         const newUrl = collectedImages[0]?.url || "";

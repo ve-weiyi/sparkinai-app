@@ -1,20 +1,42 @@
-// Agent 生成图片项
-export interface AgentImageItem {
-  url: string; // 图片URL
+// Agent 对话请求
+export interface AgentChatReq {
+  agent_name?: string;
+  messages: MultimodalMessage[];
+  stream?: boolean;
+  resume?: ResumeInfo;
 }
 
 // Agent 执行请求
 export interface AgentRunReq {
-  agent_type: string; // analysis | copy | image_set
-  variables?: Record<string, any>; // 动态参数
+  agent_name: string;
+  variables?: Record<string, any>;
 }
 
-// Agent 执行响应
+// Agent 执行响应（对齐 OpenAI Chat Completion 格式）
 export interface AgentRunResp {
-  agent_type: string; // 回显 agent 类型
-  agent_name: string; // 展示名称
-  content: string; // analysis/copy 返回文本
-  images: AgentImageItem[]; // image_set 返回图片列表
+  id: string;
+  object: string;
+  model: string;
+  choices: Choice[];
+  usage: Usage;
+  attachments?: AgentAttachment[];
+}
+
+export interface AgentAttachment {
+  type: string; // image | file
+  url: string;
+}
+
+export interface Choice {
+  index: number;
+  message: MultimodalMessage;
+  finish_reason: string;
+}
+
+export interface Usage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
 }
 
 // 可用引擎项
@@ -82,12 +104,6 @@ export interface ChatUsage {
   total_tokens: number; // 总token数
 }
 
-// 多模态消息内容块
-export interface ContentPart {
-  type: string; // text | image_url
-  text: string; // 文字内容
-  url: string; // 图片URL
-}
 
 // 创建支付订单请求
 export interface CreatePaymentOrderReq {
@@ -489,14 +505,46 @@ export interface SendPhoneCodeReq {
   type: string; // login / reset_password / bind_phone
 }
 
-// SSE 流式响应块
-export interface StreamChunk {
-  type: string; // intent | text | image | done | error
-  intent: string; // 意图识别结果
-  delta: string; // 文字流片段
-  url: string; // 图片URL
-  revised_prompt: string; // 修订后的提示词
-  message: string; // 错误信息
+// 多模态内容块
+export interface ContentPart {
+  type: string; // text | image | error
+  text: string;
+  image_url?: { url: string; detail?: string };
+  file?: { file_id?: string; url?: string; file_name?: string };
+}
+
+// SSE 流式 delta
+export interface Delta {
+  role?: string;
+  content?: ContentPart[];
+}
+
+// SSE 流式 Choice
+export interface StreamChoice {
+  index: number;
+  delta: Delta;
+  finish_reason?: string;
+}
+
+// SSE 流式响应块（标准 OpenAI 格式）
+export interface AgentStreamChunk {
+  id: string;
+  object: string;
+  created: number;
+  model?: string;
+  choices: StreamChoice[];
+  interrupt?: InterruptPayload;
+}
+
+export interface InterruptPayload {
+  id: string;
+  checkpoint_id: string;
+  reason: string;
+}
+
+export interface ResumeInfo {
+  checkpoint_id?: string;
+  interrupt_id?: string;
 }
 
 export interface Token {

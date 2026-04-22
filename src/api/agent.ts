@@ -1,17 +1,12 @@
 import request from "@/utils/request";
-import type {
-  AgentRunReq,
-  AgentRunResp,
-  ChatMessageReq,
-  StreamChunk,
-} from "./types";
+import type { AgentRunReq, AgentRunResp, AgentChatReq, AgentStreamChunk } from "./types";
 
 /** Agent */
 export const AgentAPI = {
-  /** 多模态对话接口（SSE 流式响应） */
-  chatMessage(data?: ChatMessageReq): Promise<IApiResponse<StreamChunk>> {
+  /** Agent 多模态对话接口（SSE 流式响应） */
+  agentChat(data?: AgentChatReq): Promise<IApiResponse<AgentStreamChunk>> {
     return request({
-      url: `/api/v1/chat/message`,
+      url: `/api/v1/agent/chat`,
       method: "POST",
       data: data,
     });
@@ -25,5 +20,4 @@ export const AgentAPI = {
       data: data,
     });
   },
-
 };

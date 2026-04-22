@@ -1209,20 +1209,17 @@ const analyzeProductSellingPoints = async () => {
     const imageUrl = mainImage?.fileInfo?.fileUrl || "";
 
     const response = await AgentAPI.agentRun({
-      agent_type: "analysis",
+      agent_name: "analysis",
       variables: {
         product_name: formState.value.productName,
         image_url: imageUrl,
       },
     });
 
-    if (response.data?.content) {
+    const content = response.data?.choices?.[0]?.message?.content;
+    if (content) {
       try {
-        const content = response.data.content
-          .replace(/^```(?:json)?\n?/g, "")
-          .replace(/\n?```$/g, "")
-          .trim();
-        const parsed = JSON.parse(content);
+        const parsed = JSON.parse(content.replace(/^```(?:json)?\n?/g, "").replace(/\n?```$/g, "").trim());
         if (parsed.product_name && !formState.value.productName) {
           formState.value.productName = parsed.product_name;
         }
@@ -1230,7 +1227,7 @@ const analyzeProductSellingPoints = async () => {
           formState.value.sellingPoints = parsed.selling_points;
         }
       } catch {
-        formState.value.sellingPoints = response.data.content;
+        formState.value.sellingPoints = content;
       }
       toast.success("AI分析完成");
     } else {
@@ -1263,7 +1260,7 @@ const generateProductCopy = async () => {
     if (!imageUrl) throw new Error("图片尚未上传完成");
 
     const response = await AgentAPI.agentRun({
-      agent_type: "copy",
+      agent_name: "copy",
       variables: {
         product_name: formState.value.productName,
         description: formState.value.sellingPoints,
@@ -1287,26 +1284,19 @@ const generateProductCopy = async () => {
       },
     });
 
-    if (!response.data?.content) throw new Error("AI生成返回结果为空");
+    const rawContent = response.data?.choices?.[0]?.message?.content;
+    if (!rawContent) throw new Error("AI生成返回结果为空");
 
     const generatedCopies: GeneratedCopy[] = [];
     try {
-      let content = response.data.content
-        .replace(/^```(?:json)?\n?/g, "")
-        .replace(/\n?```$/g, "")
-        .trim();
-      const parsed = JSON.parse(content);
+      const parsed = JSON.parse(rawContent.replace(/^```(?:json)?\n?/g, "").replace(/\n?```$/g, "").trim());
       if (Array.isArray(parsed)) {
         generatedCopies.push(...parsed);
       } else if (parsed.title && parsed.content) {
         generatedCopies.push(parsed);
       }
     } catch {
-      generatedCopies.push({
-        title: formState.value.productName,
-        content: response.data.content,
-        tags: "",
-      });
+      generatedCopies.push({ title: formState.value.productName, content: rawContent, tags: "" });
     }
 
     if (generatedCopies.length === 0) {
@@ -1368,7 +1358,7 @@ const generateImageSet = async (task: GenerationTask) => {
     const imageUrl = mainImage?.fileInfo?.fileUrl || "";
 
     const response = await AgentAPI.agentRun({
-      agent_type: "image_set",
+      agent_name: "image_set",
       variables: {
         product_name: task.productName,
         title: selectedCopy.title,
@@ -1377,12 +1367,14 @@ const generateImageSet = async (task: GenerationTask) => {
         style: task.style,
         resolution: task.resolution,
         ratio: task.ratio,
+        count: 3,
       },
     });
 
-    if (!response.data?.images?.length) throw new Error("图片生成返回结果为空");
+    const images = response.data?.attachments?.filter((a) => a.type === 'image') ?? [];
+    if (!images.length) throw new Error("图片生成返回结果为空");
 
-    task.generatedImages = response.data.images.map((img, idx) => ({
+    task.generatedImages = images.map((img, idx) => ({
       name: `图片${idx + 1}`,
       url: img.url,
       isRegenerating: false,
@@ -1414,7 +1406,7 @@ const regenerateSingleImage = async () => {
     const imageUrl = currentImage.url || mainImage?.fileInfo?.fileUrl || "";
 
     const response = await AgentAPI.agentRun({
-      agent_type: "reimagine",
+      agent_name: "reimagine",
       variables: {
         image_url: imageUrl,
         custom_prompt: regenerationPrompt.value,
@@ -1423,9 +1415,10 @@ const regenerateSingleImage = async () => {
       },
     });
 
-    if (!response.data?.images?.length) throw new Error("图片重绘返回结果为空");
+    const reimagineImages = response.data?.attachments?.filter((a) => a.type === 'image') ?? [];
+    if (!reimagineImages.length) throw new Error("图片重绘返回结果为空");
 
-    currentImage.url = response.data.images[0].url;
+    currentImage.url = reimagineImages[0].url;
     toast.success("图片重新生成成功！");
   } catch (error: any) {
     console.error("重新生成失败:", error);
