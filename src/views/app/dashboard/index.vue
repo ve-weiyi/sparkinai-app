@@ -138,7 +138,7 @@ const handleFileChange = (e: Event) => {
 
 const uploadFile = async (item: typeof pendingImages.value[0]) => {
   try {
-    const tokenResp = await UploadAPI.getUploadToken({ file_path: "chat", file_name: item.file.name });
+    const tokenResp = await UploadAPI.getUploadToken({ file_base: "chat", file_name: item.file.name });
     const t = tokenResp.data;
     const form = new FormData();
     form.append("token", t.token);

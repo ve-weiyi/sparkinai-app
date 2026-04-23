@@ -3,15 +3,15 @@ import type {
   FileInfoVO,
   GetUploadTokenReq,
   GetUploadTokenResp,
-  UploadFilesReq,
+  UploadFileReq,
 } from "./types";
 
 /** 文件上传 */
 export const UploadAPI = {
   /** 上传文件（服务端上传） */
-  uploadFiles(data?: UploadFilesReq): Promise<IApiResponse<FileInfoVO[]>> {
+  uploadFile(data?: UploadFileReq): Promise<IApiResponse<FileInfoVO>> {
     return request({
-      url: `/api/v1/upload/files`,
+      url: `/api/v1/upload/file`,
       method: "POST",
       data: data,
     });

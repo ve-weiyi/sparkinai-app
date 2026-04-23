@@ -1,4 +1,9 @@
-// Agent 对话请求
+export interface AgentAttachment {
+  type: string;
+  url: string;
+}
+
+// 对话请求
 export interface AgentChatReq {
   agent_name?: string;
   messages: MultimodalMessage[];
@@ -12,42 +17,24 @@ export interface AgentRunReq {
   variables?: Record<string, any>;
 }
 
-// Agent 执行响应（对齐 OpenAI Chat Completion 格式）
+// 非流式完整响应 标准结构
 export interface AgentRunResp {
+  choices: Choice[];
   id: string;
   object: string;
   model: string;
-  choices: Choice[];
   usage: Usage;
-  attachments?: AgentAttachment[];
+  attachments: AgentAttachment[]; // 附件列表（图片等）
 }
 
-export interface AgentAttachment {
-  type: string; // image | file
-  url: string;
-}
-
-export interface Choice {
-  index: number;
-  message: MultimodalMessage;
-  finish_reason: string;
-}
-
-export interface Usage {
-  prompt_tokens: number;
-  completion_tokens: number;
-  total_tokens: number;
-}
-
-// 可用引擎项
-export interface AvailableEngineItem {
-  id: number; // 引擎ID
-  name: string; // 引擎名称
-  engine_type: string; // 引擎类型
-  model_name: string; // 模型名称
-  provider_name: string; // 供应商名称
-  description: string; // 引擎描述
-  is_default: boolean; // 是否为默认引擎
+// SSE 流式返回块 标准结构
+export interface AgentStreamChunk {
+  id: string;
+  object: string;
+  created: number;
+  model: string;
+  choices: StreamChoice[];
+  interrupt?: InterruptPayload;
 }
 
 // 余额变动记录项
@@ -63,47 +50,20 @@ export interface BalanceLogItem {
   created_at: number; // 创建时间
 }
 
-// Chat 响应选项
-export interface ChatChoice {
-  index: number; // 选项索引
-  message: ChatMessage; // 消息内容
-  finish_reason: string; // 结束原因
+// 完整会话 Choice 标准结构
+export interface Choice {
+  index: number;
+  message: MultimodalMessage;
+  finish_reason: string;
 }
 
-// Chat 请求（对应 OpenAI Chat Completions）
-export interface ChatCompletionReq {
-  engine_id: number; // 引擎ID（必填，后端从engine获取模型参数和提示词模板）
-  variables?: Record<string, any>; // 动态变量（用于模板替换）
+// 多模态内容块 标准结构
+export interface ContentPart {
+  type: string;
+  text?: string;
+  image_url?: ImageUrl;
+  file?: FileRef;
 }
-
-// Chat 响应（对应 OpenAI Chat Completions）
-export interface ChatCompletionResp {
-  id: string; // 请求ID
-  object: string; // 对象类型
-  created: number; // 创建时间戳
-  model: string; // 使用的模型
-  choices: ChatChoice[]; // 生成的选项列表
-  usage: ChatUsage; // token使用统计
-}
-
-// ==================== 通用 Chat 接口（对应 OpenAI Chat Completions API）====================
-export interface ChatMessage {
-  role: string; // 角色：system/user/assistant
-  content: string; // 消息内容
-}
-
-// Chat 消息请求
-export interface ChatMessageReq {
-  messages: MultimodalMessage[]; // 对话消息列表
-}
-
-// Chat 使用统计
-export interface ChatUsage {
-  prompt_tokens: number; // 提示词token数
-  completion_tokens: number; // 完成token数
-  total_tokens: number; // 总token数
-}
-
 
 // 创建支付订单请求
 export interface CreatePaymentOrderReq {
@@ -142,6 +102,12 @@ export interface DeleteGenerationResp {
   message: string; // 提示信息
 }
 
+// 流式增量 delta 标准结构
+export interface Delta {
+  role?: string;
+  content?: ContentPart[];
+}
+
 // 邮箱验证码登录（仅登录，未注册报错）
 export interface EmailCodeLoginReq {
   email: string; // 邮箱
@@ -155,12 +121,19 @@ export interface EmptyResp {
 }
 
 export interface FileInfoVO {
-  file_path: string; // 文件路径
+  file_base: string; // 文件目录
   file_name: string; // 文件名称
   file_type: string; // 文件类型
   file_size: number; // 文件大小
   file_url: string; // 上传路径
   updated_at: number; // 更新时间
+}
+
+// file 标准文件引用结构
+export interface FileRef {
+  file_id?: string;
+  url?: string;
+  file_name?: string;
 }
 
 // 生成记录项
@@ -179,16 +152,6 @@ export interface GenerationItem {
   cost_charge: number; // AI调用费用
   cost_time: number; // 生成耗时（秒）
   created_at: number; // 创建时间
-}
-
-// ==================== 引擎配置相关 ====================
-export interface GetAvailableEnginesReq {
-  engine_type?: string; // 引擎类型筛选
-}
-
-// 获取可用引擎列表响应
-export interface GetAvailableEnginesResp {
-  list: AvailableEngineItem[]; // 引擎列表
 }
 
 export interface GetCaptchaCodeReq {
@@ -281,7 +244,7 @@ export interface GetRechargePackagesResp {
 // 获取上传凭证请求
 export interface GetUploadTokenReq {
   file_name: string; // 文件名称
-  file_path?: string; // 文件路径
+  file_base?: string; // 文件目录
   expire_seconds?: number; // 凭证有效期（秒），默认1小时
 }
 
@@ -345,23 +308,16 @@ export interface IdsReq {
   ids: number[];
 }
 
-// 图片数据
-export interface ImageData {
-  url: string; // 图片URL
-  b64_json: string; // Base64编码的图片
-  revised_prompt: string; // 修订后的提示词
+// image_url 标准嵌套对象
+export interface ImageUrl {
+  url: string;
+  detail?: string;
 }
 
-// ==================== 通用 Images 接口（对应 OpenAI Images API）====================
-export interface ImageGenerationReq {
-  engine_id: number; // 引擎ID（必填，后端从engine获取模型参数）
-  variables?: Record<string, any>; // 动态变量（用于模板替换）
-}
-
-// 图片生成响应（对应 OpenAI Images Generation）
-export interface ImageGenerationResp {
-  created: number; // 创建时间戳
-  data: ImageData[]; // 生成的图片列表
+export interface InterruptPayload {
+  id: string;
+  checkpoint_id: string;
+  reason: string;
 }
 
 // 登录响应
@@ -372,10 +328,10 @@ export interface LoginResp {
   token: Token;
 }
 
-// 多模态消息
+// 对话消息 标准结构
 export interface MultimodalMessage {
-  role: string; // user | assistant | system
-  content: ContentPart[]; // 消息内容块列表
+  role: string;
+  content: ContentPart[];
 }
 
 // 第三方登录（前端携带code）
@@ -493,6 +449,11 @@ export interface ResetPasswordReq {
   verify_code: string; // 验证码
 }
 
+export interface ResumeInfo {
+  checkpoint_id?: string;
+  interrupt_id?: string;
+}
+
 // 发送邮箱验证码
 export interface SendEmailCodeReq {
   email: string; // 邮箱
@@ -505,46 +466,11 @@ export interface SendPhoneCodeReq {
   type: string; // login / reset_password / bind_phone
 }
 
-// 多模态内容块
-export interface ContentPart {
-  type: string; // text | image | error
-  text: string;
-  image_url?: { url: string; detail?: string };
-  file?: { file_id?: string; url?: string; file_name?: string };
-}
-
-// SSE 流式 delta
-export interface Delta {
-  role?: string;
-  content?: ContentPart[];
-}
-
-// SSE 流式 Choice
+// 流式 Choice 标准结构
 export interface StreamChoice {
   index: number;
   delta: Delta;
   finish_reason?: string;
-}
-
-// SSE 流式响应块（标准 OpenAI 格式）
-export interface AgentStreamChunk {
-  id: string;
-  object: string;
-  created: number;
-  model?: string;
-  choices: StreamChoice[];
-  interrupt?: InterruptPayload;
-}
-
-export interface InterruptPayload {
-  id: string;
-  checkpoint_id: string;
-  reason: string;
-}
-
-export interface ResumeInfo {
-  checkpoint_id?: string;
-  interrupt_id?: string;
 }
 
 export interface Token {
@@ -566,9 +492,15 @@ export interface UpdateUserProfileReq {
 export interface UpdateUserProfileResp {
 }
 
-export interface UploadFilesReq {
-  files?: any[]; // 文件列表
-  file_path?: string; // 文件路径
+export interface UploadFileReq {
+  file?: any; // 文件
+  file_base?: string; // 文件目录
+}
+
+export interface Usage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
 }
 
 // 用户账户信息

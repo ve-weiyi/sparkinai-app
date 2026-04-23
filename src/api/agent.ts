@@ -1,9 +1,14 @@
 import request from "@/utils/request";
-import type { AgentRunReq, AgentRunResp, AgentChatReq, AgentStreamChunk } from "./types";
+import type {
+  AgentChatReq,
+  AgentRunReq,
+  AgentRunResp,
+  AgentStreamChunk,
+} from "./types";
 
 /** Agent */
 export const AgentAPI = {
-  /** Agent 多模态对话接口（SSE 流式响应） */
+  /** Agent 多模态对话接口（SSE流式） */
   agentChat(data?: AgentChatReq): Promise<IApiResponse<AgentStreamChunk>> {
     return request({
       url: `/api/v1/agent/chat`,
@@ -20,4 +25,5 @@ export const AgentAPI = {
       data: data,
     });
   },
+
 };

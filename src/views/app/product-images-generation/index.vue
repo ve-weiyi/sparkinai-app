@@ -1019,7 +1019,7 @@ const addFiles = async (files: FileList | File[]) => {
       try {
         // Get upload token
         const tokenResponse = await UploadAPI.getUploadToken({
-          file_path: "product",
+          file_base: "product",
           file_name: file.name,
         });
 
@@ -1216,10 +1216,11 @@ const analyzeProductSellingPoints = async () => {
       },
     });
 
-    const content = response.data?.choices?.[0]?.message?.content;
-    if (content) {
+    const rawContent = response.data?.choices?.[0]?.message?.content;
+    const contentStr = Array.isArray(rawContent) ? rawContent.find(p => p.type === 'text')?.text ?? '' : (rawContent ?? '');
+    if (contentStr) {
       try {
-        const parsed = JSON.parse(content.replace(/^```(?:json)?\n?/g, "").replace(/\n?```$/g, "").trim());
+        const parsed = JSON.parse(contentStr.replace(/^```(?:json)?\n?/g, "").replace(/\n?```$/g, "").trim());
         if (parsed.product_name && !formState.value.productName) {
           formState.value.productName = parsed.product_name;
         }
@@ -1227,7 +1228,7 @@ const analyzeProductSellingPoints = async () => {
           formState.value.sellingPoints = parsed.selling_points;
         }
       } catch {
-        formState.value.sellingPoints = content;
+        formState.value.sellingPoints = contentStr;
       }
       toast.success("AI分析完成");
     } else {
@@ -1285,18 +1286,19 @@ const generateProductCopy = async () => {
     });
 
     const rawContent = response.data?.choices?.[0]?.message?.content;
-    if (!rawContent) throw new Error("AI生成返回结果为空");
+    const rawContentStr = Array.isArray(rawContent) ? rawContent.find(p => p.type === 'text')?.text ?? '' : (rawContent ?? '');
+    if (!rawContentStr) throw new Error("AI生成返回结果为空");
 
     const generatedCopies: GeneratedCopy[] = [];
     try {
-      const parsed = JSON.parse(rawContent.replace(/^```(?:json)?\n?/g, "").replace(/\n?```$/g, "").trim());
+      const parsed = JSON.parse(rawContentStr.replace(/^```(?:json)?\n?/g, "").replace(/\n?```$/g, "").trim());
       if (Array.isArray(parsed)) {
         generatedCopies.push(...parsed);
       } else if (parsed.title && parsed.content) {
         generatedCopies.push(parsed);
       }
     } catch {
-      generatedCopies.push({ title: formState.value.productName, content: rawContent, tags: "" });
+      generatedCopies.push({ title: formState.value.productName, content: rawContentStr, tags: "" });
     }
 
     if (generatedCopies.length === 0) {

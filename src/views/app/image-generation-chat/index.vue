@@ -330,7 +330,7 @@ const uploadPendingImages = async (): Promise<string[]> => {
   const urls: string[] = [];
   for (const img of pendingImages.value) {
     try {
-      const tokenResp = await UploadAPI.getUploadToken({ file_path: "chat", file_name: img.file.name });
+      const tokenResp = await UploadAPI.getUploadToken({ file_base: "chat", file_name: img.file.name });
       const t = tokenResp.data;
       const form = new FormData();
       form.append("token", t.token);
@@ -352,7 +352,7 @@ const buildHistory = (messages: Message[], excludeId?: string) =>
       role: m.role,
       content: [
         ...(m.uploadedImages?.map((url) => ({ type: "image_url", text: "", image_url: { url } })) ?? []),
-        ...(m.content ? [{ type: "text", text: m.content }] : []),
+        ...(m.content ? [{ type: "text", text: m.content, image_url: undefined }] : []),
       ],
     }));
 
@@ -574,7 +574,7 @@ const confirmRegenerate = async () => {
         : `原始提示词：${originalPrompt}`
       : regeneratePrompt.value;
     if (userText) {
-      history.push({ role: "user", content: [{ type: "text", text: userText, url: "" }] });
+      history.push({ role: "user", content: [{ type: "text", text: userText, image_url: undefined }] });
     }
     const collectedImages: { url: string }[] = [];
     await streamChatMessage(
@@ -605,16 +605,12 @@ const aiWrite = async () => {
   if (!inputText.value.trim() || isAiWriting.value) return;
   isAiWriting.value = true;
   try {
-    const enginesResp = await GenerateAPI.getAvailableEngines({ engine_type: "prompt_rewrite" });
-    const engine = enginesResp.data?.list?.find((e) => e.is_default) || enginesResp.data?.list?.[0];
-    if (!engine) throw new Error("未找到可用的引擎");
-
-    const resp = await GenerateAPI.chatCompletion({
-      engine_id: engine.id,
+    const resp = await AgentAPI.agentRun({
+      agent_name: "copy",
       variables: { prompt: inputText.value },
     });
     const result = resp.data?.choices?.[0]?.message?.content;
-    if (result) inputText.value = result;
+    if (result) inputText.value = result[0].text;
   } catch (e: any) {
     toast.error(e.message || "AI帮写失败");
   } finally {
