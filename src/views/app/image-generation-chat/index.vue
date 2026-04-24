@@ -67,7 +67,7 @@
                 </div>
                 <!-- Text content -->
                 <p v-else-if="msg.content && !msg.generatedImages?.length && !msg.isImageGenerating" class="text-sm whitespace-pre-wrap">
-                  {{ msg.content }}
+                  {{ msg.content }}<span v-if="isSending && msg.id === activeSession?.messages.at(-1)?.id" class="inline-block w-0.5 h-4 bg-current align-middle ml-0.5 animate-blink" />
                 </p>
                 <!-- Generated images grid -->
                 <template v-else-if="msg.generatedImages?.length || msg.isImageGenerating">

@@ -121,6 +121,15 @@
   }
 }
 
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@utility animate-blink {
+  animation: blink 1s step-start infinite;
+}
+
 /* Toast z-index fix */
 [data-sonner-toaster] {
   z-index: 9999 !important;
