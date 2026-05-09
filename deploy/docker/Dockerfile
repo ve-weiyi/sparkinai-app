@@ -11,7 +11,7 @@ COPY package.json ./
 RUN npm install -g pnpm
 
 # 安装依赖（包括开发依赖）
-RUN pnpm install --ignore-scripts=false --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile && pnpm approve-builds
 
 # 复制源代码
 COPY . .
