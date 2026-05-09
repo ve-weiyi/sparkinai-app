@@ -8,10 +8,10 @@ WORKDIR /app
 COPY package.json ./
 
 # 安装 pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@8.15.9
 
 # 安装依赖（包括开发依赖）
-RUN pnpm install --no-frozen-lockfile && pnpm approve-builds
+RUN pnpm install
 
 # 复制源代码
 COPY . .
