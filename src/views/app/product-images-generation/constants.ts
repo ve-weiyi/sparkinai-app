@@ -18,12 +18,12 @@ export const PLATFORM_LABELS: Record<string, string> = {
 
 // 风格选项
 export const STYLE_OPTIONS = [
-  { value: "极简留白", label: "极简留白" },
-  { value: "真实评测", label: "真实评测" },
-  { value: "美式波普", label: "美式波普" },
-  { value: "沉浸体验", label: "沉浸体验" },
-  { value: "国潮复古", label: "国潮复古" },
-  { value: "清新自然", label: "清新自然" },
+  { value: "minimal_clean", label: "极简留白" },
+  { value: "lifestyle_review", label: "真实评测" },
+  { value: "pop_art", label: "美式波普" },
+  { value: "immersive", label: "沉浸体验" },
+  { value: "chinese_vintage", label: "国潮复古" },
+  { value: "fresh_natural", label: "清新自然" },
 ];
 
 // 分辨率选项

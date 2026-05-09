@@ -16,6 +16,14 @@ export interface GeneratedCopy {
   title: string;
   content: string;
   tags: string;
+  comment_guide?: string;
+}
+
+export interface VisualStyleOption {
+  name: string;                // 风格名称（用于显示）
+  key: string;                 // 风格唯一标识（用于传给后端）
+  description: string;         // 风格视觉描述
+  reason: string;              // 推荐理由
 }
 
 export interface GeneratedImage {
@@ -41,10 +49,12 @@ export interface GenerationTask {
   productName: string;
   images: PreviewImage[];
   style: string;
+  styleKey: string;             // 选中的风格key（用于传给后端image_set/reimagine模块）
   resolution: string;
   ratio: string;
   generatedCopies: GeneratedCopy[];
   imageTypes: ImageTypeOption[];
   generatedImages?: GeneratedImage[];
   isGeneratingImages?: boolean;
+  visualStyleOptions?: VisualStyleOption[];  // 从copy模块获取的视觉风格选项
 }

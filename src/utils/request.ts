@@ -16,7 +16,7 @@ const HeaderAuthorization = "Authorization";
 
 const axiosInstance = axios.create({
   baseURL: "",
-  timeout: 120000,
+  timeout: 300000,
   withCredentials: false, // 禁用 Cookie
   // 请求头
   headers: {

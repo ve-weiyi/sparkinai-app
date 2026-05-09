@@ -162,25 +162,51 @@
                     <div class="space-y-2">
                       <div class="flex items-center justify-between">
                         <Label class="text-sm">产品卖点</Label>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          class="gap-1 text-xs text-primary hover:text-primary"
-                          :disabled="
-                            (uploadedImages.length === 0 && !formState.productName) ||
-                            isAnalyzingSellingPoints ||
-                            uploadedImages.some((img) => !img.uploaded)
-                          "
-                          @click="analyzeProductSellingPoints"
-                        >
-                          <Sparkles
-                            class="h-3 w-3"
-                            :class="{ 'animate-spin': isAnalyzingSellingPoints }"
-                          />
-                          {{ isAnalyzingSellingPoints ? "AI分析中..." : "AI生成" }}
-                        </Button>
+                        <div class="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            class="gap-1 text-xs hover:text-primary"
+                            :class="showSellingPointsPreview ? 'text-muted-foreground' : 'text-primary'"
+                            @click="showSellingPointsPreview = !showSellingPointsPreview"
+                          >
+                            <Edit v-if="showSellingPointsPreview" class="h-3 w-3" />
+                            <Eye v-else class="h-3 w-3" />
+                            {{ showSellingPointsPreview ? '编辑' : '预览' }}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            class="gap-1 text-xs text-primary hover:text-primary"
+                            :disabled="
+                              (uploadedImages.length === 0 && !formState.productName) ||
+                              isAnalyzingSellingPoints ||
+                              uploadedImages.some((img) => !img.uploaded)
+                            "
+                            @click="analyzeProductSellingPoints"
+                          >
+                            <Sparkles
+                              class="h-3 w-3"
+                              :class="{ 'animate-spin': isAnalyzingSellingPoints }"
+                            />
+                            {{ isAnalyzingSellingPoints ? "AI分析中..." : "AI生成" }}
+                          </Button>
+                        </div>
                       </div>
+                      <!-- 预览模式（默认显示） -->
+                      <div v-if="showSellingPointsPreview" class="space-y-2">
+                        <div
+                          v-if="formState.sellingPoints"
+                          class="rounded-xl p-4 text-sm leading-relaxed bg-muted/50"
+                          v-html="renderMarkdown(formState.sellingPoints)"
+                        />
+                        <div v-else class="rounded-xl p-4 text-sm text-muted-foreground bg-muted/50">
+                          暂无产品卖点，请点击右侧「AI生成」按钮或切换到编辑模式手动输入
+                        </div>
+                      </div>
+                      <!-- 编辑模式 -->
                       <Textarea
+                        v-else
                         v-model="formState.sellingPoints"
                         class="resize-none rounded-xl text-sm"
                         rows="5"
@@ -488,15 +514,17 @@
 
                         <!-- Settings -->
                         <div class="flex items-end gap-3">
-                          <div class="space-y-1">
+                          <div class="space-y-1 w-36">
                             <div class="text-xs text-muted-foreground">风格选择</div>
-                            <Select v-model="currentTask.style">
+                            <Select v-model="currentTask.styleKey">
                               <SelectTrigger class="h-9 text-sm">
-                                <SelectValue />
+                                <SelectValue :as-child="true">
+                                  <span>{{ currentTask.visualStyleOptions?.find(o => o.key === currentTask.styleKey)?.name || currentTask.styleKey }}</span>
+                                </SelectValue>
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem
-                                  v-for="option in STYLE_OPTIONS"
+                                  v-for="option in dynamicStyleOptions"
                                   :key="option.value"
                                   :value="option.value"
                                 >
@@ -874,9 +902,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { toast } from "vue-sonner";
+import { useProductImagesStore } from "@/stores/productImages";
 import {
   Package,
   Sparkles,
@@ -924,8 +953,10 @@ import {
   ERROR_MESSAGES,
 } from "./constants";
 import { UploadAPI } from "@/api/upload";
-import type { GeneratedCopy, GenerationTask, UploadedImage } from "./types";
+import type { GeneratedCopy, GenerationTask, UploadedImage, VisualStyleOption } from "./types";
 import { AgentAPI } from "@/api";
+
+const store = useProductImagesStore();
 
 const activeTab = ref("general");
 const uploadedImages = ref<UploadedImage[]>([]);
@@ -945,6 +976,50 @@ const showRegenerateDialog = ref(false);
 const regenerationPrompt = ref("");
 const regenerationImageIndex = ref<number | null>(null);
 const regenerationTask = ref<GenerationTask | null>(null);
+const showSellingPointsPreview = ref(true);
+
+// 保存分析结果供后续模块使用
+const analysisResult = ref<{ product_name: string; selling_points: string } | null>(null);
+
+// Markdown 简单渲染（支持标题、列表、粗体）
+const renderMarkdown = (text: string): string => {
+  let html = text;
+
+  // 处理标题
+  html = html.replace(/^### (.+)$/gm, '<h3 class="font-semibold text-foreground mt-3 mb-1">$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2 class="font-semibold text-lg text-foreground mt-4 mb-2">$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1 class="font-bold text-xl text-foreground mt-5 mb-3">$1</h1>');
+
+  // 处理粗体
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>');
+  html = html.replace(/__(.+?)__/g, '<strong class="font-semibold">$1</strong>');
+
+  // 处理无序列表
+  html = html.replace(/^[-*+] (.+)$/gm, '<li class="ml-4 text-muted-foreground">• $1</li>');
+
+  // 处理有序列表
+  html = html.replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 text-muted-foreground">$1. $2</li>');
+
+  // 处理换行
+  html = html.replace(/\n/g, '<br>');
+
+  // 包装列表项
+  html = html.replace(/(<li [^>]+>[\s\S]*?<\/li>)/g, '<ul class="space-y-1 mt-1 mb-2">$1</ul>');
+  html = html.replace(/<\/ul>\s*<ul>/g, '');
+
+  return html;
+};
+
+// 动态风格选项（优先使用AI推荐的，否则使用默认）
+const dynamicStyleOptions = computed(() => {
+  if (currentTask.value?.visualStyleOptions && currentTask.value.visualStyleOptions.length > 0) {
+    return currentTask.value.visualStyleOptions.map((option) => ({
+      value: option.key,
+      label: option.name,
+    }));
+  }
+  return STYLE_OPTIONS;
+});
 
 const currentTaskTags = computed(() => {
   if (!currentTask.value) return [];
@@ -1221,6 +1296,13 @@ const analyzeProductSellingPoints = async () => {
     if (contentStr) {
       try {
         const parsed = JSON.parse(contentStr.replace(/^```(?:json)?\n?/g, "").replace(/\n?```$/g, "").trim());
+        // 保存分析结果供后续模块使用
+        if (parsed.product_name || parsed.selling_points) {
+          analysisResult.value = {
+            product_name: parsed.product_name || formState.value.productName,
+            selling_points: parsed.selling_points || "",
+          };
+        }
         if (parsed.product_name && !formState.value.productName) {
           formState.value.productName = parsed.product_name;
         }
@@ -1229,6 +1311,11 @@ const analyzeProductSellingPoints = async () => {
         }
       } catch {
         formState.value.sellingPoints = contentStr;
+        // 如果解析失败，使用当前表单数据作为分析结果
+        analysisResult.value = {
+          product_name: formState.value.productName,
+          selling_points: contentStr,
+        };
       }
       toast.success("AI分析完成");
     } else {
@@ -1290,11 +1377,32 @@ const generateProductCopy = async () => {
     if (!rawContentStr) throw new Error("AI生成返回结果为空");
 
     const generatedCopies: GeneratedCopy[] = [];
+    let visualStyleOptions: VisualStyleOption[] = [];
+
     try {
-      const parsed = JSON.parse(rawContentStr.replace(/^```(?:json)?\n?/g, "").replace(/\n?```$/g, "").trim());
-      if (Array.isArray(parsed)) {
+      const cleanedStr = rawContentStr.replace(/^```(?:json)?\n?/g, "").replace(/\n?```$/g, "").trim();
+      const parsed = JSON.parse(cleanedStr);
+
+      // 新格式：{ "visual_style_options": [...], "copies": [...] }
+      if (parsed.copies && Array.isArray(parsed.copies)) {
+        generatedCopies.push(...parsed.copies);
+
+        // 解析视觉风格选项（直接使用后端返回的key，不再前端生成）
+        if (parsed.visual_style_options && Array.isArray(parsed.visual_style_options)) {
+          visualStyleOptions = parsed.visual_style_options.map((option: any) => ({
+            name: option.name,
+            key: option.key || `style_${Date.now()}`, // 直接使用后端返回的key
+            description: option.description,
+            reason: option.reason,
+          }));
+        }
+      }
+      // 旧格式：直接是文案数组
+      else if (Array.isArray(parsed)) {
         generatedCopies.push(...parsed);
-      } else if (parsed.title && parsed.content) {
+      }
+      // 单个文案对象
+      else if (parsed.title && parsed.content) {
         generatedCopies.push(parsed);
       }
     } catch {
@@ -1305,6 +1413,9 @@ const generateProductCopy = async () => {
       throw new Error("未能解析出有效的文案");
     }
 
+    // 默认选中第一个风格（如果有），否则使用默认风格
+    const defaultStyle = visualStyleOptions[0] || { name: "极简留白", key: "minimal" };
+
     // 创建任务数据
     const task: GenerationTask = {
       id: Date.now(),
@@ -1312,13 +1423,15 @@ const generateProductCopy = async () => {
       platform: formState.value.platform,
       productName: formState.value.productName,
       images: uploadedImages.value.map((img) => ({ preview: img.preview })),
-      style: "极简留白",
+      style: defaultStyle.name,
+      styleKey: defaultStyle.key,
       resolution: "2K",
       ratio: "1:1",
       generatedCopies: generatedCopies,
       imageTypes: [],
       isGeneratingImages: false,
       generatedImages: [], // 文案生成阶段还没有图片
+      visualStyleOptions: visualStyleOptions, // 保存视觉风格选项
     };
 
     selectedCopyIndex.value = 0;
@@ -1359,6 +1472,10 @@ const generateImageSet = async (task: GenerationTask) => {
     const mainImage = uploadedImages.value[mainImageIndex.value];
     const imageUrl = mainImage?.fileInfo?.fileUrl || "";
 
+    // 根据选中的风格获取对应的视觉特征描述
+    const selectedStyleOption = task.visualStyleOptions?.find(option => option.key === task.styleKey);
+    const visualFeatures = selectedStyleOption?.description || analysisResult.value?.selling_points || formState.value.sellingPoints;
+
     const response = await AgentAPI.agentRun({
       agent_name: "image_set",
       variables: {
@@ -1366,10 +1483,12 @@ const generateImageSet = async (task: GenerationTask) => {
         title: selectedCopy.title,
         content: selectedCopy.content,
         image_url: imageUrl,
-        style: task.style,
+        style: task.styleKey, // 使用styleKey传给后端
         resolution: task.resolution,
         ratio: task.ratio,
-        count: 3,
+        count: 6,
+        // 传递视觉特征（优先使用选中风格的description）
+        visual_features: visualFeatures,
       },
     });
 
@@ -1412,8 +1531,10 @@ const regenerateSingleImage = async () => {
       variables: {
         image_url: imageUrl,
         custom_prompt: regenerationPrompt.value,
-        style: task.style,
+        style: task.styleKey, // 使用styleKey传给后端
         ratio: task.ratio,
+        // 传递视觉特征（从分析结果中提取）
+        visual_features: analysisResult.value?.selling_points || formState.value.sellingPoints,
       },
     });
 
@@ -1434,8 +1555,52 @@ const regenerateSingleImage = async () => {
 
 const route = useRoute();
 
+// 监听表单数据变化，自动保存到缓存
+watch(
+  () => ({
+    productName: formState.value.productName,
+    sellingPoints: formState.value.sellingPoints,
+    platform: formState.value.platform,
+    quantity: formState.value.quantity,
+  }),
+  (newVal) => {
+    store.saveFormData(newVal);
+  },
+  { deep: true }
+);
+
+// 监听图片变化，自动保存到缓存
+watch(
+  [uploadedImages, mainImageIndex],
+  ([newImages, newMainIndex]) => {
+    store.saveUploadedImages(newImages, newMainIndex);
+  },
+  { deep: true }
+);
+
+// 监听分析结果变化
+watch(analysisResult, (newVal) => {
+  if (newVal) {
+    store.saveAnalysisResult(newVal);
+  }
+});
+
+// 监听当前任务变化
+watch(currentTask, (newVal) => {
+  if (newVal) {
+    store.saveCurrentTask(newVal);
+  }
+});
+
+// 监听选中文案索引变化
+watch(selectedCopyIndex, (newVal) => {
+  store.saveSelectedCopyIndex(newVal);
+});
+
 onMounted(() => {
   const { imageUrls, productName } = route.query;
+
+  // 如果有 URL 参数，优先使用参数（新会话）
   if (productName) formState.value.productName = productName as string;
   if (imageUrls) {
     const urls = Array.isArray(imageUrls) ? imageUrls : [imageUrls];
@@ -1449,13 +1614,44 @@ onMounted(() => {
     });
     mainImageIndex.value = 0;
     analyzeProductSellingPoints();
+  } else if (store.hasValidCache && store.hasData) {
+    // 否则恢复缓存数据
+    const cache = store.cache;
+    formState.value.productName = cache.productName;
+    formState.value.sellingPoints = cache.sellingPoints;
+    formState.value.platform = cache.platform;
+    formState.value.quantity = cache.quantity;
+    uploadedImages.value = cache.uploadedImages;
+    mainImageIndex.value = cache.mainImageIndex;
+    analysisResult.value = cache.analysisResult;
+    currentTask.value = cache.currentTask;
+    selectedCopyIndex.value = cache.selectedCopyIndex;
   }
 });
 
-// 组件卸载时清理 URL
+// 组件卸载时保存数据并清理 URL
 onUnmounted(() => {
+  // 保存当前状态到缓存
+  store.saveFormData({
+    productName: formState.value.productName,
+    sellingPoints: formState.value.sellingPoints,
+    platform: formState.value.platform,
+    quantity: formState.value.quantity,
+  });
+  store.saveUploadedImages(uploadedImages.value, mainImageIndex.value);
+  if (analysisResult.value) {
+    store.saveAnalysisResult(analysisResult.value);
+  }
+  if (currentTask.value) {
+    store.saveCurrentTask(currentTask.value);
+  }
+  store.saveSelectedCopyIndex(selectedCopyIndex.value);
+
+  // 清理 URL
   uploadedImages.value.forEach((img) => {
-    URL.revokeObjectURL(img.preview);
+    if (img.preview && !img.uploaded) {
+      URL.revokeObjectURL(img.preview);
+    }
   });
 });
 </script>
