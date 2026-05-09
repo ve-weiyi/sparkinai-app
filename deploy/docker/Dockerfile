@@ -4,6 +4,8 @@ FROM node:22-alpine AS build-stage
 # 设置工作目录
 WORKDIR /app
 
+ENV PNPM_NO_APPROVE_BUILDS=true
+
 # 复制 package.json
 COPY package.json ./
 
@@ -11,7 +13,7 @@ COPY package.json ./
 RUN npm install -g pnpm
 
 # 安装依赖（包括开发依赖）
-RUN pnpm install --no-ignore-scripts
+RUN pnpm install
 
 # 复制源代码
 COPY . .
